@@ -33,10 +33,11 @@ else:
     args = parser.parse_args()
     args = args.__dict__
 
-port = args['port']
+port = int(args['port'])
 phone = args['phone']
 password = args['password']
 ContributerMessage = args['messsage']
+
 # 解析输入命令
 NCM = NeteaseCloudMusic(simple_logger)
 NCM.UpdateLoginInfo(phone,password)
