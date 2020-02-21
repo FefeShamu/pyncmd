@@ -1,45 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap - Prebuilt Layout</title>
 
-    <!-- Bootstrap -->
-    <link href="../css/bootstrap-4.3.1.css" rel="stylesheet">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bootstrap - Prebuilt Layout</title>
 
-  </head>
-  <body>
-<div class="container" id="notifyfeed"></div>
-<div class="row">
-  <div class="col-md-1 col-xl-2 offset-xl-1"><img id="cover" style="margin-top: 10px" src="../images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败"></div>
-  <div class="col-md-1 col-xl-8">
-    <div class="card col-md-4 col-xl-12" style="margin-top: 20px">
-      <div class="card-body">
-        <h5 class="card-title" id="title">音乐标题</h5>
-        <h6 class="card-subtitle mb-2 text-muted" id="album">音乐专辑</h6>
-        <p class="card-text" id="info">音乐信息</p>
-		<audio id="player" src="" style="width:100%" controls></audio>
-		</br><a href="#" class="card-link" id="download" download>下载</a> </div>
+  <!-- Bootstrap -->
+  <link href="../css/bootstrap-4.3.1.css" rel="stylesheet">
+
+</head>
+
+<body>
+  <div class="container" id="notifyfeed"></div>
+  <div class="row">
+    <div class="col-md-1 col-xl-2 offset-xl-1"><img id="cover" style="margin-top: 10px"
+        src="../images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败"></div>
+    <div class="col-md-1 col-xl-8">
+      <div class="card col-md-4 col-xl-12" style="margin-top: 20px">
+        <div class="card-body">
+          <h5 class="card-title" id="title">音乐标题</h5>
+          <h6 class="card-subtitle mb-2 text-muted" id="album">音乐专辑</h6>
+          <p class="card-text" id="info">音乐信息</p>
+          <audio id="player" src="" style="width:100%" controls></audio>
+          </br><a href="#" class="card-link" id="download" download>下载</a>
+        </div>
+      </div>
+      &nbsp;
     </div>
-  &nbsp;
-	</div>
-  
-</div>
-<div class="container">
-  <div class="input-group mb-3">
-    <div class="input-group-prepend"> </div>
-    <input type="text" class="form-control" id="shareinput" placeholder="输入网易云音乐分享链接" style="margin-right:10px " aria-describedby="basicaddon1">
-    <button type="button" class="btn btn-primary" id="action">加载</button>
+
   </div>
-</div>
-<!-- Core.js 核心部分 -->
+  <div class="container">
+    <div class="input-group mb-3">
+      <div class="input-group-prepend"> </div>
+      <input type="text" class="form-control" id="shareinput" placeholder="输入网易云音乐分享链接" style="margin-right:10px "
+        aria-describedby="basicaddon1">
+      <button type="button" class="btn btn-primary" id="action">加载</button>
+    </div>
+  </div>
+  <!-- Core.js 核心部分 -->
   <script src="../js/core.js"></script>
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) --> 
-    <script src="../js/jquery-3.3.1.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed --> 
-    <script src="../js/popper.min.js"></script>
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+  <script src="../js/jquery-3.3.1.min.js"></script>
+  <!-- Include all compiled plugins (below), or include individual files as needed -->
+  <script src="../js/popper.min.js"></script>
   <script src="../js/bootstrap-4.3.1.js"></script>
-  </body>
+</body>
+
 </html>
