@@ -26,7 +26,7 @@ parser = argparse.ArgumentParser(description='PyNCM Web Server')
 parser.add_argument('phone',metavar='PHONE',help='Phone number to your account')
 parser.add_argument('password', metavar='PASSWORD',help='Password to your account')
 parser.add_argument('--port', metavar='PORT',help='Port to be listened on',default='3301')
-parser.add_argument('--messsage', metavar='MSG',help='Custom message to be displayed',default='You guys are awsome👍')
+parser.add_argument('--message', metavar='MSG',help='Custom message to be displayed',default='You guys are awsome👍')
 if len(sys.argv) < 2:
     parser.print_help()
     sys.exit(2)
@@ -37,7 +37,7 @@ else:
 port = int(args['port'])
 phone = args['phone']
 password = args['password']
-ContributerMessage = args['messsage']
+ContributerMessage = args['message']
 
 # 解析输入命令
 NCM = NeteaseCloudMusic(simple_logger)
