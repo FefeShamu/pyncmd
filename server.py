@@ -19,6 +19,7 @@ import os
 from ncm.strings import strings, simple_logger
 from ncm.ncm_core import NeteaseCloudMusic
 from http import HTTPStatus
+from threading import Timer
 root = ''
 
 parser = argparse.ArgumentParser(description='PyNCM Web Server')
@@ -40,7 +41,13 @@ ContributerMessage = args['messsage']
 
 # 解析输入命令
 NCM = NeteaseCloudMusic(simple_logger)
-NCM.UpdateLoginInfo(phone,password)
+LoginTimeout = 600
+# 给的 keep-alive 时间是 1200 秒，这里取一半
+def LoginLooper():
+    simple_logger('[W] Automaticly Updating Login Info!')
+    NCM.UpdateLoginInfo(phone,password)
+    Timer(LoginTimeout,LoginLooper).start()
+LoginLooper()
 
 class Server(http.server.ThreadingHTTPServer):
 
