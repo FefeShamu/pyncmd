@@ -42,10 +42,18 @@ ContributerMessage = args['messsage']
 # 解析输入命令
 NCM = NeteaseCloudMusic(simple_logger)
 LoginTimeout = 600
-# 给的 keep-alive 时间是 1200 秒，这里取一半
+# 给的 keep-alive 时间是 1200 秒，这里会在 0~1200 秒内动态变化
 def LoginLooper():
     simple_logger('[W] Automaticly Updating Login Info!')
-    NCM.UpdateLoginInfo(phone,password)
+    result = NCM.UpdateLoginInfo(phone,password)['content']['code']
+    if result != 200:
+        # 登录出现问题
+        print('\n\n',result['content']['msg'],'\n\n')
+        LoginTimeout = 10
+        # 10s 后重试
+    else:
+        LoginTimeout = 600
+        # 登陆正常，600s 刷新一次
     Timer(LoginTimeout,LoginLooper).start()
 LoginLooper()
 
