@@ -24,6 +24,7 @@ root = ''
 parser = argparse.ArgumentParser(description='PyNCM Web Server')
 parser.add_argument('phone',metavar='PHONE',help='Phone number to your account')
 parser.add_argument('password', metavar='PASSWORD',help='Password to your account')
+parser.add_argument('--port', metavar='PORT',help='Port to be listened on',default='3301')
 parser.add_argument('--messsage', metavar='MSG',help='Custom message to be displayed',default='You guys are awsome👍')
 if len(sys.argv) < 2:
     parser.print_help()
@@ -32,6 +33,7 @@ else:
     args = parser.parse_args()
     args = args.__dict__
 
+port = args['port']
 phone = args['phone']
 password = args['password']
 ContributerMessage = args['messsage']
@@ -179,8 +181,8 @@ class Server(http.server.ThreadingHTTPServer):
         super().__init__(server_address, lambda request, client_address,
                          server: Handler(request, client_address, server, self.callback))
 
-server = Server(('', 8848))
 
+server = Server(('', port))
 
 def _(caller):
     # 首页
