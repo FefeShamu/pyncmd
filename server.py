@@ -21,7 +21,7 @@ from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from http import HTTPStatus
 from threading import Timer
 root = ''
-
+# Set root working driectory,modifiy if needed
 parser = argparse.ArgumentParser(description='PyNCM Web Server')
 parser.add_argument('phone',metavar='PHONE',help='Phone number to your account')
 parser.add_argument('password', metavar='PASSWORD',help='Password to your account')
@@ -38,31 +38,81 @@ port = int(args['port'])
 phone = args['phone']
 password = args['password']
 ContributerMessage = args['message']
-
-# 解析输入命令
+# Parsing argumnets
 NCM = NeteaseCloudMusic(simple_logger)
 LoginTimeout = 600
-# 给的 keep-alive 时间是 1200 秒，这里会在 0~1200 秒内动态变化
+# CSRF Token will expire in 1200s,we perform a normal re-login every 600s(5 mins)
 def LoginLooper():
     simple_logger('[W] Automaticly Updating Login Info!')
     result = NCM.UpdateLoginInfo(phone,password)['content']['code']
     if result != 200:
-        # 登录出现问题
-        print('\n\n',result['content']['msg'],'\n\n')
+        # Exceptions Might be:
+        #   ip高频 (Anti-Scraper)
+        #   出现错误 (Usually,wrong username or password)
+        simple_logger('\n\n',result['content']['msg'],'\n\n')
         LoginTimeout = 10
-        # 10s 后重试
+        # Retry after 10s if an exception has been risen
     else:
         LoginTimeout = 600
-        # 登陆正常，600s 刷新一次
+        # Re-login after 5 mins if succeed
     Timer(LoginTimeout,LoginLooper).start()
 LoginLooper()
 
-class Server(http.server.ThreadingHTTPServer):
+class Handler(http.server.BaseHTTPRequestHandler):
+    '''
+    HTTP Handler,added callback funtionality
+        reqeust         :       requst socket
+        client_address  :       Client address
+        server          :       server socket
+        callback        :       request events
+    '''
+    def __init__(self, request, client_address, server, callback=None):
+        self.callback = callback
+        super().__init__(
+            request, client_address, server)
 
+    def handle_one_request(self):
+        """Handle a single HTTP request.
+
+        You normally don't need to override this method; see the class
+        __doc__ string for information on how to handle specific HTTP
+        commands such as GET and POST.
+        """
+        try:
+            self.raw_requestline = self.rfile.readline(65537)
+            if len(self.raw_requestline) > 65536:
+                self.requestline = ''
+                self.request_version = ''
+                self.command = ''
+                self.send_error(HTTPStatus.REQUEST_URI_TOO_LONG)
+                return
+            if not self.raw_requestline:
+                self.close_connection = True
+                return
+            if not self.parse_request():
+                # An error code has been sent, just exit
+                return
+            self.callback({'type': self.command, 'args': self})
+            # actually send the response if not already done.
+            self.wfile.flush()
+        except socket.timeout as e:
+            # a read or a write timed out.  Discard this connection
+            self.log_error("Request timed out: %r", e)
+            self.close_connection = True
+            return
+
+
+class Server(http.server.ThreadingHTTPServer):
+    '''
+        Threading HTTP Server contating NE's api,exposed by PyNCM
+            server_address  :   Tuplet(ip,addr)
+    '''
     def write_file(self, caller, path='.', content_type='application/octet-stream'):
         '''
-        @description: 发送文件
-        @param caller:HTTPHandler path:文件路径
+        Send a file in sparse
+            caller      :    A 'Handler' object
+            path        :    File path
+            content_type:    The 'Content-Type' Header
         '''
         sent, size = 0, os.path.getsize(path)
         # Visualize the progress
@@ -82,8 +132,11 @@ class Server(http.server.ThreadingHTTPServer):
 
     def write_page(self, caller, page, html_headers=True, end_headers=True):
         '''
-        @description: 发送HTML页面
-        @param caller:HTTPHandler page:页面路径 html_handlers:是否发送指定HTML的回复头 end_headers:是否结束回复头
+        Send a html page
+            caller      :    A 'Handler' object
+            page        :    Page's file path
+            html_headers:    Do send 'Content-type' headers
+            end_headers :    Apply Handler.end_headers()
         '''
         if html_headers:
             caller.send_header('Content-type', 'text/html;charset=utf-8/html')
@@ -100,8 +153,11 @@ class Server(http.server.ThreadingHTTPServer):
 
     def write_string(self, caller, string, html_headers=False, end_headers=True):
         '''
-        @description: 发送字符串
-        @param caller:HTTPHandler string:发送内容 html_handlers:是否发送指定HTML的回复头 end_headers:是否结束回复头
+        Send a html page
+            caller      :    A 'Handler' object
+            string      :    Content to be sent
+            html_headers:    Do send 'Content-type' headers
+            end_headers :    Apply Handler.end_headers()
         '''
         if html_headers:
             caller.send_header('Content-type', 'text/html;charset=utf-8/html')
@@ -118,21 +174,23 @@ class Server(http.server.ThreadingHTTPServer):
         return self.METHOD(caller)
 
     def METHOD(self, caller):
+        '''
+            Process all methods.GET,POST,OPTIONS,etc
+        '''
         path = caller.path.replace('/', '_')
-        # 所有 / 字符将以 _ 字符反射
-        # 根目录 (/) 反射即 def _(self,caller):...
+        # repalce '/' with '_' since it's illegal to use '/' inside a function name
         if hasattr(self, path):
-            # 处理函数反射
+            # Reflect funtion if exsists
             getattr(self, path)(caller)
         else:
-            # 处理目录反射
+            # Try to send files if cannot reflect the funtion
             path = root + caller.path[1:]
-            # 删掉根目录索引
-            simple_logger('Requesting:', path)
+            # Removes '/'
             if os.path.exists(path):
                 if os.path.isdir(path):
                     caller.send_response(403)
                     self.write_page(caller, 'static/403.html')
+                    # Restrict directory access
                 else:
                     caller.send_response(200)
                     content_type = 'application/octet-stream'
@@ -141,59 +199,23 @@ class Server(http.server.ThreadingHTTPServer):
                     if 'js' in path:
                         content_type = 'text/javascript'
                     if 'html' in path:
-                        content_type = 'text/html;charset=utf-8/html'
+                        content_type = 'text/html;charset=utf-8/html'                    
                     self.write_file(caller, path, content_type)
             else:
                 caller.send_response(404)
                 self.write_page(caller, 'static/404.html')
                 caller.end_headers()
+                # Page not found
         return
 
     def callback(self, kwargs):
         if hasattr(self, kwargs['type']):
             getattr(self, kwargs['type'])(kwargs['args'])
         else:
-            simple_logger('cannot reflect function',
+            simple_logger('Cannot reflect function',
                           kwargs['type'], 'with argument', kwargs['args'])
 
     def __init__(self, server_address):
-        class Handler(http.server.BaseHTTPRequestHandler):
-            # 继承类：继承了 BaseHTTPRequestHandler，增加回调功能
-            def __init__(self, request, client_address, server, callback=None):
-                self.callback = callback
-                super().__init__(
-                    request, client_address, server)
-
-            def handle_one_request(self):
-                """Handle a single HTTP request.
-
-                You normally don't need to override this method; see the class
-                __doc__ string for information on how to handle specific HTTP
-                commands such as GET and POST.
-                """
-                try:
-                    self.raw_requestline = self.rfile.readline(65537)
-                    if len(self.raw_requestline) > 65536:
-                        self.requestline = ''
-                        self.request_version = ''
-                        self.command = ''
-                        self.send_error(HTTPStatus.REQUEST_URI_TOO_LONG)
-                        return
-                    if not self.raw_requestline:
-                        self.close_connection = True
-                        return
-                    if not self.parse_request():
-                        # An error code has been sent, just exit
-                        return
-                    self.callback({'type': self.command, 'args': self})
-                    # actually send the response if not already done.
-                    self.wfile.flush()
-                except socket.timeout as e:
-                    # a read or a write timed out.  Discard this connection
-                    self.log_error("Request timed out: %r", e)
-                    self.close_connection = True
-                    return
-
         super().__init__(server_address, lambda request, client_address,
                          server: Handler(request, client_address, server, self.callback))
 
@@ -201,25 +223,28 @@ class Server(http.server.ThreadingHTTPServer):
 server = Server(('', port))
 
 def _(caller):
-    # 首页
+    # /
+    # Index page
     caller.send_response(200)
     server.write_page(caller, 'static/index.html')
 
 counts = 0
 def _api_song(caller):
-    # 读取数据
+    # /api/song
+    # Utilizing PyNCM to load music info
+    # With given music ID
     global counts
     content_length = caller.headers.get('content-length')
     content = caller.rfile.read(int(content_length)).decode(
         'utf-8') if content_length else None
-    # 开始解析
+    # load content
     try:
         content = json.loads(content)
         SONG = NCM.GetSongInfo(content['id'])
-        if not SONG:
+        if not SONG:            
             raise Exception('加载歌曲(id:%s)失败，请检查链接是否正确' % content['id'])
         else:
-            # 解析成功
+            # Sucessfuly loaded info
             EXTRA = NCM.GetExtraSongInfo(content['id'])
             caller.send_response(200)
             server.write_string(caller, json.dumps(
@@ -229,15 +254,17 @@ def _api_song(caller):
                     "contributer": NCM.login_info['content']['profile']['nickname'],
                     "contributer_message": ContributerMessage,
                     "counts":counts,
-                    "message": "Success!"
+                    "message": "Success",
+                    "attention_hackerz":"you're free to use this api,but pleases do not abuse or spread it\nthis project is open-source:github.com/greats3an/pyncmd"
                 }, ensure_ascii=False, indent=4))
+                # cheecky message ( ͡° ͜ʖ ͡°)
     except Exception as e:
-        # 解析失败
+        # failed!
         caller.send_response(500)
         server.write_string(caller, '{"message":"出现错误：%s"}' % e)
     counts += 1
-    simple_logger('处理请求完毕，第 %s 次，ID: %s' %
-                  (counts, content['id'] if content else '无效'))
+    simple_logger('Processed request.Total times:%s , ID: %s' %
+                  (counts, content['id'] if content else 'INVALID'))
 
 
 # 根目录索引
