@@ -44,8 +44,8 @@ LoginTimeout = 600
 # CSRF Token will expire in 1200s,we perform a normal re-login every 600s(5 mins)
 def LoginLooper():
     simple_logger('[W] Automaticly Updating Login Info!')
-    result = NCM.UpdateLoginInfo(phone,password)['content']['code']
-    if result != 200:
+    result = NCM.UpdateLoginInfo(phone,password)
+    if not 'content' in result.keys():
         # Exceptions Might be:
         #   ip高频   (Anti-Scraper)
         #   出现错误 (Usually,wrong username or password)
