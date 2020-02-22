@@ -229,7 +229,7 @@ def _(caller):
     # /
     # Index page
     caller.send_response(200)
-    server.write_page(caller, 'static/index.html')
+    server.write_page(caller, 'index.html')
 
 counts = 0
 def _api_song(caller):
