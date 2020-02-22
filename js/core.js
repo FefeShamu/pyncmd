@@ -1,5 +1,5 @@
 /*
-    Core.js：前端交互逻辑
+    Core.js：Front-End Interface logic
 */
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
@@ -32,7 +32,6 @@ function getAPI(api) {
 }
 
 function getSongInfo(id) {
-    // 获取音乐信息
     msg = JSON.stringify({ "id": id })
     var r = new XMLHttpRequest();
     api = getAPI('song')
@@ -52,13 +51,15 @@ function getSongInfo(id) {
     r.send(msg);
 }
 function callback(info, r) {
+    // called once XHR finishes
+    // writes music info to the page,re-enable the action button
     action.disabled = false
     if (r.status != 200) { notify(info['message'], 'danger'); return }
     console.log(info)
     if (info['cover'] != []) cover.src = info['cover']
     title.innerHTML = info['title']
     album.innerHTML = info['album']
-    infocontext.innerHTML = '<a>音乐家：' + info['author'] + '</a></br>'
+    infocontext.innerHTML =  '<a>音乐家：' + info['author'] + '</a></br>'
     infocontext.innerHTML += '<a>格式：' + info['data'][0]['type'] + '</a></br>'
     infocontext.innerHTML += '<a>文件大小：' + getFileSize(info['data'][0]['size']) + '</a></br></br>'
     infocontext.innerHTML += '<a style="font-size:small;opacity:0.5" href="https://music.163.com/#/song?id=' + info['data'][0]['id'] + '">网易云歌曲链接' + '</a></br>'
@@ -74,16 +75,18 @@ function callback(info, r) {
 
 const id_regex = /\d{5,}/gm
 function action_onclick() {
+    // action button click event
+    // once clicked,the button will become disabled until the XHR is finished
     sharelink = shareinput.value
     if (!sharelink || sharelink.indexOf('playlist') != -1) notify("请输入<strong>歌曲</strong>链接", "danger")
-    // 开始获取信息	
     id = id_regex.exec(sharelink)[0]
+    // extract ID using regex
     getSongInfo(id)
     action.disabled = true
 }
 
 function getFileSize(fileByte) {
-    // https://blog.csdn.net/silence_hgt/article/details/80943900
+    // snippet from:https://blog.csdn.net/silence_hgt/article/details/80943900
     var fileSizeByte = fileByte;
     var fileSizeMsg = "";
     if (fileSizeByte < 1048576) fileSizeMsg = (fileSizeByte / 1024).toFixed(2) + "KB";

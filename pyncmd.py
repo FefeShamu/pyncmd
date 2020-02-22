@@ -145,9 +145,9 @@ class Server(http.server.ThreadingHTTPServer):
         '''
         if html_headers:
             caller.send_header('Content-type', 'text/html;charset=utf-8/html')
-        # 让浏览器使用 UTF8 编码
+        # Send HTML & UTF-8 Headers
         size = os.path.getsize(page)
-        # 根据大小判断发送方式
+        # Send in sparse if size's over 1MB
         if size > 1024 * 1024:
             self.write_file(
                 caller, page, content_type='text/html;charset=utf-8/html')
