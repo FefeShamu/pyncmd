@@ -16,6 +16,7 @@ import random
 import json
 import socket
 import os
+
 from pyncm.ncm.strings import strings, simple_logger
 from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from http import HTTPStatus
