@@ -50,7 +50,7 @@ def LoginLooper():
         # Exceptions Might be:
         #   ip高频   (Anti-Scraper)
         #   出现错误 (Usually,wrong username or password)
-        simple_logger('\n\n',result,'\n\n')
+        simple_logger('\n\n',str(result),'\n\n')
         LoginTimeout = 10
         # Retry after 10s if an exception has been risen
     else:
