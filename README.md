@@ -1,5 +1,5 @@
 # pyncmd
-PyNCM Web端解析器
+PyNCM Web：贡献你的网易云VIP特权，在线解析
 
 ## 使用
     server.py [手机号] [密码] --message [附加信息]
