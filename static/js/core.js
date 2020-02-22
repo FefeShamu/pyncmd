@@ -12,6 +12,9 @@ function updateNodes() {
     player = document.getElementById("player")
     player.ontimeupdate = player_update
     download = document.getElementById("download")
+	download_lrc_placeholder = document.getElementById("download_lrc_placeholder")
+	download_lrc = document.getElementById("download_lrc")
+	download_lrc.onclick = download_lrc_onclick
     shareinput = document.getElementById("shareinput")
     lyricsbox = document.getElementById('lyrics')
     action = document.getElementById("action")
@@ -54,9 +57,22 @@ function getSongInfo(id) {
     r.send(msg);
 }
 
+function convertFromTimestamp(timestamp){
+	// this will covert LRC timestamp to seconds
+	m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
+	return (m * 60) + s + (ms / 1000)
+}
+
+function convertToTimestamp(timecode){
+	// this will convert seconds back to LRC timestamp
+	function pad(str,p,length,before=false){if(str.length<length){str = before ? p + str : str + p;return pad(str,p,length,before)}else{return str}}
+	m = Math.floor(timecode / 60);s = Math.floor(timecode - m * 60);ms = Math.floor((timecode - m * 60 - s) * (10**3))
+	return pad(m.toString(),'0',2) + ":" + pad(s.toString(),'0',2) + "." + pad(ms.toString(),'0',3,true)
+}
+
 lyrics = {}
 const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-function loadLRC(lrc, tlrc = '') {
+function loadLRC(lrc, tlrc = '',split=' ') {
     // lrc:original lyrics
     // tlrc:translation
     if (!lrc) return
@@ -68,12 +84,9 @@ function loadLRC(lrc, tlrc = '') {
             // This is necessary to avoid infinite loops with zero-width matches
             timestamp = match[1]
             // match[1] contains the first capture group
-            m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
-            // A rather unsual way of number converstion
-            timestamp = (m * 60) + s + (ms / 1000)
-            // Convert to seconds
+			timestamp = convertFromTimestamp(timestamp)
             if (!lyrics[timestamp.toString()]) lyrics[timestamp.toString()] = ''
-            lyrics[timestamp.toString()] += match[2] + '\n'
+            lyrics[timestamp.toString()] += match[2] + split
             // Where match[2] contains the second capture group
         }
     }
@@ -81,6 +94,23 @@ function loadLRC(lrc, tlrc = '') {
     addMatches(tlrc)
     console.info('Loaded lyrics:')
     console.table(lyrics)
+}
+
+function download_lrc_onclick(){
+	// happens once button is clicked
+	// this will covert the dictionary to standard LRC format
+	lrc = ''
+	for (key in lyrics){
+		timestamp = convertToTimestamp(key)
+		line = '[' + timestamp + ']' + lyrics[key]
+		lrc += line + '\n'
+	}
+	blob = new Blob([lrc],{type:"text/plain;charset=utf-8"})
+	url = window.URL.createObjectURL(blob)
+	// uses the invisble placeholder to download
+	download_lrc_placeholder.href = url
+	download_lrc_placeholder.setAttribute('download','歌词.lrc')
+	download_lrc_placeholder.click()
 }
 
 function FindClosestMatch(arr, i) {
@@ -94,7 +124,6 @@ function FindClosestMatch(arr, i) {
 function rotate(deg = 0) {
     // rotate cover by degree
     cover.style.transform = 'rotate(' + deg + 'deg)'
-    console.log('rotate')
 }
 
 function player_update() {
