@@ -16,8 +16,8 @@ import random
 import json
 import socket
 import os
-from ncm.strings import strings, simple_logger
-from ncm.ncm_core import NeteaseCloudMusic
+from pyncm.ncm.strings import strings, simple_logger
+from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from http import HTTPStatus
 from threading import Timer
 root = ''
