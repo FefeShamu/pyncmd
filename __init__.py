@@ -245,7 +245,7 @@ def _api_song(caller):
     try:
         content = json.loads(content)
         SONG = NCM.GetSongInfo(content['id'])
-        if not SONG:            
+        if not SONG['code'] == 200:            
             raise Exception('加载歌曲(id:%s)失败，请检查链接是否正确' % content['id'])
         else:
             # Sucessfuly loaded info
