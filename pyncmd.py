@@ -171,11 +171,9 @@ class Server(http.server.ThreadingHTTPServer):
         caller.wfile.write(string.encode('utf-8'))
 
     def GET(self, caller):
-        print('GET', end=' ')
         return self.METHOD(caller)
 
     def POST(self, caller):
-        print('POST', end=' ')
         return self.METHOD(caller)
 
     def METHOD(self, caller):
