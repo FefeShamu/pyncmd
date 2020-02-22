@@ -1,5 +1,6 @@
 /*
     Core.js：Front-End Interface logic
+
 */
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
@@ -45,7 +46,6 @@ function getSongInfo(id) {
     r.onreadystatechange = function () {
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
-                console.info({ 'url': api, 'received': r.responseText })
                 info = JSON.parse(r.responseText)
                 callback(info, r)
             } catch (error) {
@@ -165,10 +165,11 @@ function callback(data, r) {
     download.href = info['data'][0]['url']
     download.setAttribute('download', info['title'] + '.' + info['data'][0]['type'])
     // load lyrics if exsitsts																			
-    if (!info['lyrics']['nolyric'])
-        loadLRC(info['lyrics']['lrc']['lyric'], info['lyrics']['tlyric']['lyric'])
+    if (!!info['lyrics']['nolyric'] || !!info['lyrics']['uncollected'])
+        lyrics = { '0': '<i>无歌词</i>' }        
     else
-        lyrics = { '0': '<i>无歌词</i>' }
+
+        loadLRC(info['lyrics']['lrc']['lyric'], info['lyrics']['tlyric']['lyric'])
     // starts playing once loaded
     player.src = download.href
     player.play()
