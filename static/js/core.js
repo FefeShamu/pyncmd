@@ -131,10 +131,15 @@ function findClosestMatch(arr, i) {
     for (a of arr) { a = a * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
     return t
 }
-
+rotate_drops = 0
 function rotate(deg = 0) {
     // rotate cover by degree
-    cover.style.transform = 'rotate(' + deg + 'deg)'
+    rotate_drops += 1
+    if(rotate_drops>3){
+        // drop some to avoid 'jittery' effects
+        cover.style.transform = 'rotate(' + deg + 'deg)'
+        rotate_drops = 0    
+    }
 }
 
 function player_update() {
