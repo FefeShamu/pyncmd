@@ -11,7 +11,7 @@
 [PyNCMd :: mos9527.tooo.top](https://mos9527.tooo.top/ncm),使用了本人的 CVIP 账号
 
 # 截图
-![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.bmp)
+![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.png)
 
 # 依赖包
 
