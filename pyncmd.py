@@ -260,7 +260,7 @@ def _api_song(caller):
         # Select what to send based on 'requirements' value
         caller.send_response(200)
         server.write_string(caller, json.dumps(
-            {                
+            {
                 "audio":AUDIO,
                 "info":EXTRA,
                 "lyrics":LYRICS,
