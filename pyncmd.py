@@ -46,7 +46,7 @@ LoginTimeout = 600
 def LoginLooper():
     simple_logger('[W] Automaticly Updating Login Info!')
     result = NCM.UpdateLoginInfo(phone,password)
-    if not 'content' in result.keys():
+    if not result['success']:
         # Exceptions Might be:
         #   ip高频   (Anti-Scraper)
         #   出现错误 (Usually,wrong username or password)
