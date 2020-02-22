@@ -76,6 +76,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         # Disable interal logging
         pass
 
+    def log_error(self,*args):
+        # Disable interal logging
+        pass
+
     def handle_one_request(self):
         """Handle a single HTTP request.
 
@@ -243,30 +247,34 @@ def _api_song(caller):
     # load content
     try:
         content = json.loads(content)
-        SONG = NCM.GetSongInfo(content['id'])
-        if not SONG['code'] == 200:            
-            raise Exception('加载歌曲(id:%s)失败，请检查链接是否正确' % content['id'])
-        else:
-            # Sucessfuly loaded info
-            EXTRA = NCM.GetExtraSongInfo(content['id'])
-            LYRICS = NCM.GetSongLyrics(content['id'])
-            caller.send_response(200)
-            server.write_string(caller, json.dumps(
-                {
-                    **SONG,
-                    **EXTRA,
-                    "contributer": NCM.login_info['content']['profile']['nickname'],
-                    "contributer_message": ContributerMessage,
-                    "counts":counts,
-                    "lyrics":LYRICS,
-                    "message": "Success",
-                    "attention_hackerz":"you're free to use this api,but pleases do not abuse or spread it\nthis project is open-source:github.com/greats3an/pyncmd"
-                }, ensure_ascii=False, indent=4))
-                # cheecky message ( ͡° ͜ʖ ͡°)
+        simple_logger('Request ID:',content['id'],'Request Requirements',' '.join(content['requirements']))
+        AUDIO = NCM.GetSongInfo(content['id']) if 'audio' in content['requirements'] else {}           
+        EXTRA = NCM.GetExtraSongInfo(content['id']) if 'info' in content['requirements'] else {}
+        LYRICS = NCM.GetSongLyrics(content['id'])  if 'lyrics' in content['requirements'] else {}
+        PLAYLIST = NCM.GetPlaylistInfo(content['id']) if 'playlist' in content['requirements'] else {}
+        CONTRIBUTION = {
+            "contributer": NCM.login_info['content']['profile']['nickname'],
+            "contributer_message": ContributerMessage,
+            "counts":counts                   
+        } if 'contribution' in content['requirements'] else {}
+        # Select what to send based on 'requirements' value
+        caller.send_response(200)
+        server.write_string(caller, json.dumps(
+            {                
+                "audio":AUDIO,
+                "info":EXTRA,
+                "lyrics":LYRICS,
+                "playlist":PLAYLIST,
+                "contribution":CONTRIBUTION,
+                "requirements":content['requirements'],                 
+                "message": "Success",
+                "attention_hackerz":"you're free to use this api,but pleases do not abuse or spread it\nthis project is open-source:github.com/greats3an/pyncmd"
+            }, ensure_ascii=False, indent=4))
+            # cheecky message ( ͡° ͜ʖ ͡°)
     except Exception as e:
         # failed!
         caller.send_response(500)
-        server.write_string(caller, '{"message":"出现错误：%s"}' % e)
+        server.write_string(caller, '{"message":"加载歌曲(id:%s)时出现错误：%s"}' % (content['id'],e))
     counts += 1
     simple_logger('Processed request.Total times:%s , ID: %s' %
                   (counts, content['id'] if content else 'INVALID'))
