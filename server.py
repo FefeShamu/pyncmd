@@ -47,9 +47,9 @@ def LoginLooper():
     result = NCM.UpdateLoginInfo(phone,password)['content']['code']
     if result != 200:
         # Exceptions Might be:
-        #   ip高频 (Anti-Scraper)
+        #   ip高频   (Anti-Scraper)
         #   出现错误 (Usually,wrong username or password)
-        simple_logger('\n\n',result['content']['msg'],'\n\n')
+        simple_logger('\n\n',result,'\n\n')
         LoginTimeout = 10
         # Retry after 10s if an exception has been risen
     else:
@@ -70,6 +70,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.callback = callback
         super().__init__(
             request, client_address, server)
+
+    def log_message(self,*args):
+        # Disable interal logging
+        pass
 
     def handle_one_request(self):
         """Handle a single HTTP request.
