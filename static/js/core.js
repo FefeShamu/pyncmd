@@ -12,9 +12,9 @@ function updateNodes() {
     player = document.getElementById("player")
     player.ontimeupdate = player_update
     download = document.getElementById("download")
-	download_lrc_placeholder = document.getElementById("download_lrc_placeholder")
-	download_lrc = document.getElementById("download_lrc")
-	download_lrc.onclick = download_lrc_onclick
+    download_lrc_placeholder = document.getElementById("download_lrc_placeholder")
+    download_lrc = document.getElementById("download_lrc")
+    download_lrc.onclick = download_lrc_onclick
     shareinput = document.getElementById("shareinput")
     lyricsbox = document.getElementById('lyrics')
     action = document.getElementById("action")
@@ -57,22 +57,22 @@ function getSongInfo(id) {
     r.send(msg);
 }
 
-function convertFromTimestamp(timestamp){
-	// this will covert LRC timestamp to seconds
-	m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
-	return (m * 60) + s + (ms / 1000)
+function convertFromTimestamp(timestamp) {
+    // this will covert LRC timestamp to seconds
+    m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
+    return (m * 60) + s + (ms / 1000)
 }
 
-function convertToTimestamp(timecode){
-	// this will convert seconds back to LRC timestamp
-	function pad(str,p,length,before=false){if(str.length<length){str = before ? p + str : str + p;return pad(str,p,length,before)}else{return str}}
-	m = Math.floor(timecode / 60);s = Math.floor(timecode - m * 60);ms = Math.floor((timecode - m * 60 - s) * (10**3))
-	return pad(m.toString(),'0',2) + ":" + pad(s.toString(),'0',2) + "." + pad(ms.toString(),'0',3,true)
+function convertToTimestamp(timecode) {
+    // this will convert seconds back to LRC timestamp
+    function pad(str, p, length, before = false) { if (str.length < length) { str = before ? p + str : str + p; return pad(str, p, length, before) } else { return str } }
+    m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * (10 ** 3))
+    return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
 }
 
 lyrics = {}
 const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-function loadLRC(lrc, tlrc = '',split=' ') {
+function loadLRC(lrc, tlrc = '', split = ' ') {
     // lrc:original lyrics
     // tlrc:translation
     if (!lrc) return
@@ -84,7 +84,7 @@ function loadLRC(lrc, tlrc = '',split=' ') {
             // This is necessary to avoid infinite loops with zero-width matches
             timestamp = match[1]
             // match[1] contains the first capture group
-			timestamp = convertFromTimestamp(timestamp)
+            timestamp = convertFromTimestamp(timestamp)
             if (!lyrics[timestamp.toString()]) lyrics[timestamp.toString()] = ''
             lyrics[timestamp.toString()] += match[2] + split
             // Where match[2] contains the second capture group
@@ -96,21 +96,21 @@ function loadLRC(lrc, tlrc = '',split=' ') {
     console.table(lyrics)
 }
 
-function download_lrc_onclick(){
-	// happens once button is clicked
-	// this will covert the dictionary to standard LRC format
-	lrc = ''
-	for (key in lyrics){
-		timestamp = convertToTimestamp(key)
-		line = '[' + timestamp + ']' + lyrics[key]
-		lrc += line + '\n'
-	}
-	blob = new Blob([lrc],{type:"text/plain;charset=utf-8"})
-	url = window.URL.createObjectURL(blob)
-	// uses the invisble placeholder to download
-	download_lrc_placeholder.href = url
-	download_lrc_placeholder.setAttribute('download',info['title'] + '.lrc')
-	download_lrc_placeholder.click()
+function download_lrc_onclick() {
+    // happens once button is clicked
+    // this will covert the dictionary to standard LRC format
+    lrc = ''
+    for (key in lyrics) {
+        timestamp = convertToTimestamp(key)
+        line = '[' + timestamp + ']' + lyrics[key]
+        lrc += line + '\n'
+    }
+    blob = new Blob([lrc], { type: "text/plain;charset=utf-8" })
+    url = window.URL.createObjectURL(blob)
+    // uses the invisble placeholder to download
+    download_lrc_placeholder.href = url
+    download_lrc_placeholder.setAttribute('download', info['title'] + '.lrc')
+    download_lrc_placeholder.click()
 }
 
 function FindClosestMatch(arr, i) {
@@ -144,9 +144,9 @@ info = []
 function callback(data, r) {
     // called once XHR finishes
     // writes music info to the page,re-enable the action button
-    info = data;action.disabled = false
+    info = data; action.disabled = false
     if (r.status != 200) { notify(info['message'], 'danger'); return }
-	music_info = info
+    music_info = info
     console.log(info)
     if (info['cover'] != []) cover.src = info['cover']
     title.innerHTML = info['title']
@@ -163,7 +163,7 @@ function callback(data, r) {
     infocontext2.innerHTML += '<i style="color:#AAA;"> "' + info['contributer_message'] + '"</i></a></br>'
     infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 在此之前，服务已被使用 <strong>' + info['counts'] + '</strong> 次</i>'
     download.href = info['data'][0]['url']
-	download.setAttribute('download',info['title'] + '.' + info['data'][0]['type'])
+    download.setAttribute('download', info['title'] + '.' + info['data'][0]['type'])
     // load lyrics if exsitsts																			
     if (!info['lyrics']['nolyric'])
         loadLRC(info['lyrics']['lrc']['lyric'], info['lyrics']['tlyric']['lyric'])
