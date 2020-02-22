@@ -55,7 +55,6 @@ function performRequest(id = 0, requirements = ['contribution', 'audio', 'info',
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
                 info = JSON.parse(r.responseText)
-                console.table(info)
                 for (requirement of requirements) {
                     eval('callback_' + requirement + '(info,r,override)');
                 }
