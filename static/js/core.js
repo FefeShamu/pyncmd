@@ -109,7 +109,7 @@ function download_lrc_onclick(){
 	url = window.URL.createObjectURL(blob)
 	// uses the invisble placeholder to download
 	download_lrc_placeholder.href = url
-	download_lrc_placeholder.setAttribute('download','歌词.lrc')
+	download_lrc_placeholder.setAttribute('download',info['title'] + '.lrc')
 	download_lrc_placeholder.click()
 }
 
@@ -140,12 +140,13 @@ function player_update() {
     rotate(tick * 5)
     // rotates the cover
 }
-
-function callback(info, r) {
+info = []
+function callback(data, r) {
     // called once XHR finishes
     // writes music info to the page,re-enable the action button
-    action.disabled = false
+    info = data;action.disabled = false
     if (r.status != 200) { notify(info['message'], 'danger'); return }
+	music_info = info
     console.log(info)
     if (info['cover'] != []) cover.src = info['cover']
     title.innerHTML = info['title']
@@ -162,6 +163,7 @@ function callback(info, r) {
     infocontext2.innerHTML += '<i style="color:#AAA;"> "' + info['contributer_message'] + '"</i></a></br>'
     infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 在此之前，服务已被使用 <strong>' + info['counts'] + '</strong> 次</i>'
     download.href = info['data'][0]['url']
+	download.setAttribute('download',info['title'] + '.' + info['data'][0]['type'])
     // load lyrics if exsitsts																			
     if (!info['lyrics']['nolyric'])
         loadLRC(info['lyrics']['lrc']['lyric'], info['lyrics']['tlyric']['lyric'])
