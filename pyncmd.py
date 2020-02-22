@@ -249,6 +249,7 @@ def _api_song(caller):
         else:
             # Sucessfuly loaded info
             EXTRA = NCM.GetExtraSongInfo(content['id'])
+            LYRICS = NCM.GetSongLyrics(content['id'])
             caller.send_response(200)
             server.write_string(caller, json.dumps(
                 {
@@ -257,6 +258,7 @@ def _api_song(caller):
                     "contributer": NCM.login_info['content']['profile']['nickname'],
                     "contributer_message": ContributerMessage,
                     "counts":counts,
+                    "lyrics":LYRICS,
                     "message": "Success",
                     "attention_hackerz":"you're free to use this api,but pleases do not abuse or spread it\nthis project is open-source:github.com/greats3an/pyncmd"
                 }, ensure_ascii=False, indent=4))
