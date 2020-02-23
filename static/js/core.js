@@ -203,9 +203,9 @@ function callback_info(info, r, override = '') {
         infocontext1.innerHTML = '<a>音乐家：' + musicinfo.author + '</a></br>'
         infocontext1.innerHTML += '<a>格式：' + audioinfo['data'][0]['type'] + '</a></br>'
         infocontext1.innerHTML += '<a>文件大小：' + getFileSize(audioinfo['data'][0]['size']) + '</a>'
-        //compose info box 2	
-        infocontext2.innerHTML = '<a style="font-size:small;opacity:0.5" href="https://music.163.com/#/album?id=' + musicinfo.album_id + '">网易云专辑链接' + '</a></br>'
-        infocontext2.innerHTML += '<a style="font-size:small;opacity:0.5" href="https://music.163.com/#/artist?id=' + musicinfo.artist_id + '">网易云歌手链接' + '</a></br>'
+        infocontext1.innerHTML += '</br><a style="font-size:small;opacity:0.5" href="https://music.163.com/#/album?id=' + musicinfo.album_id + '">网易云专辑链接' + '</a></br>'
+        infocontext1.innerHTML += '<a style="font-size:small;opacity:0.5" href="https://music.163.com/#/artist?id=' + musicinfo.artist_id + '">网易云歌手链接' + '</a></br>'
+
         download.setAttribute('download', musicinfo.title + '.' + audioinfo['data'][0]['type'])
     }
     target = (!!override) ? override : display_musicinfo
@@ -235,6 +235,7 @@ function callback_contribution(info, r, override = '') {
     contributioninfo = info.contribution
     console.info({ 'Contribution callback:': contributioninfo })
     function display_contribution(contributioninfo) {
+        // compose infobox 2
         infocontext2.innerHTML = '<a style="color:#888;margin=top:30px">服务贡献者:<strong>' + contributioninfo['contributer'] + '</strong>'
         infocontext2.innerHTML += '<i style="color:#AAA;"> "' + contributioninfo['contributer_message'] + '"</i></a></br>'
         infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 在此之前，服务已被使用 <strong>' + contributioninfo['counts'] + '</strong> 次</i>'
