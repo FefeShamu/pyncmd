@@ -94,6 +94,8 @@ function loadLRC(lrc, tlrc = '', split = ' ') {
             if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++
             // This is necessary to avoid infinite loops with zero-width matches
             timestamp = match[1]
+            if (timestamp.indexOf('.') == -1)timestamp += '.000'
+            // Pad with 0ms if no milliseconds is defined
             // match[1] contains the first capture group
             timestamp = convertFromTimestamp(timestamp)
             if (!lyrics[timestamp.toString()]) lyrics[timestamp.toString()] = ''
