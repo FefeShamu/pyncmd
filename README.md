@@ -19,3 +19,9 @@
 # 依赖包
 
     (必须) requests,pycryptodome,colorama
+
+# 感谢
+
+[esonderegger/web-audio-peak-meter](https://github.com/esonderegger/web-audio-peak-meter)
+
+and my fellow comrades from [coolapk.com](https://coolapk.com)
