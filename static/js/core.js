@@ -54,7 +54,8 @@ function getAPI(api) {
     apis = {
         "song": "api/song"
     }
-    return document.location.toString() + apis[api]
+    // removes anomalous chars,then concat the api
+    return document.location.toString().replace('#','') + apis[api]
 }
 
 function performRequest(id = 0, requirements = ['contribution', 'audio', 'info', 'lyrics', 'playlist','album'], override = '') {
