@@ -47,6 +47,7 @@ function notify(message, level = "success") {
     notice.className = "alert alert-" + level
     notice.innerHTML = '<a href="#" class="close" data-dismiss="alert">&times;</a>' + message
     notifyfeed.before(notice)
+    scrollTo(0,0)
 }
 
 function getAPI(api) {
@@ -438,7 +439,7 @@ function action_onclick() {
     // action button click event
     // once clicked,the button will become disabled until the XHR is finished
     sharelink = shareinput.value.toLowerCase()
-    if (!sharelink) notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger")
+    if (!sharelink) {notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger");return}
     ids = []
     while ((m = id_regex.exec(sharelink)) !== null) {
         // This is necessary to avoid infinite loops with zero-width matches
