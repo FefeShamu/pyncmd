@@ -56,7 +56,7 @@ function getAPI(api) {
     return document.location.toString() + apis[api]
 }
 
-function performRequest(id = 0, requirements = ['contribution', 'audio', 'info', 'lyrics', 'playlist'], override = '') {
+function performRequest(id = 0, requirements = ['contribution', 'audio', 'info', 'lyrics', 'playlist','album'], override = '') {
     msg = JSON.stringify({ "id": id, "requirements": requirements })
     var r = new XMLHttpRequest();
     api = getAPI('song')
@@ -143,15 +143,9 @@ function findClosestMatch(arr, i) {
     for (a of arr) { a = a * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
     return t
 }
-rotate_drops = 0
+
 function rotate(deg = 0) {
-    // rotate cover by degree
-    rotate_drops += 1
-    if (rotate_drops > 3) {
-        // drop some to avoid 'jittery' effects
-        cover.style.transform = 'rotate(' + deg + 'deg)'
-        rotate_drops = 0
-    }
+    cover.style.transform = 'rotate(' + deg + 'deg)'
 }
 
 function player_update() {
@@ -283,6 +277,33 @@ function callback_playlist(info, r, override = '') {
     target(playlistinfo)
 }
 
+albuminfo = {}
+function callback_album(info, r, override = '') {
+    // callback to process albums
+    albuminfo = info.album
+    console.log({ 'Albuminfo callback': albuminfo })
+    function load_album() {
+        // once album is loaded,appends them to the end of the list
+        for (item of albuminfo.songlist) {
+            playqueue.push({
+                'song_id': item['id'],
+                'title': item['name'],
+                'cover': item['album']['picUrl'],
+                'author': item['artists'][0]['name'],
+                'album': item['album']['name'],
+                'album_id': item['album']['id'],
+                'artist_id': item['artists'][0]['id']
+            })
+        }
+        process_playqueue()
+        if (!player.duration) playqueue_play_next()
+        // starts playing if nothing is playing
+    }
+    target = (!!override) ? override : load_album
+    target(albuminfo)
+}
+
+
 playqueue = []
 // the queue which is to be played and displayed
 function process_playids(playids) {
@@ -412,11 +433,12 @@ function playqueue_item_remove_onclick(caller) {
     // removes item
 }
 const id_regex = /\d{5,}/gm
+// match any continous 5+ digit numbers
 function action_onclick() {
     // action button click event
     // once clicked,the button will become disabled until the XHR is finished
-    sharelink = shareinput.value
-    if (!sharelink || sharelink.indexOf('album') != -1) notify("请输入<strong>歌曲或歌单</strong>链接", "danger")
+    sharelink = shareinput.value.toLowerCase()
+    if (!sharelink) notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger")
     ids = []
     while ((m = id_regex.exec(sharelink)) !== null) {
         // This is necessary to avoid infinite loops with zero-width matches
@@ -428,10 +450,18 @@ function action_onclick() {
         // inputed playlist URL
         if(ids.length>1){notify('<strong>歌单</strong>ID只能输入一个!','warning');return}
         performRequest(ids[0], ['playlist'])
+        shareinput.value = `playlist:${ids[0]}`
+
+    } else if (sharelink.indexOf('album') != -1) {
+            // inputed album URL
+            if(ids.length>1){notify('<strong>专辑</strong>ID只能输入一个!','warning');return}
+            performRequest(ids[0], ['album'])
+            shareinput.value = `album:${ids[0]}`    
     } else {
-        // anything else (containting 5+ digit numbers)
+        // anything else (containting any 5+ digit numbers)
+        // will be treated as song IDs
         id_string = '';ids.filter((id) => {id_string += id + ' '})
-        shareinput.value = id_string
+        shareinput.value = `song:${id_string}`
         process_playids(ids)
     }
     action.disabled = true

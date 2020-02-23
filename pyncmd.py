@@ -252,6 +252,7 @@ def _api_song(caller):
         EXTRA = NCM.GetExtraSongInfo(content['id']) if 'info' in content['requirements'] else {}
         LYRICS = NCM.GetSongLyrics(content['id'])  if 'lyrics' in content['requirements'] else {}
         PLAYLIST = NCM.GetPlaylistInfo(content['id']) if 'playlist' in content['requirements'] else {}
+        ALBUM = NCM.GetAlbumInfo(content['id']) if 'album' in content['requirements'] else {}
         CONTRIBUTION = {
             "contributer": NCM.login_info['content']['profile']['nickname'],
             "contributer_message": ContributerMessage,
@@ -265,6 +266,7 @@ def _api_song(caller):
                 "info":EXTRA,
                 "lyrics":LYRICS,
                 "playlist":PLAYLIST,
+                "album":ALBUM,
                 "contribution":CONTRIBUTION,
                 "requirements":content['requirements'],                 
                 "message": "Success",
