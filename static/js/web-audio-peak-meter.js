@@ -6,7 +6,7 @@ var webAudioPeakMeter = (function() {
   'use strict';
   var options = {
     borderSize: 2,
-    fontSize: 12,
+    fontSize: 9,
     backgroundColor: 'white',
     tickColor: '#gray',
     gradient: ['#007bff 0%','#00ccff 100%'],
