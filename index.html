@@ -19,7 +19,7 @@
 
 <body>
   <div class="container" id="notifyfeed"></div>
-  <div class="row">
+  <div class="row">	  
     <div class="col-md-1 col-xl-2 offset-xl-1" style="display: flex;align-items: center">
       <img id="cover" style="margin:0 auto;transition:all 1s ease" width="256px" src="static/images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败">
     </div>
@@ -50,7 +50,7 @@
     <div class="input-group mb-3">
       <div class="input-group-prepend"> </div>
       <input type="text" class="form-control" id="shareinput" placeholder="分享链接(e.g.playlist:3778678)" style="margin-right:10px" aria-describedby="basicaddon1">
-      <button type="button" style="color:white;font-style: oblique" class="btn btn-primary" id="action">+</button>
+      <button type="button" class="btn btn-primary" id="action">+</button>
     </div>
     <div class="container">
       <div class="card col-md-4 col-lg-12">
@@ -68,6 +68,7 @@
       </div>
     </div>
   </div>
+  <a class="btn btn-secondary" href="#" role="button" style="position:fixed;right:5px;bottom:5px">↑</a>
   <!-- Audio peak meter-->
   <script src="static/js/web-audio-peak-meter.js"></script>
   <!-- Core.js 核心部分 -->
