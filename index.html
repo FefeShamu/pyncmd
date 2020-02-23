@@ -21,28 +21,32 @@
   <div class="container" id="notifyfeed"></div>
   <div class="row">
     <div class="col-md-1 col-xl-2 offset-xl-1"><img id="cover" style="margin-top: 40px;transition:all 1s linear"
-       width="256px" src="static/images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败"></div>
+        width="256px" src="static/images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败">
+    </div>
     <div class="col-md-1 col-xl-8 col-lg-11">
       <div class="card col-md-4 col-xl-12 col-lg-12" style="margin-top: 20px">
         <div class="card-body">
-		<h4 class="card-title" id="title">音乐标题</h4>
-		<h6 class="card-subtitle mb-2 text-muted" id="album">音乐专辑</h6>
-		
-        <p class="card-text" id="info1">音乐信息</p>
-		<h6 id="lyrics">歌词</h6>
-		<p class="card-text" id="info2">附加信息</p>
-        <audio id="player" src="" style="width:100%" controls></audio>
-		<a href="" class="card-link" id="download" download>下载</a>
-		<a class="card-link" style="color:#007bff;cursor: pointer" id="download_lrc" download>下载歌词</a>
-		<a href="" class="card-link" style="display: none" id="download_lrc_placeholder" download>下载歌词</a>
-		<a class="card-link" style="color:#007bff;cursor: pointer" id="prev_song" download>上一首</a>
-		<a class="card-link" style="color:#007bff;cursor: pointer" id="next_song" download>下一首</a>
+          <h4 class="card-title" id="title">音乐标题</h4>
+          <h6 class="card-subtitle mb-2 text-muted" id="album">音乐专辑</h6>
+
+          <p class="card-text" style="font-size:small" id="info1">音乐信息</p>
+          <h6 id="lyrics">歌词</h6>
+          <p class="card-text" id="info2">附加信息</p>
+          <audio id="player" src="" style="width:100%" controls></audio>
+          <a href="" class="card-link" id="download" download>下载</a>
+          <a class="card-link" style="color:#007bff;cursor: pointer" id="download-lrc" download>下载歌词</a>
+          <a href="" class="card-link" style="display: none" id="download-lrc-placeholder" download>下载歌词</a>
+          <a class="card-link" style="color:#007bff;cursor: pointer" id="prev-song" download>上一首</a>
+          <a class="card-link" style="color:#007bff;cursor: pointer" id="next-song" download>下一首</a>
         </div>
       </div>
       &nbsp;
     </div>
   </div>
   <div class="container">
+	  <div class="card" style="padding:5px;margin-top:10px;" alt="db 表">
+        <div id="peak-meter" style="height: 50px; " alt="db 表"></div>
+	  </div></br>
     <div class="input-group mb-3">
       <div class="input-group-prepend"> </div>
       <input type="text" class="form-control" id="shareinput" placeholder="输入网易云音乐分享链接" style="margin-right:10px "
@@ -50,21 +54,23 @@
       <button type="button" class="btn btn-primary" id="action">添加到列表</button>
     </div>
     <div class="container">
-	  <div class="card col-md-4 col-lg-12">
-	    <div class="card-header"> 播放列表 </div>
+      <div class="card col-md-4 col-lg-12">
+        <div class="card-header"> 播放列表 </div>
         <ul class="list-unstyled" id="playqueue">
-		  </br>
-          <li class="media"> 
-			<img class="d-flex mr-3" src="images/MediaObj_Placeholder.png" alt="placeholder image">
+          </br>
+          <li class="media">
+            <img class="d-flex mr-3" src="images/MediaObj_Placeholder.png" alt="placeholder image">
             <div class="media-body">
               <h5 class="mt-0">媒体标题</h5>
-                <p>媒体信息</p>
-              </div>
+              <p>媒体信息</p>
+            </div>
           </li>
         </ul>
       </div>
     </div>
   </div>
+  <!-- Audio peak meter-->
+  <script src="static/js/web-audio-peak-meter.js"></script>
   <!-- Core.js 核心部分 -->
   <script src="static/js/core.js"></script>
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

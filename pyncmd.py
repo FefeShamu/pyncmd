@@ -235,12 +235,12 @@ def _(caller):
     caller.send_response(200)
     server.write_page(caller, 'index.html')
 
-counts = 0
+count = 0
 def _api_song(caller):
     # /api/song
     # Utilizing PyNCM to load music info
     # With given music ID
-    global counts
+    global count
     content_length = caller.headers.get('content-length')
     content = caller.rfile.read(int(content_length)).decode(
         'utf-8') if content_length else None
@@ -255,7 +255,7 @@ def _api_song(caller):
         CONTRIBUTION = {
             "contributer": NCM.login_info['content']['profile']['nickname'],
             "contributer_message": ContributerMessage,
-            "counts":counts                   
+            "count":count                   
         } if 'contribution' in content['requirements'] else {}
         # Select what to send based on 'requirements' value
         caller.send_response(200)
@@ -275,9 +275,9 @@ def _api_song(caller):
         # failed!
         caller.send_response(500)
         server.write_string(caller, '{"message":"加载歌曲(id:%s)时出现错误：%s"}' % (content['id'],e))
-    counts += 1
+    count += 1
     simple_logger('Processed request.Total times:%s , ID: %s' %
-                  (counts, content['id'] if content else 'INVALID'))
+                  (count, content['id'] if content else 'INVALID'))
 
 
 # 根目录索引

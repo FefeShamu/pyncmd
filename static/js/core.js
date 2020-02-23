@@ -14,21 +14,31 @@ function updateNodes() {
     player.ontimeupdate = player_update
     player.onended = player_ended
     download = document.getElementById("download")
-    download_lrc_placeholder = document.getElementById("download_lrc_placeholder")
-    download_lrc = document.getElementById("download_lrc")
+    download_lrc_placeholder = document.getElementById("download-lrc-placeholder")
+    download_lrc = document.getElementById("download-lrc")
     download_lrc.onclick = download_lrc_onclick
     playqueue_view = document.getElementById("playqueue")
     shareinput = document.getElementById("shareinput")
     lyricsbox = document.getElementById('lyrics')
     action = document.getElementById("action")
     action.onclick = action_onclick
-    prev_song = document.getElementById('prev_song')
+    prev_song = document.getElementById('prev-song')
     prev_song.onclick = playqueue_play_prev
-    next_song = document.getElementById('next_song')
+    next_song = document.getElementById('next-song')
     next_song.onclick = playqueue_play_next
-    window.onload = function () {
+    window.onload = ()=>{
         performRequest('', requirements = ['contribution'])
     }
+    peakmeter = document.getElementById('peak-meter')
+    audioCtx = new window.AudioContext()
+    audioSrc = audioCtx.createMediaElementSource(player)
+    audioSrc.connect(audioCtx.destination)
+    meterNode = webAudioPeakMeter.createMeterNode(audioSrc, audioCtx);
+    webAudioPeakMeter.createMeter(peakmeter, meterNode, {});
+    player.addEventListener('play', function() {
+        audioCtx.resume();
+    });
+    player.crossOrigin = "anonymous";
 }
 updateNodes()
 
@@ -51,7 +61,7 @@ function performRequest(id = 0, requirements = ['contribution', 'audio', 'info',
     var r = new XMLHttpRequest();
     api = getAPI('song')
     r.open("POST", api, true);
-    r.onreadystatechange = function () {
+    r.onreadystatechange = () => {
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
                 info = JSON.parse(r.responseText)
@@ -83,9 +93,10 @@ function convertToTimestamp(timecode) {
 
 lyrics = {}
 const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-function loadLRC(lrc, tlrc = '', split = ' ') {
+function decodeLyrics(lrc, tlrc = '', split = ' ') {
     // lrc:original lyrics
     // tlrc:translation
+    // split:splting char between lrc & tlrc
     if (!lrc) return
     // Clear old lyrics
     lyrics = {}
@@ -94,7 +105,7 @@ function loadLRC(lrc, tlrc = '', split = ' ') {
             if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++
             // This is necessary to avoid infinite loops with zero-width matches
             timestamp = match[1]
-            if (timestamp.indexOf('.') == -1)timestamp += '.000'
+            if (timestamp.indexOf('.') == -1) timestamp += '.000'
             // Pad with 0ms if no milliseconds is defined
             // match[1] contains the first capture group
             timestamp = convertFromTimestamp(timestamp)
@@ -105,7 +116,6 @@ function loadLRC(lrc, tlrc = '', split = ' ') {
     }
     addMatches(lrc)
     addMatches(tlrc)
-    console.info('Loaded lyrics:')
     console.table(lyrics)
 }
 
@@ -137,10 +147,10 @@ rotate_drops = 0
 function rotate(deg = 0) {
     // rotate cover by degree
     rotate_drops += 1
-    if(rotate_drops>3){
+    if (rotate_drops > 3) {
         // drop some to avoid 'jittery' effects
         cover.style.transform = 'rotate(' + deg + 'deg)'
-        rotate_drops = 0    
+        rotate_drops = 0
     }
 }
 
@@ -173,7 +183,7 @@ function _callback(target) {
         if (r.status != 200) { notify(info.message, 'danger'); return }
         // error message
         target(info, r, override)
-        // execute function to be wrapped
+        // execute function to be wrapped if message is valid
     }
 }
 
@@ -181,7 +191,7 @@ audioinfo = {}
 function callback_audio(info, r, override = '') {
     // callback to process requriements['audio']
     audioinfo = info.audio
-    console.info({ 'Audio callback:': audioinfo })
+    console.log({ 'Audio callback': audioinfo })
     function display_audioinfo(audioinfo) {
         download.href = audioinfo['data'][0]['url']
         player.src = download.href
@@ -196,19 +206,20 @@ musicinfo = {}
 function callback_info(info, r, override = '') {
     // callback to process requirements['info']
     musicinfo = info.info
-    console.info({ 'Info callback:': musicinfo })
+    console.log({ 'Info callback': musicinfo })
     function display_musicinfo(musicinfo) {
         if (info.cover != []) cover.src = musicinfo.cover
-        title.innerHTML = musicinfo.title
-        album.innerHTML = musicinfo.album
+        title.innerHTML = `<a href="https://music.163.com/#/song?id=${musicinfo.song_id}">${musicinfo.title}</a>`
+        album.innerHTML = `<a href="https://music.163.com/#/album?id=${musicinfo.album_id}" style="color:gray">${musicinfo.album}</a>`
         // compose info box 1
-        infocontext1.innerHTML = '<a>音乐家：' + musicinfo.author + '</a></br>'
-        infocontext1.innerHTML += '<a>格式：' + audioinfo['data'][0]['type'] + '</a></br>'
-        infocontext1.innerHTML += '<a>文件大小：' + getFileSize(audioinfo['data'][0]['size']) + '</a>'
-        infocontext1.innerHTML += '</br><a style="font-size:small;opacity:0.5" href="https://music.163.com/#/album?id=' + musicinfo.album_id + '">网易云专辑链接' + '</a></br>'
-        infocontext1.innerHTML += '<a style="font-size:small;opacity:0.5" href="https://music.163.com/#/artist?id=' + musicinfo.artist_id + '">网易云歌手链接' + '</a></br>'
+        infocontext1.innerHTML =  `音乐家：<a href="https://music.163.com/#/artist?id=${musicinfo.artist_id}">${musicinfo.author}</a></br>`
+        if(!!audioinfo['data']){
+            // these will only be added if audioinfo is available
+            infocontext1.innerHTML += `<a>格式：${audioinfo['data'][0]['type']} </a></br>`
+            infocontext1.innerHTML += `<a>文件大小：${getFileSize(audioinfo['data'][0]['size'])} </a>`
+            download.setAttribute('download', `${musicinfo.title}.${audioinfo['data'][0]['type']}`)
+        }
 
-        download.setAttribute('download', musicinfo.title + '.' + audioinfo['data'][0]['type'])
     }
     target = (!!override) ? override : display_musicinfo
     target(musicinfo)
@@ -219,12 +230,12 @@ lyricsinfo = {}
 function callback_lyrics(info, r, override = '') {
     // callback to process requirements['lyrics']	
     lyricsinfo = info.lyrics
-    console.info({ 'Lyrics callback:': lyricsinfo })
+    console.log({ 'Lyrics callback': lyricsinfo })
     function display_lyrics(lyricsinfo) {
         if (!!lyricsinfo.nolyric || !!lyricsinfo.uncollected)
             lyrics = { '0': '<i>无歌词</i>' }
         else
-            loadLRC(lyricsinfo.lrc.lyric, lyricsinfo.tlyric.lyric)
+            decodeLyrics(lyricsinfo.lrc.lyric, lyricsinfo.tlyric.lyric)
     }
     target = (!!override) ? override : display_lyrics
     target(lyricsinfo)
@@ -235,12 +246,12 @@ contributioninfo = {}
 function callback_contribution(info, r, override = '') {
     // callback to process requirements['contribution']
     contributioninfo = info.contribution
-    console.info({ 'Contribution callback:': contributioninfo })
+    console.log({ 'Contribution callback': contributioninfo })
     function display_contribution(contributioninfo) {
         // compose infobox 2
-        infocontext2.innerHTML = '<a style="color:#888;margin=top:30px">服务贡献者:<strong>' + contributioninfo['contributer'] + '</strong>'
-        infocontext2.innerHTML += '<i style="color:#AAA;"> "' + contributioninfo['contributer_message'] + '"</i></a></br>'
-        infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 在此之前，服务已被使用 <strong>' + contributioninfo['counts'] + '</strong> 次</i>'
+        infocontext2.innerHTML = `<a style="color:#888;margin=top:30px">服务贡献者:<strong> ${contributioninfo.contributer} </strong>`
+        infocontext2.innerHTML += `<i style="color:#AAA;"> ${contributioninfo.contributer_message} </i></a></br>`
+        infocontext2.innerHTML += `<i style="color:#AAA;font-size:small;"> 该服务已被使用 <strong> ${contributioninfo.count} </strong> 次</i>`
     }
     target = (!!override) ? override : display_contribution
     target(contributioninfo)
@@ -250,7 +261,7 @@ playlistinfo = {}
 function callback_playlist(info, r, override = '') {
     // callback to process playlists
     playlistinfo = info.playlist
-    console.info({ 'Playlistinfo callback:': playlistinfo })
+    console.log({ 'Playlistinfo callback': playlistinfo })
     function load_playlist() {
         // once playlist is loaded,appends them to the end of the list
         for (item of playlistinfo.playlist.tracks) {
@@ -267,40 +278,33 @@ function callback_playlist(info, r, override = '') {
         process_playqueue()
         if (!player.duration) playqueue_play_next()
         // starts playing if nothing is playing
-        action.disabled = false
-        // reactivate button
     }
     target = (!!override) ? override : load_playlist
     target(playlistinfo)
 }
 
-playids = []
-// the list of song IDs to be loaded by process_playlist to playqueue
 playqueue = []
 // the queue which is to be played and displayed
-function process_playids() {
+function process_playids(playids) {
     // process id in playids,one at a time
-    if (!playids) return false
-    id = playids.pop()
-    musicinfo_override = function (musicinfo) {
-        // once loaded,push to the playqueue
-        playqueue.push(musicinfo)
-        process_playqueue()
-        action.disabled = false
-        if (!player.duration) playqueue_play_next()
-        // starts playing if nothing is playing
-    }
-    performRequest(id, requirements = ['info'], override = musicinfo_override)
-    // only load info onto playqueue
-    return true
+    for (id of playids) {
+        musicinfo_override = function (musicinfo) {
+            // once loaded,push to the playqueue
+            playqueue.push(musicinfo)                     
+            process_playqueue()
+            playqueue_play_next()
+        }
+        performRequest(id,['info'],musicinfo_override)
+    }    
 }
 
-function* generateID() {
-    i = 0; while (true) { i += 1; yield ('element' + i) }
-}
-IDGenerator = generateID(); init_clear = false
+function* generateID() {i = 0; while (true) { i += 1; yield ('element' + i) }}
+IDGenerator = generateID();
+
+init_clear=false
 function display_song_in_list(song) {
     if (!init_clear) { playqueue_view.innerHTML = '</br>'; init_clear = true }
+    // clear if not cleared since page is loaded
     var mediabox = document.createElement('li')
     with (mediabox) {
         className = 'media'
@@ -335,7 +339,7 @@ function display_song_in_list(song) {
         innerHTML = '&times;'
     }
     /* CREATE INFO */
-    mediabody.appendChild(closebutton);mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
+    mediabody.appendChild(closebutton); mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
     mediabox.appendChild(covernode); mediabox.append(mediabody)
     playqueue_view.appendChild(mediabox)
     return mediabox
@@ -343,7 +347,7 @@ function display_song_in_list(song) {
 
 function process_playqueue() {
     // process every item inside playqueue,and add nodes
-    if (!playqueue) return false
+    if (!playqueue) return
     for (song of playqueue) {
         if (!song.node) {
             song.node = display_song_in_list(song)
@@ -355,8 +359,6 @@ function process_playqueue() {
         // apply color to the current playing one 
         song.id = song.node.id
     }
-    console.log('Playqueue finished queuing!')
-    return true
 }
 function playqueue_locate_by_id(id, keep = true) { result = playqueue.filter(function (x) { return x.id == id ? keep : !keep }); return !keep ? result : result[0] }
 function playqueue_remove_by_id(id) {
@@ -377,7 +379,7 @@ function playqueue_playhead_onchage() {
     // plays song on list indexed by playhead
     if (playqueue.length <= playqueue_playhead || playqueue_playhead < 0) playqueue_playhead = 0
     if (!playqueue) return
-    console.log('Preparing next song.Playhead is at ' + playqueue_playhead)
+    console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     song = playqueue[playqueue_playhead]
     performRequest(song.song_id, requirements = ['contribution', 'audio', 'info', 'lyrics'])
     process_playqueue()
@@ -415,17 +417,26 @@ function action_onclick() {
     // once clicked,the button will become disabled until the XHR is finished
     sharelink = shareinput.value
     if (!sharelink || sharelink.indexOf('album') != -1) notify("请输入<strong>歌曲或歌单</strong>链接", "danger")
-    id = id_regex.exec(sharelink)[0]
+    ids = []
+    while ((m = id_regex.exec(sharelink)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === id_regex.lastIndex)id_regex.lastIndex++
+        m.forEach((match, groupIndex) => {ids.push(match)});        
+    }
     // extract ID using regex
     if (sharelink.indexOf('playlist') != -1) {
         // inputed playlist URL
-        performRequest(id, ['playlist'])
+        if(ids.length>1){notify('<strong>歌单</strong>ID只能输入一个!','warning');return}
+        performRequest(ids[0], ['playlist'])
     } else {
         // anything else (containting 5+ digit numbers)
-        playids.push(id)
-        process_playids()
+        id_string = '';ids.filter((id) => {id_string += id + ' '})
+        shareinput.value = id_string
+        process_playids(ids)
     }
     action.disabled = true
+    setTimeout(()=>{action.disabled = false},1000)
+    // re-activate after 1s
 }
 
 function getFileSize(fileByte) {
