@@ -331,12 +331,13 @@ function display_song_in_list(song) {
     var mediabox = document.createElement('li')
     with (mediabox) {
         className = 'media'
+        style = 'padding:2px'
         id = IDGenerator.next()['value']
     }
     /* CREATE MEDIABOX */
     var covernode = document.createElement('img')
     with (covernode) {
-        className = 'd-flex mr-3'
+        className = 'd-flex mr-3 rounded'
         style = 'width:80px'
         src = song.cover
     }
@@ -363,7 +364,7 @@ function display_song_in_list(song) {
     }
     /* CREATE INFO */
     mediabody.appendChild(closebutton); mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
-    mediabox.appendChild(covernode); mediabox.append(mediabody)
+    mediabox.appendChild(covernode); mediabox.appendChild(mediabody)
     playqueue_view.appendChild(mediabox)
     return mediabox
 }
