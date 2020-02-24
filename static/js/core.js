@@ -189,9 +189,14 @@ function callback_audio(info, r, override = '') {
     audioinfo = info.audio
     console.log({ 'Audio callback': audioinfo })
     function display_audioinfo(audioinfo) {
-        download.href = audioinfo['data'][0]['url']
-        player.src = download.href
-        player.play()
+        if (audioinfo.code != 200){
+            // error!but not on the server side,rather,the netease's API side.
+            notify(`歌曲(id:${audioinfo.data[0].id})音频解析失败（所属专辑可能需要付费？）`,'warning')
+        } else {
+            download.href = audioinfo['data'][0]['url']
+            player.src = download.href
+            player.play()
+        }
     }
     target = (!!override) ? override : display_audioinfo
     target(audioinfo)
