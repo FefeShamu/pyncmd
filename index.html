@@ -2,6 +2,8 @@
   PyNCMd Forntend UI
 
   Desinged using Adobe Dreamwaver with Bootstrap support
+
+  thanks bootcss.com for providing CDN of bootstrap
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +15,7 @@
   <title>PyNCMd Web界面</title>
 
   <!-- Bootstrap -->
-  <link href="static/css/bootstrap-4.3.1.css" rel="stylesheet">
+  <link href="https://cdn.bootcss.com/twitter-bootstrap/4.4.1/css/bootstrap.css" rel="stylesheet">
 
 </head>
 
@@ -58,7 +60,7 @@
         <ul class="list-unstyled" id="playqueue">
           </br>
           <li class="media">
-            <img class="d-flex mr-3" src="images/MediaObj_Placeholder.png" alt="placeholder image">
+            <img class="d-flex mr-3" src="static/images/MediaObj_Placeholder.png" alt="placeholder image">
             <div class="media-body">
               <h5 class="mt-0">媒体标题</h5>
               <p>媒体信息</p>
@@ -71,13 +73,13 @@
   <a class="btn btn-secondary" href="#" role="button" style="position:fixed;right:5px;bottom:5px">↑</a>
   <!-- Audio peak meter-->
   <script src="static/js/web-audio-peak-meter.js"></script>
-  <!-- Core.js 核心部分 -->
+  <!-- Core.js core logic -->
   <script src="static/js/core.js"></script>
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-  <script src="static/js/jquery-3.3.1.min.js"></script>
+  <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
-  <script src="static/js/popper.min.js"></script>
-  <script src="static/js/bootstrap-4.3.1.js"></script>
+  <script src="https://cdn.bootcss.com/popper.js/1.16.1/popper.js"></script>
+  <script src="https://cdn.bootcss.com/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
 </body>
 
 </html>
