@@ -269,9 +269,8 @@ def _api_song(caller):
                 "album":ALBUM,
                 "contribution":CONTRIBUTION,
                 "requirements":content['requirements'],                 
-                "message": "Success",
-                "attention_hackerz":"you're free to use this api,but pleases do not abuse or spread it\nthis project is open-source:github.com/greats3an/pyncmd"
-            }, ensure_ascii=False, indent=4))
+                "message": "Success"
+            }))
             # cheecky message ( ͡° ͜ʖ ͡°)
     except Exception as e:
         # failed!
