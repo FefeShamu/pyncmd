@@ -27,7 +27,7 @@ function updateNodes() {
     next_song = document.getElementById('next-song')
     next_song.onclick = playqueue_play_next
     window.onload = ()=>{
-        performRequest('connected',['contribution'])
+        performRequest(`Connected from ${returnCitySN.cip}`,['contribution'])
     }
     peakmeter = document.getElementById('peak-meter')
     audioCtx = new window.AudioContext()
