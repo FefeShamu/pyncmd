@@ -408,7 +408,7 @@ function playqueue_playhead_onchage() {
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     song = playqueue[playqueue_playhead]
-    performRequest(id,['contribution', 'audio', 'info', 'lyrics'],'',{'audio':{'quality':playback_quality}})
+    performRequest(song.song_id,['contribution', 'audio', 'info', 'lyrics'],'',{'audio':{'quality':playback_quality}})
     process_playqueue()
 }
 function playqueue_play_prev() {
@@ -427,7 +427,7 @@ function playqueue_item_onclick(caller) {
     // locate the parent player block,then delete it
     song = playqueue_locate_by_id(block.id)
     playqueue_playhead = playqueue.indexOf(song) - 1
-    // goes before
+    // goes one song before it
     playqueue_play_next()
     // plays the song
 }
