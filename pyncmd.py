@@ -235,53 +235,80 @@ def _(caller):
     caller.send_response(200)
     server.write_page(caller, 'index.html')
 
-count = 0
+count,requirement_mapping = 0,{
+    'audio':NCM.GetSongInfo,
+    'info':NCM.GetExtraSongInfo,
+    'lyrics':NCM.GetSongLyrics,
+    'playlist':NCM.GetPlaylistInfo,
+    'album':NCM.GetAlbumInfo,
+    'contribution':lambda *args:{
+        "contributer": NCM.login_info['content']['profile']['nickname'],
+        "contributer_message": ContributerMessage,
+        "count":count                   
+    }
+}
 def _api_song(caller):
     # /api/song
     # Utilizing PyNCM to load music info
     # With given music ID
-    global count
+    global count,requirement_mapping
     content_length = caller.headers.get('content-length')
     content = caller.rfile.read(int(content_length)).decode(
         'utf-8') if content_length else None
-    # load content
+    # load content inside request body
     try:
         content = json.loads(content)
-        simple_logger('Request ID:',content['id'],'Request Requirements',' '.join(content['requirements']))
-        AUDIO = NCM.GetSongInfo(content['id']) if 'audio' in content['requirements'] else {}           
-        EXTRA = NCM.GetExtraSongInfo(content['id']) if 'info' in content['requirements'] else {}
-        LYRICS = NCM.GetSongLyrics(content['id'])  if 'lyrics' in content['requirements'] else {}
-        PLAYLIST = NCM.GetPlaylistInfo(content['id']) if 'playlist' in content['requirements'] else {}
-        ALBUM = NCM.GetAlbumInfo(content['id']) if 'album' in content['requirements'] else {}
-        CONTRIBUTION = {
-            "contributer": NCM.login_info['content']['profile']['nickname'],
-            "contributer_message": ContributerMessage,
-            "count":count                   
-        } if 'contribution' in content['requirements'] else {}
+        id,requirements,extras = (
+            content['id'] if 'id' in content.keys() else 'Not Given',
+            content['requirements'] if 'requirements' in content.keys() else [],
+            content['extras'] if 'extras' in content.keys() else {},
+        )
+        # object ID,request requirements,extra parameters per requirement
+        # a request for a song's audio url can be the following
+        '''
+        {
+            'id':7355608,
+            // specifies ID
+            'requirements':['audio'],
+            // specifies only for audio
+            'extra':{'audio':{'quality':'lossless'}}
+            // sets audio quality
+        }
+        '''
+        simple_logger(f'[Procssing Request] ID:{id} Requirements:{requirements} Extras:{extras}')
+        response = {}
+        for requirement in requirements:
+            # composing response
+            if requirement in requirement_mapping.keys():
+                try:
+                    extra = extras[requirement] if requirement in extras.keys() else {}
+                    response[requirement] = requirement_mapping[requirement](
+                        id,
+                        **extra
+                    )
+                    response[requirement]['extra'] = extra
+                    if 'code' in response[requirement].keys() and response[requirement]['code'] != 200:                        
+                        response[requirement]['message'] = f"netease api error:{response[requirement]['code']}"
+                    else:
+                        response[requirement]['message'] = 'success'
+                except Exception as e:
+                    response[requirement] = {'message':e}
+            else:
+                response[requirement] = {'message':'func not found'}
+        response = {**response,'requirements':requirements}
         # Select what to send based on 'requirements' value
         caller.send_response(200)
-        server.write_string(caller, json.dumps(
-            {
-                "audio":AUDIO,
-                "info":EXTRA,
-                "lyrics":LYRICS,
-                "playlist":PLAYLIST,
-                "album":ALBUM,
-                "contribution":CONTRIBUTION,
-                "requirements":content['requirements'],                 
-                "message": "Success"
-            }))
-            # cheecky message ( ͡° ͜ʖ ͡°)
+        server.write_string(caller, json.dumps(response))
     except Exception as e:
         # failed!
         caller.send_response(500)
-        server.write_string(caller, '{"message":"加载歌曲(id:%s)时出现错误：%s"}' % (content['id'],e))
+        server.write_string(caller, '{"message":"unexcepted error:%s"}' % e)
     count += 1
     simple_logger('Processed request.Total times:%s , ID: %s' %
                   (count, content['id'] if content else 'INVALID'))
 
 
-# 根目录索引
+
 server._ = _
 server._api_song = _api_song
 

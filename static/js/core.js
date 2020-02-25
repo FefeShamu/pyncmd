@@ -27,7 +27,7 @@ function updateNodes() {
     next_song = document.getElementById('next-song')
     next_song.onclick = playqueue_play_next
     window.onload = ()=>{
-        performRequest('', requirements = ['contribution'])
+        performRequest('connected',['contribution'])
     }
     peakmeter = document.getElementById('peak-meter')
     audioCtx = new window.AudioContext()
@@ -39,6 +39,7 @@ function updateNodes() {
         audioCtx.resume();
     });
     player.crossOrigin = "anonymous";
+	qualitySelector = document.getElementById('quality-selector')
 }
 updateNodes()
 
@@ -58,8 +59,8 @@ function getAPI(api) {
     return document.location.toString().replace('#','') + apis[api]
 }
 
-function performRequest(id = 0, requirements = ['contribution', 'audio', 'info', 'lyrics', 'playlist','album'], override = '') {
-    msg = JSON.stringify({ "id": id, "requirements": requirements })
+function performRequest(id = 0, requirements = [],override = '',extra={}) {
+    msg = JSON.stringify({ "id": id, "requirements": requirements,"extras":extra })
     var r = new XMLHttpRequest();
     api = getAPI('song')
     r.open("POST", api, true);
@@ -67,8 +68,8 @@ function performRequest(id = 0, requirements = ['contribution', 'audio', 'info',
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
                 info = JSON.parse(r.responseText)
-                for (requirement of requirements) {
-                    eval('callback_' + requirement + '(info,r,override)');
+                for (requirement of info.requirements) {                    
+                    eval('callback_' + requirement + '(info=info,r,override=override)');
                 }
                 // reflect the callback using eval
             } catch (error) {
@@ -173,11 +174,9 @@ function player_ended() {
 
 function _callback(target) {
     // callback funtion wrapper
-    // note that in JS,you can't use '@decorators' on functions
-    // the function-elevation rendered it useless,so keep in mind
-    return function (info, r, override = '') {
+    return function (info, r, override='') {
         if (r.status != 200) { notify(info.message, 'danger'); return }
-        // error message
+        // server-side error message,notabliy dangerous and should be alerted to the user
         target(info, r, override)
         // execute function to be wrapped if message is valid
     }
@@ -189,9 +188,9 @@ function callback_audio(info, r, override = '') {
     audioinfo = info.audio
     console.log({ 'Audio callback': audioinfo })
     function display_audioinfo(audioinfo) {
-        if (audioinfo.code != 200){
-            // error!but not on the server side,rather,the netease's API side.
-            notify(`歌曲(id:${audioinfo.data[0].id})音频解析失败（所属专辑可能需要付费？）`,'warning')
+        if (audioinfo.message != 'success'){
+            // error on netease's API side.
+            notify(`歌曲(id:${audioinfo.data[0].id})音频解析失败（${audioinfo.message}）`,'warning')
         } else {
             download.href = audioinfo['data'][0]['url']
             player.src = download.href
@@ -318,9 +317,8 @@ function process_playids(playids) {
     for (id of playids) {
         musicinfo_override = function (musicinfo) {
             // once loaded,push to the playqueue
-            playqueue.push(musicinfo)                     
+            playqueue.push(musicinfo)                 
             process_playqueue()
-            playqueue_play_next()
         }
         performRequest(id,['info'],musicinfo_override)
     }    
@@ -403,14 +401,14 @@ function playqueue_pop() {
     song.node.remove()
     return song
 }
-playqueue_playhead = -1
+playqueue_playhead = -1;playback_quality = 'lossless'
 function playqueue_playhead_onchage() {
     // plays song on list indexed by playhead
     if (playqueue.length <= playqueue_playhead || playqueue_playhead < 0) playqueue_playhead = 0
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     song = playqueue[playqueue_playhead]
-    performRequest(song.song_id, requirements = ['contribution', 'audio', 'info', 'lyrics'])
+    performRequest(id,['contribution', 'audio', 'info', 'lyrics'],'',{'audio':{'quality':playback_quality}})
     process_playqueue()
 }
 function playqueue_play_prev() {
@@ -457,13 +455,13 @@ function action_onclick() {
     if (sharelink.indexOf('playlist') != -1) {
         // inputed playlist URL
         if(ids.length>1){notify('<strong>歌单</strong>ID只能输入一个!','warning');return}
-        performRequest(ids[0], ['playlist'])
+        performRequest(ids[0],['playlist'])
         shareinput.value = `playlist:${ids[0]}`
 
     } else if (sharelink.indexOf('album') != -1) {
             // inputed album URL
             if(ids.length>1){notify('<strong>专辑</strong>ID只能输入一个!','warning');return}
-            performRequest(ids[0], ['album'])
+            performRequest(ids[0],['album'])
             shareinput.value = `album:${ids[0]}`    
     } else {
         // anything else (containting any 5+ digit numbers)
@@ -473,7 +471,7 @@ function action_onclick() {
         process_playids(ids)
     }
     action.disabled = true
-    setTimeout(()=>{action.disabled = false},1000)
+    setTimeout(()=>{action.disabled = false;if (!player.duration) playqueue_play_next()},1000)
     // re-activate after 1s
 }
 
