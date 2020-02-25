@@ -42,7 +42,7 @@ ContributerMessage = args['message']
 # Parsing argumnets
 NCM = NeteaseCloudMusic(simple_logger)
 LoginTimeout = 600
-# CSRF Token will expire in 1200s,we perform a normal re-login every 600s(5 mins)
+# CSRF Token will expire in 1200s,we perform a normal re-login every 600s(10 mins)
 def LoginLooper():
     simple_logger('[W] Automaticly Updating Login Info!')
     result = NCM.UpdateLoginInfo(phone,password)
@@ -275,7 +275,7 @@ def _api_song(caller):
             // sets audio quality
         }
         '''
-        simple_logger(f'[Procssing Request] ID:{id} Requirements:{requirements} Extras:{extras}')
+        simple_logger(f'[Procssing Request] {id} Requirements:{requirements} Extras:{extras}')
         response = {}
         for requirement in requirements:
             # composing response
@@ -288,7 +288,7 @@ def _api_song(caller):
                     )
                     response[requirement]['extra'] = extra
                     if 'code' in response[requirement].keys() and response[requirement]['code'] != 200:                        
-                        response[requirement]['message'] = f"netease api error:{response[requirement]['code']}"
+                        response[requirement]['message'] = f"netease eAPI error:{response[requirement]['code']}"
                     else:
                         response[requirement]['message'] = 'success'
                 except Exception as e:
