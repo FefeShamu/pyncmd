@@ -276,8 +276,6 @@ function callback_playlist(info, r, override = '') {
             })
         }
         process_playqueue()
-        if (!player.duration) playqueue_play_next()
-        // starts playing if nothing is playing
     }
     target = (!!override) ? override : load_playlist
     target(playlistinfo)
@@ -302,8 +300,6 @@ function callback_album(info, r, override = '') {
             })
         }
         process_playqueue()
-        if (!player.duration) playqueue_play_next()
-        // starts playing if nothing is playing
     }
     target = (!!override) ? override : load_album
     target(albuminfo)
