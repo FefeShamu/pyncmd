@@ -96,7 +96,7 @@ function convertToTimestamp(timecode) {
 
 lyrics = {}
 const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-function decodeLyrics(lrc, tlrc = '', split = ' ') {
+function decodeLyrics(lrc, tlrc = '', split = ' / ') {
     // lrc:original lyrics
     // tlrc:translation
     // split:splting char between lrc & tlrc
@@ -113,7 +113,7 @@ function decodeLyrics(lrc, tlrc = '', split = ' ') {
             // match[1] contains the first capture group
             timestamp = convertFromTimestamp(timestamp)
             if (!lyrics[timestamp.toString()]) lyrics[timestamp.toString()] = ''
-            lyrics[timestamp.toString()] += match[2] + split
+            lyrics[timestamp.toString()] += !!lyrics[timestamp.toString()] ? split + match[2]  : match[2]
             // Where match[2] contains the second capture group
         }
     }

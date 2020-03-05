@@ -7,56 +7,51 @@
   thanks bootcss.com for providing CDN of bootstrap
 -->
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Netease Cloud Music Fronted</title>
-
-  <!-- Bootstrap -->
-  <link href="https://cdn.bootcss.com/twitter-bootstrap/4.4.1/css/bootstrap.css" rel="stylesheet">
-
+  <script src="https://kit.fontawesome.com/7e6b92f3c9.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+ 
 </head>
 
 <body>
+  <br />
   <div class="container" id="notifyfeed"></div>
   <div class="row">
-    <div class="col-md-1 col-xl-2 offset-xl-1" style="display: flex;align-items: center">
-      <img id="cover" style="margin:0 auto;transition:all 1.5s ease-out" width="256px"
-        src="static/images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败">
-    </div>
-    <div class="col-md-1 col-xl-8 col-lg-11" style="display: flex">
-      <div class="card col-md-4 col-xl-12 col-lg-12" style="margin-top: 20px">
-        <div class="card-body">
-          <h4 class="card-title" id="title">音乐标题</h4>
-          <h6 class="card-subtitle mb-2 text-muted" id="album">音乐专辑</h6>
+    <div class="col-lg-12" style="display: flex">
 
-          <p class="card-text" style="font-size:small" id="info1">音乐信息</p>
-          <h6 id="lyrics">歌词</h6>
-          <p class="card-text" id="info2">附加信息</p>
+      <div class="card" style="margin: auto;padding: 10px;width: 75%">
+
+        <div class="card-body">
+          <h4 class="card-title" id="title">PYNCMD</h4>
+          <h6 class="card-subtitle mb-2 text-muted" id="album" style="width: auto">by greats3an</h6>
+          <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a></p>
+          <h6 id="lyrics" style="width: auto">支持 歌曲、歌单、专辑分享链接解析</h6>
+          <p class="card-text" id="info2">连接中...</p>
           <audio id="player" src="" style="width:100%" controls></audio>
-          <div class="dropdown">
-            <a href="#" class="card-link" id="download" download>下载</a>
-            <a class="card-link" style="color:#007bff;cursor: pointer" id="download-lrc">下载歌词</a>
+          <img id="cover"
+            style="margin:0 auto;transition:all 1.5s ease-out;float:right;position: absolute;top: 20%;right: 5%"
+            width="100px" src="static/images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid"
+            alt="专辑图像加载失败">
+          <div class="dropdown" style="text-overflow: clip">
+            <a href="#" class="card-link" id="download" download><i class="fas fa-cloud-download-alt"></i></a>
+            <a class="card-link" style="color:#007bff;cursor: pointer" id="download-lrc"><i class="fas fa-file-download"></i></a>
             <a href="#" class="card-link" style="display: none" id="download-lrc-placeholder" download>下载歌词</a>
-            <a class="card-link" style="color:#007bff;cursor: pointer" id="prev-song">上一首</a>
-            <a class="card-link" style="color:#007bff;cursor: pointer" id="next-song">下一首</a>
-            <a class="card-link" style="color:#007bff;cursor: pointer" id="quality-selector" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">品质：无损</a>
+            <a class="card-link" style="color:#007bff;cursor: pointer" id="prev-song"><i class="fas fa-backward"></i></a>
+            <a class="card-link" style="color:#007bff;cursor: pointer" id="next-song"><i class="fas fa-forward"></i></a>
+            <a class="card-link" style="color:#007bff;cursor: pointer" id="quality-selector" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false"><i class="fas fa-music"></i></a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuHeader">
               <h6 class="dropdown-header">歌曲品质</h6>
-			  <!--standard,high,higher,lossless-->
-              <a class="dropdown-item" 
-				 onClick="qualitySelector.innerHTML=`品质：${this.innerHTML}`;
-						  playback_quality='standard'">标准</a>
-              <a class="dropdown-item"
-				 onClick="qualitySelector.innerHTML=`品质：${this.innerHTML}`
-						  playback_quality='high'">较高</a>
-			  <a class="dropdown-item" 
-				 onClick="qualitySelector.innerHTML=`品质：${this.innerHTML}`
-						  playback_quality='higher'">高</a>
-			  <a class="dropdown-item" 
-				 onClick="qualitySelector.innerHTML=`品质：${this.innerHTML}`
-						  playback_quality='lossless'">无损</a>
+              <!--standard,high,higher,lossless-->
+              <a class="dropdown-item" onClick="playback_quality='standard'">标准</a>
+              <a class="dropdown-item" onClick="playback_quality='high'">较高</a>
+              <a class="dropdown-item" onClick="playback_quality='higher'">高</a>
+              <a class="dropdown-item" onClick="playback_quality='lossless'">无损</a>
             </div>
           </div>
         </div>
@@ -65,12 +60,12 @@
     </div>
   </div>
   <div class="container">
-	  <br/>
+    <br />
     <div class="input-group mb-3">
       <div class="input-group-prepend"> </div>
       <input type="text" class="form-control" id="shareinput" placeholder="分享链接(e.g.playlist:3778678)"
         style="margin-right:10px" aria-describedby="basicaddon1">
-      <button type="button" class="btn btn-primary" id="action">+</button>
+      <button type="button" class="btn btn-primary glyphicon glyphicon-euro" id="action">+</button>
     </div>
     <div class="container">
       <div class="card col-md-4 col-lg-12">
@@ -89,7 +84,8 @@
     </div>
   </div>
   <div class="card" alt="db 表" onclick="location.href = '#top'">
-      <div id="peak-meter"  style="opacity:0.8;height: 50px;position: fixed;left: 10%;bottom: 3%;width: 80%" alt="回到页首"></div>
+    <div id="peak-meter" style="opacity:0.8;height: 50px;position: fixed;left: 10%;bottom: 3%;width: 80%" alt="回到页首">
+    </div>
   </div>
   <!-- IP Tracking -->
   <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
@@ -101,7 +97,7 @@
   <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
   <script src="https://cdn.bootcss.com/popper.js/1.16.1/umd/popper.min.js"></script>
-  <script src="https://cdn.bootcss.com/twitter-bootstrap/4.4.1/js/bootstrap.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 </body>
 
 </html>
