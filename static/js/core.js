@@ -5,6 +5,7 @@
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
     cover = document.getElementById("cover")
+    cover.style.width = screen.height * 0.1 > screen.width * 0.1 ? screen.height * 0.1 : screen.width * 0.1 + "px"
     title = document.getElementById("title")
     album = document.getElementById("album")
     infocontext1 = document.getElementById("info1")
