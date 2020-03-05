@@ -56,7 +56,7 @@ function getAPI(api) {
         "song": "api/song"
     }
     // removes anomalous chars,then concat the api
-    return document.location.toString().replace('#','') + apis[api]
+    return `${location.origin}${location.pathname}${apis[api]}`
 }
 
 function performRequest(id = 0, requirements = [],override = '',extra={}) {
