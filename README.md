@@ -32,8 +32,6 @@
 
 # 感谢
 
-[esonderegger/web-audio-peak-meter](https://github.com/esonderegger/web-audio-peak-meter)
-
 [The Bootstrap Team](https://getbootstrap.com/)
 
 [BootCSS](https://bootcss.com)
