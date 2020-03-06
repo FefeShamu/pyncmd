@@ -258,7 +258,7 @@ function callback_lyrics(info, r, override = '') {
     console.log({ 'Lyrics callback': lyricsinfo })
     function display_lyrics(lyricsinfo) {
         if (!!lyricsinfo.nolyric || !!lyricsinfo.uncollected)
-            lyrics = { '0': '<i>无歌词</i>' }
+            lyrics = { '0': ['<i>纯音乐 / 无歌词</i>'] }
         else
             parseLryics(lyricsinfo.lrc.lyric, lyricsinfo.tlyric.lyric)
     }
@@ -473,7 +473,7 @@ function action_onclick() {
         m.forEach((match, groupIndex) => {ids.push(match)});        
     }
     // extract ID using regex
-    if (sharelink.indexOf('playlist') != -1) {
+    if (sharelink.indexOf('list') != -1) {
         // inputed playlist URL
         if(ids.length>1){notify('<strong>歌单</strong>ID只能输入一个!','warning');return}
         performRequest(ids[0],['playlist'])
