@@ -97,7 +97,7 @@ function convertToTimestamp(timecode) {
 
 lyrics = {}
 const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-function decodeLyrics(lrc, tlrc = '', split = ' / ') {
+function parseLryics(lrc, tlrc = '', split = ' / ') {
     // lrc:original lyrics
     // tlrc:translation
     // split:splting char between lrc & tlrc
@@ -114,7 +114,7 @@ function decodeLyrics(lrc, tlrc = '', split = ' / ') {
             // match[1] contains the first capture group
             timestamp = convertFromTimestamp(timestamp)
             if (!lyrics[timestamp.toString()]) lyrics[timestamp.toString()] = ''
-            lyrics[timestamp.toString()] += !!lyrics[timestamp.toString()] ? split + match[2]  : match[2]
+            lyrics[timestamp.toString()] += !!lyrics[timestamp.toString()] ? split + match[2] : match[2]
             // Where match[2] contains the second capture group
         }
     }
@@ -156,10 +156,31 @@ function player_update() {
     // player update event,used to update lyrics
     // note that it's usually updated every ~250ms
     if (!lyrics) return
-    tick = player.currentTime
-    ticks = Object.keys(lyrics)
-    matched = lyrics[findClosestMatch(ticks, tick)]
-    if (!matched) matched = ''
+    lyricsbox.style.webkitAnimationPlayState  = player.paused ? 'paused' : 'running'    
+    tick = player.currentTime;ticks = Object.keys(lyrics)
+    lyrics_timestamp = findClosestMatch(ticks, tick)
+    matched = lyrics[lyrics_timestamp]
+
+    if (!matched) {
+        matched = ''
+    } else {
+        next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
+        next_stamp = ticks[next_tick]
+        lyrics_duration = (next_stamp - lyrics_timestamp).toFixed(3) 
+        if (lyrics_duration != lyricsbox.duration){            
+            lyricsbox.duration = lyrics_duration
+            ani = lyricsbox.animate(
+                [
+                  { transform: 'translateY(0)','opacity':0.2},
+                  { transform: 'translateY(-20%)','opacity':1 }   
+                ], {
+                  easing: 'linear',
+                  duration: lyricsbox.duration  * 1000
+                });
+            ani.play()            
+        }
+       
+    }
     // finds closest match of keys
     lyricsbox.innerHTML = '<a>' + matched + '</a>'
     // chages innerHTML
@@ -236,7 +257,7 @@ function callback_lyrics(info, r, override = '') {
         if (!!lyricsinfo.nolyric || !!lyricsinfo.uncollected)
             lyrics = { '0': '<i>无歌词</i>' }
         else
-            decodeLyrics(lyricsinfo.lrc.lyric, lyricsinfo.tlyric.lyric)
+            parseLryics(lyricsinfo.lrc.lyric, lyricsinfo.tlyric.lyric)
     }
     target = (!!override) ? override : display_lyrics
     target(lyricsinfo)
