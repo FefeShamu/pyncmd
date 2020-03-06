@@ -15,7 +15,45 @@
   <title>Netease Cloud Music Fronted</title>
   <!--Bootstrap & Fontawesome-->
   <script src="https://cdn.bootcss.com/font-awesome/5.12.1/js/all.min.js" crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <style>
+    #lyrics {
+      height: 50px;
+      width: auto;
+      animation: animate 2s linear 1;
+      white-space: pre-wrap;
+    }
+
+    #cover {
+      margin: 0 auto;
+      margin-top: 20px;
+      transition: all 1.5s ease-out;
+      float: right;
+      position: absolute;
+      top: 5%;
+      right: 5%;
+      /*mask: url(static/images/mask.png) no-repeat center center;
+      -webkit-mask: url(static/images/mask.png) no-repeat center center;*/
+    }
+
+    #peak-meter {
+      opacity: 0.8;
+      height: 20%;
+      width: 100%;
+      position: fixed;
+      left: 0%;
+      bottom: -5%;
+    }
+
+    svg {
+      color: #007bff;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+
+  </style>
 </head>
 
 <body>
@@ -29,23 +67,23 @@
         <div class="card-body">
           <h4 class="card-title" id="title">PYNCMD</h4>
           <h6 class="card-subtitle mb-2 text-muted" id="album" style="width: auto">by greats3an</h6>
-          <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a></p>
-          <h6 id="lyrics" style="height:50px;width: auto;animation: animate 2s linear 1;white-space: pre-wrap;">支持 歌曲、歌单、专辑分享链接解析</h6>
+          <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a>
+          </p>
+          <h6 id="lyrics">支持 歌曲、歌单、专辑分享链接解析</h6>
           <p class="card-text" id="info2">连接中...</p>
           <audio id="player" src="" style="width:100%" controls></audio>
-          
-          <img id="cover"
-            style="margin:0 auto;margin-top: 20px;transition:all 1.5s ease-out;float:right;position: absolute;top: 15%;right: 5%"
-            width="80vh" src="static/images/ImgResponsive_Placeholder.png" class="rounded-circle img-fluid" alt="专辑图像加载失败">
+
+          <img id="cover" width="80vh" src="static/images/ImgResponsive_Placeholder.png"
+            class="rounded-circle img-fluid" alt="专辑图像加载失败">
 
           <div class="dropdown" style="text-overflow: clip">
-            <a href="#" class="card-link" id="download" style="color:#007bff;cursor: pointer;font-weight:bold;" download><i class="fas fa-cloud-download-alt"></i></a>
-            <a class="card-link" style="color:#007bff;cursor: pointer;font-weight:bold;" id="download-lrc"><i class="fas fa-file-download"></i></a>
+            <a href="#" class="card-link" id="download" download><i class="fas fa-cloud-download-alt"></i></a>
+            <a class="card-link" id="download-lrc"><i class="fas fa-file-download"></i></a>
             <a href="#" class="card-link" style="display: none" id="download-lrc-placeholder" download>下载歌词</a>
-            <a class="card-link" style="color:#007bff;cursor: pointer;font-weight:bold;" id="prev-song"><i class="fas fa-backward"></i></a>
-            <a class="card-link" style="color:#007bff;cursor: pointer;font-weight:bold;" id="next-song"><i class="fas fa-forward"></i></a>
-            <a class="card-link" style="color:#007bff;cursor: pointer;font-weight:bold;" id="quality-selector" data-toggle="dropdown"
-              aria-haspopup="true" aria-expanded="false"><i class="fas fa-music"></i></a>
+            <a class="card-link" id="prev-song"><i class="fas fa-backward"></i></a>
+            <a class="card-link" id="next-song"><i class="fas fa-forward"></i></a>
+            <a class="card-link" id="quality-selector" data-toggle="dropdown" aria-haspopup="true"
+              aria-expanded="false"><i class="fas fa-music"></i></a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuHeader">
               <h6 class="dropdown-header">歌曲品质</h6>
               <!--standard,high,higher,lossless-->
@@ -56,7 +94,7 @@
             </div>
           </div>
         </div>
-      
+
       </div>
       &nbsp;
     </div>
@@ -86,20 +124,22 @@
     </div>
   </div>
   <div class="card" alt="db 表" onclick="location.href = '#top'">
-    <div id="peak-meter" style="opacity:0.8;height: 50px;position: fixed;left: 10%;bottom: 3%;width: 80%" alt="回到页首">
-    </div>
+    <canvas id="peak-meter" alt="回到页首">
+    </canvas>
   </div>
   <!-- IP Tracking -->
   <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
-  <!-- Audio peak meter-->
-  <script src="static/js/web-audio-peak-meter.js"></script>
+  <!-- FFT peak meter-->
+  <script src="static/js/fftanalyzer.js"></script>
   <!-- Core.js core logic -->
   <script src="static/js/core.js"></script>
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
   <script src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
   <!-- Include all compiled plugins (below), or include individual files as needed -->
   <script src="https://cdn.bootcss.com/popper.js/1.16.1/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+    crossorigin="anonymous"></script>
 </body>
 
 </html>

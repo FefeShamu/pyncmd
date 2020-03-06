@@ -27,6 +27,7 @@ function updateNodes() {
     prev_song.onclick = playqueue_play_prev
     next_song = document.getElementById('next-song')
     next_song.onclick = playqueue_play_next
+    qualitySelector = document.getElementById('quality-selector')
     window.onload = () => {
         performRequest(`Connected from ${returnCitySN.cip}`, ['contribution'])
     }
@@ -34,13 +35,15 @@ function updateNodes() {
     audioCtx = new window.AudioContext()
     audioSrc = audioCtx.createMediaElementSource(player)
     audioSrc.connect(audioCtx.destination)
-    meterNode = webAudioPeakMeter.createMeterNode(audioSrc, audioCtx);
-    webAudioPeakMeter.createMeter(peakmeter, meterNode, {});
     player.addEventListener('play', function () {
         audioCtx.resume();
     });
+    var analyzer = audioCtx.createAnalyser()
+    audioSrc.connect(analyzer)
+    ffta_init(analyzer,peakmeter)
     player.crossOrigin = "anonymous";
-    qualitySelector = document.getElementById('quality-selector')
+
+
 }
 updateNodes()
 
@@ -166,6 +169,7 @@ function player_update() {
 
     if (!matched) {
         matched = ['纯音乐 / 无歌词']
+        lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
     } else {
         // if match found,updates the lyrics
         // and plays animation for the time between this and the next lyrics
@@ -352,7 +356,7 @@ function* generateID() { i = 0; while (true) { i += 1; yield ('element' + i) } }
 IDGenerator = generateID();
 
 init_clear = false
-function display_song_in_list(song) {
+function append_node(song) {
     if (!init_clear) { playqueue_view.innerHTML = '</br>'; init_clear = true }
     // clear if not cleared since page is loaded
     var mediabox = document.createElement('li')
@@ -401,7 +405,7 @@ function process_playqueue() {
     if (!playqueue) return
     for (song of playqueue) {
         if (!song.node) {
-            song.node = display_song_in_list(song)
+            song.node = append_node(song)
             // add node if not already
         }
         song.node.style.color = 'black'
