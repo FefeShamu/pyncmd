@@ -434,6 +434,8 @@ function playqueue_playhead_onchage() {
     song = playqueue[playqueue_playhead]
     performRequest(song.song_id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
+    lyricsbox.innerHTML = ''
+    // clear lyrics
 }
 function playqueue_play_prev() {
     // previous song
