@@ -97,7 +97,7 @@ function convertToTimestamp(timecode) {
 
 lyrics = {}
 const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-function parseLryics(lrc, tlrc = '', split = ' / ') {
+function parseLryics(lrc, tlrc = '', split = '\t') {
     // lrc:original lyrics
     // tlrc:translation
     // split:splting char between lrc & tlrc
@@ -113,8 +113,11 @@ function parseLryics(lrc, tlrc = '', split = ' / ') {
             // Pad with 0ms if no milliseconds is defined
             // match[1] contains the first capture group
             timestamp = convertFromTimestamp(timestamp)
-            if (!lyrics[timestamp.toString()]) lyrics[timestamp.toString()] = ''
-            lyrics[timestamp.toString()] += !!lyrics[timestamp.toString()] ? split + match[2] : match[2]
+            if (!lyrics[timestamp.toString()]){
+                 lyrics[timestamp.toString()] = [match[2]]
+            }else{
+                lyrics[timestamp.toString()].push(match[2])
+            }
             // Where match[2] contains the second capture group
         }
     }
@@ -129,7 +132,7 @@ function download_lrc_onclick() {
     lrc = ''
     for (key in lyrics) {
         timestamp = convertToTimestamp(key)
-        line = '[' + timestamp + ']' + lyrics[key]
+        line = '[' + timestamp + ']' + lyrics[key].join('\t')
         lrc += line + '\n'
     }
     blob = new Blob([lrc], { type: "text/plain;charset=utf-8" })
@@ -182,7 +185,7 @@ function player_update() {
        
     }
     // finds closest match of keys
-    lyricsbox.innerHTML = '<a>' + matched + '</a>'
+    lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
     // chages innerHTML
     rotate(tick * 5)
     // rotates the cover
