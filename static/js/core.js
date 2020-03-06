@@ -165,7 +165,7 @@ function player_update() {
     matched = lyrics[lyrics_timestamp]
 
     if (!matched) {
-        matched = ''
+        matched = ['纯音乐 / 无歌词']
     } else {
         next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
         next_stamp = ticks[next_tick]
@@ -174,8 +174,8 @@ function player_update() {
             lyricsbox.duration = lyrics_duration
             ani = lyricsbox.animate(
                 [
-                  { transform: 'translateY(0)','opacity':0.2},
-                  { transform: 'translateY(-20%)','opacity':1 }   
+                  { transform: 'translateY(-20%)','opacity':0.2},
+                  { transform: 'translateY(0%)','opacity':1 }   
                 ], {
                   easing: 'linear',
                   duration: lyricsbox.duration  * 1000
