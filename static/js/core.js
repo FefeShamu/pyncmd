@@ -27,8 +27,8 @@ function updateNodes() {
     prev_song.onclick = playqueue_play_prev
     next_song = document.getElementById('next-song')
     next_song.onclick = playqueue_play_next
-    window.onload = ()=>{
-        performRequest(`Connected from ${returnCitySN.cip}`,['contribution'])
+    window.onload = () => {
+        performRequest(`Connected from ${returnCitySN.cip}`, ['contribution'])
     }
     peakmeter = document.getElementById('peak-meter')
     audioCtx = new window.AudioContext()
@@ -36,11 +36,11 @@ function updateNodes() {
     audioSrc.connect(audioCtx.destination)
     meterNode = webAudioPeakMeter.createMeterNode(audioSrc, audioCtx);
     webAudioPeakMeter.createMeter(peakmeter, meterNode, {});
-    player.addEventListener('play', function() {
+    player.addEventListener('play', function () {
         audioCtx.resume();
     });
     player.crossOrigin = "anonymous";
-	qualitySelector = document.getElementById('quality-selector')
+    qualitySelector = document.getElementById('quality-selector')
 }
 updateNodes()
 
@@ -49,7 +49,7 @@ function notify(message, level = "success") {
     notice.className = "alert alert-" + level
     notice.innerHTML = '<a href="#" class="close" data-dismiss="alert">&times;</a>' + message
     notifyfeed.before(notice)
-    scrollTo(0,0)
+    scrollTo(0, 0)
 }
 
 function getAPI(api) {
@@ -60,8 +60,8 @@ function getAPI(api) {
     return `${location.origin}${location.pathname}${apis[api]}`
 }
 
-function performRequest(id = 0, requirements = [],override = '',extra={}) {
-    msg = JSON.stringify({ "id": id, "requirements": requirements,"extras":extra })
+function performRequest(id = 0, requirements = [], override = '', extra = {}) {
+    msg = JSON.stringify({ "id": id, "requirements": requirements, "extras": extra })
     var r = new XMLHttpRequest();
     api = getAPI('song')
     r.open("POST", api, true);
@@ -69,7 +69,7 @@ function performRequest(id = 0, requirements = [],override = '',extra={}) {
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
                 info = JSON.parse(r.responseText)
-                for (requirement of info.requirements) {                    
+                for (requirement of info.requirements) {
                     eval('callback_' + requirement + '(info=info,r,override=override)');
                 }
                 // reflect the callback using eval
@@ -113,9 +113,9 @@ function parseLryics(lrc, tlrc = '', split = '\t') {
             // Pad with 0ms if no milliseconds is defined
             // match[1] contains the first capture group
             timestamp = convertFromTimestamp(timestamp)
-            if (!lyrics[timestamp.toString()]){
-                 lyrics[timestamp.toString()] = [match[2]]
-            }else{
+            if (!lyrics[timestamp.toString()]) {
+                lyrics[timestamp.toString()] = [match[2]]
+            } else {
                 lyrics[timestamp.toString()].push(match[2])
             }
             // Where match[2] contains the second capture group
@@ -159,8 +159,8 @@ function player_update() {
     // player update event,used to update lyrics
     // note that it's usually updated every ~250ms
     if (!lyrics) return
-    lyricsbox.style.webkitAnimationPlayState  = player.paused ? 'paused' : 'running'    
-    tick = player.currentTime;ticks = Object.keys(lyrics)
+    lyricsbox.style.webkitAnimationPlayState = player.paused ? 'paused' : 'running'
+    tick = player.currentTime; ticks = Object.keys(lyrics)
     lyrics_timestamp = findClosestMatch(ticks, tick)
     matched = lyrics[lyrics_timestamp]
 
@@ -169,20 +169,21 @@ function player_update() {
     } else {
         next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
         next_stamp = ticks[next_tick]
-        lyrics_duration = (next_stamp - lyrics_timestamp).toFixed(3) 
-        if (lyrics_duration != lyricsbox.duration){            
+        lyrics_duration = (next_stamp - lyrics_timestamp).toFixed(3)
+        if (lyrics_duration != lyricsbox.duration) {
             lyricsbox.duration = lyrics_duration
             ani = lyricsbox.animate(
                 [
-                  { transform: 'translateY(-20%)','opacity':0.2},
-                  { transform: 'translateY(0%)','opacity':1 }   
+                    { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },  
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }                  
                 ], {
-                  easing: 'linear',
-                  duration: lyricsbox.duration  * 1000
-                });
-            ani.play()            
+                easing: 'linear',
+                duration: lyricsbox.duration * 1000
+            });
+            ani.play()
         }
-       
+
     }
     // finds closest match of keys
     lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
@@ -199,7 +200,7 @@ function player_ended() {
 
 function _callback(target) {
     // callback funtion wrapper
-    return function (info, r, override='') {
+    return function (info, r, override = '') {
         if (r.status != 200) { notify(info.message, 'danger'); return }
         // server-side error message,notabliy dangerous and should be alerted to the user
         target(info, r, override)
@@ -213,9 +214,9 @@ function callback_audio(info, r, override = '') {
     audioinfo = info.audio
     console.log({ 'Audio callback': audioinfo })
     function display_audioinfo(audioinfo) {
-        if (audioinfo.message != 'success'){
+        if (audioinfo.message != 'success') {
             // error on netease's API side.
-            notify(`歌曲(id:${audioinfo.data[0].id})音频解析失败（${audioinfo.message}）`,'warning')
+            notify(`歌曲(id:${audioinfo.data[0].id})音频解析失败（${audioinfo.message}）`, 'warning')
         } else {
             download.href = audioinfo['data'][0]['url']
             player.src = download.href
@@ -237,8 +238,8 @@ function callback_info(info, r, override = '') {
         title.innerHTML = `<a href="https://music.163.com/#/song?id=${musicinfo.song_id}">${musicinfo.title}</a>`
         album.innerHTML = `<a href="https://music.163.com/#/album?id=${musicinfo.album_id}" style="color:gray">${musicinfo.album}</a>`
         // compose info box 1
-        infocontext1.innerHTML =  `音乐家：<a href="https://music.163.com/#/artist?id=${musicinfo.artist_id}">${musicinfo.author}</a></br>`
-        if(!!audioinfo['data']){
+        infocontext1.innerHTML = `音乐家：<a href="https://music.163.com/#/artist?id=${musicinfo.artist_id}">${musicinfo.author}</a></br>`
+        if (!!audioinfo['data']) {
             // these will only be added if audioinfo is available
             infocontext1.innerHTML += `<a>格式：${audioinfo['data'][0]['type']} </a></br>`
             infocontext1.innerHTML += `<a>文件大小：${getFileSize(audioinfo['data'][0]['size'])} </a>`
@@ -338,17 +339,17 @@ function process_playids(playids) {
     for (id of playids) {
         musicinfo_override = function (musicinfo) {
             // once loaded,push to the playqueue
-            playqueue.push(musicinfo)                 
+            playqueue.push(musicinfo)
             process_playqueue()
         }
-        performRequest(id,['info'],musicinfo_override)
-    }    
+        performRequest(id, ['info'], musicinfo_override)
+    }
 }
 
-function* generateID() {i = 0; while (true) { i += 1; yield ('element' + i) }}
+function* generateID() { i = 0; while (true) { i += 1; yield ('element' + i) } }
 IDGenerator = generateID();
 
-init_clear=false
+init_clear = false
 function display_song_in_list(song) {
     if (!init_clear) { playqueue_view.innerHTML = '</br>'; init_clear = true }
     // clear if not cleared since page is loaded
@@ -422,14 +423,14 @@ function playqueue_pop() {
     song.node.remove()
     return song
 }
-playqueue_playhead = -1;playback_quality = 'lossless'
+playqueue_playhead = -1; playback_quality = 'lossless'
 function playqueue_playhead_onchage() {
     // plays song on list indexed by playhead
     if (playqueue.length <= playqueue_playhead || playqueue_playhead < 0) playqueue_playhead = 0
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     song = playqueue[playqueue_playhead]
-    performRequest(song.song_id,['contribution', 'audio', 'info', 'lyrics'],'',{'audio':{'quality':playback_quality}})
+    performRequest(song.song_id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
 }
 function playqueue_play_prev() {
@@ -465,34 +466,34 @@ function action_onclick() {
     // action button click event
     // once clicked,the button will become disabled until the XHR is finished
     sharelink = shareinput.value.toLowerCase()
-    if (!sharelink) {notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger");return}
+    if (!sharelink) { notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger"); return }
     ids = []
     while ((m = id_regex.exec(sharelink)) !== null) {
         // This is necessary to avoid infinite loops with zero-width matches
-        if (m.index === id_regex.lastIndex)id_regex.lastIndex++
-        m.forEach((match, groupIndex) => {ids.push(match)});        
+        if (m.index === id_regex.lastIndex) id_regex.lastIndex++
+        m.forEach((match, groupIndex) => { ids.push(match) });
     }
     // extract ID using regex
     if (sharelink.indexOf('list') != -1) {
         // inputed playlist URL
-        if(ids.length>1){notify('<strong>歌单</strong>ID只能输入一个!','warning');return}
-        performRequest(ids[0],['playlist'])
+        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning'); return }
+        performRequest(ids[0], ['playlist'])
         shareinput.value = `playlist:${ids[0]}`
 
     } else if (sharelink.indexOf('album') != -1) {
-            // inputed album URL
-            if(ids.length>1){notify('<strong>专辑</strong>ID只能输入一个!','warning');return}
-            performRequest(ids[0],['album'])
-            shareinput.value = `album:${ids[0]}`    
+        // inputed album URL
+        if (ids.length > 1) { notify('<strong>专辑</strong>ID只能输入一个!', 'warning'); return }
+        performRequest(ids[0], ['album'])
+        shareinput.value = `album:${ids[0]}`
     } else {
         // anything else (containting any 5+ digit numbers)
         // will be treated as song IDs
-        id_string = '';ids.filter((id) => {id_string += id + ' '})
+        id_string = ''; ids.filter((id) => { id_string += id + ' ' })
         shareinput.value = `song:${id_string}`
         process_playids(ids)
     }
     action.disabled = true
-    setTimeout(()=>{action.disabled = false;if (!player.duration) playqueue_play_next()},1000)
+    setTimeout(() => { action.disabled = false; if (!player.duration) playqueue_play_next() }, 1000)
     // re-activate after 1s
 }
 
