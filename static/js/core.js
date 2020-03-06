@@ -167,10 +167,14 @@ function player_update() {
     if (!matched) {
         matched = ['纯音乐 / 无歌词']
     } else {
+        // if match found,updates the lyrics
+        // and plays animation for the time between this and the next lyrics
         next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
         next_stamp = ticks[next_tick]
         lyrics_duration = (next_stamp - lyrics_timestamp).toFixed(3)
         if (lyrics_duration != lyricsbox.duration) {
+            // lyrics chaged
+            lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
             lyricsbox.duration = lyrics_duration
             ani = lyricsbox.animate(
                 [
@@ -185,9 +189,7 @@ function player_update() {
         }
 
     }
-    // finds closest match of keys
-    lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
-    // chages innerHTML
+
     rotate(tick * 5)
     // rotates the cover
 }
