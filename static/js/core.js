@@ -4,7 +4,7 @@
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
     cover = document.getElementById("cover")
-    cover.style.width = screen.height * 0.1 > screen.width * 0.1 ? screen.height * 0.1 : screen.width * 0.1 + "px"
+    cover.style.width = (window.innerWidth > window.innerHeight ?  window.innerWidth : window.innerHeight) * 0.1 + 'px'
     title = document.getElementById("title")
     album = document.getElementById("album")
     infocontext1 = document.getElementById("info1")
@@ -19,7 +19,7 @@ function updateNodes() {
     download_lrc.onclick = download_lrc_onclick
     playqueue_view = document.getElementById("playqueue")
     shareinput = document.getElementById("shareinput")
-    lyricsbox = document.getElementById('lyrics')
+    lyricsbox = document.getElementById('lyricsbox')
     action = document.getElementById("action")
     action.onclick = action_onclick
     prev_song = document.getElementById('prev-song')
@@ -44,7 +44,7 @@ function updateNodes() {
         audioCtx.resume();
     });
 
-    ffta_init(analyzer,peakmeter)
+    ffta_init(analyzer,peakmeter,peakmeter.offsetWidth,peakmeter.offsetHeight)
     player.crossOrigin = "anonymous";
 
 
@@ -172,26 +172,25 @@ function player_update() {
     var matched = lyrics[lyrics_timestamp]
 
     if (!matched) {
-        matched = ['纯音乐 / 无歌词']
-        lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
+        lyricsbox.innerHTML = '纯音乐 / 无歌词'
     } else {
         // if match found,updates the lyrics
         // and plays animation for the time between this and the next lyrics
-        var next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
-        var next_stamp = ticks[next_tick]
-        lyrics_duration = (next_stamp - lyrics_timestamp).toFixed(3)
-        if (lyrics_duration != lyricsbox.duration) {
+        lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
+        if (lyricsbox.innerHTML != lyrics_html) {            
             // lyrics chaged
-            lyricsbox.innerHTML = '<a>' + matched.join('\n') + '</a>'
-            lyricsbox.duration = lyrics_duration
+            lyricsbox.innerHTML = lyrics_html
+            // updates lyrics
+            var lyrics_duration = (ticks[ticks.indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
+            // caculates duration for the animation in seconds
             ani = lyricsbox.animate(
                 [
                     { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
                     { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },  
                     { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }                  
                 ], {
-                easing: 'linear',
-                duration: lyricsbox.duration * 1000
+                easing: 'ease-out',
+                duration: lyrics_duration * 1000
             });
             ani.play()
         }

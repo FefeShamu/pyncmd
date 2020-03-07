@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <style>
-    #lyrics {
+    #lyricsbox {
       height: 50px;
       width: auto;
       animation: animate 2s linear 1;
@@ -34,16 +34,19 @@
       /*mask: url(static/images/mask.png) no-repeat center center;
       -webkit-mask: url(static/images/mask.png) no-repeat center center;*/
     }
-
-    #peak-meter {
-      opacity: 0.8;
-      height: 20%;
-      width: 100%;
-      position: fixed;
-      left: 0%;
-      bottom: -5%;
+    .navbar{
+      z-index: 0;
     }
-
+    #peak-meter {
+      opacity: 1;
+      height: 30vh;
+      width: 100%;
+    }
+    .autofade{
+      opacity: 0.5;
+      transition: all 0.1s ease-out;
+    }
+    .autofade:hover{opacity: 1;}
     svg {
       color: #007bff;
       cursor: pointer;
@@ -53,7 +56,7 @@
 </head>
 
 <body style="padding-bottom: 70px">
-  <nav class="navbar fixed-bottom" onClick="location.href = '#top'">
+  <nav class="navbar fixed-bottom" onClick="location.href ='#top'">
     <canvas id="peak-meter"></canvas>
   </nav>
   <br />
@@ -68,7 +71,7 @@
           <h6 class="card-subtitle mb-2 text-muted" id="album" style="width: auto">by greats3an</h6>
           <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a>
           </p>
-          <h6 id="lyrics">支持 歌曲、歌单、专辑分享链接解析</h6>
+          <h6 id="lyricsbox">支持 歌曲、歌单、专辑分享链接解析</h6>
           <p class="card-text" id="info2">连接中...</p>
           <audio id="player" src="" style="width:100%" controls></audio>
 
@@ -98,7 +101,7 @@
       &nbsp;
     </div>
   </div>
-  <div class="container">
+  <div class="container autofade">
     <br />
     <div class="input-group mb-3">
       <div class="input-group-prepend"> </div>
