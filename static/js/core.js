@@ -1,6 +1,5 @@
 /*
     Core.js：Front-End Interface logic
-
 */
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
@@ -31,15 +30,20 @@ function updateNodes() {
     window.onload = () => {
         performRequest(`Connected from ${returnCitySN.cip}`, ['contribution'])
     }
+    // initalizing visualizer
     peakmeter = document.getElementById('peak-meter')
     audioCtx = new window.AudioContext()
-    audioSrc = audioCtx.createMediaElementSource(player)
-    audioSrc.connect(audioCtx.destination)
+    // connecting the analyzer
+    var source = audioCtx.createMediaElementSource(player)
+    source.connect(audioCtx.destination)
+    var analyzer = audioCtx.createAnalyser()
+    source.connect(analyzer)
+    // in case audioCtx don't get actived if user dind't interact
+    // with the page
     player.addEventListener('play', function () {
         audioCtx.resume();
     });
-    var analyzer = audioCtx.createAnalyser()
-    audioSrc.connect(analyzer)
+
     ffta_init(analyzer,peakmeter)
     player.crossOrigin = "anonymous";
 
@@ -48,7 +52,7 @@ function updateNodes() {
 updateNodes()
 
 function notify(message, level = "success") {
-    notice = document.createElement('div')
+    var notice = document.createElement('div')
     notice.className = "alert alert-" + level
     notice.innerHTML = '<a href="#" class="close" data-dismiss="alert">&times;</a>' + message
     notifyfeed.before(notice)
@@ -56,7 +60,7 @@ function notify(message, level = "success") {
 }
 
 function getAPI(api) {
-    apis = {
+    var apis = {
         "song": "api/song"
     }
     // removes anomalous chars,then concat the api
@@ -64,14 +68,14 @@ function getAPI(api) {
 }
 
 function performRequest(id = 0, requirements = [], override = '', extra = {}) {
-    msg = JSON.stringify({ "id": id, "requirements": requirements, "extras": extra })
+    var msg = JSON.stringify({ "id": id, "requirements": requirements, "extras": extra })
     var r = new XMLHttpRequest();
-    api = getAPI('song')
+    var api = getAPI('song')
     r.open("POST", api, true);
     r.onreadystatechange = () => {
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
-                info = JSON.parse(r.responseText)
+                var info = JSON.parse(r.responseText)
                 for (requirement of info.requirements) {
                     eval('callback_' + requirement + '(info=info,r,override=override)');
                 }
@@ -87,26 +91,26 @@ function performRequest(id = 0, requirements = [], override = '', extra = {}) {
 
 function convertFromTimestamp(timestamp) {
     // this will covert LRC timestamp to seconds
-    m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
+    var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
     return (m * 60) + s + (ms / 1000)
 }
 
 function convertToTimestamp(timecode) {
     // this will convert seconds back to LRC timestamp
     function pad(str, p, length, before = false) { if (str.length < length) { str = before ? p + str : str + p; return pad(str, p, length, before) } else { return str } }
-    m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * (10 ** 3))
+    var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * (10 ** 3))
     return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
 }
 
-lyrics = {}
-const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
 function parseLryics(lrc, tlrc = '', split = '\t') {
     // lrc:original lyrics
     // tlrc:translation
     // split:splting char between lrc & tlrc
+    const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
     if (!lrc) return
     // Clear old lyrics
     lyrics = {}
+    // not a local variable
     function addMatches(lrc_string) {
         while ((match = lrc_regex.exec(lrc_string)) !== null) {
             if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++
@@ -127,19 +131,20 @@ function parseLryics(lrc, tlrc = '', split = '\t') {
     addMatches(lrc)
     addMatches(tlrc)
     console.table(lyrics)
+    return lyrics
 }
 
 function download_lrc_onclick() {
     // happens once button is clicked
     // this will covert the dictionary to standard LRC format
-    lrc = ''
+    var lrc = ''
     for (key in lyrics) {
         timestamp = convertToTimestamp(key)
         line = '[' + timestamp + ']' + lyrics[key].join('\t')
         lrc += line + '\n'
     }
-    blob = new Blob([lrc], { type: "text/plain;charset=utf-8" })
-    url = window.URL.createObjectURL(blob)
+    var blob = new Blob([lrc], { type: "text/plain;charset=utf-8" })
+    var url = window.URL.createObjectURL(blob)
     // uses the invisble placeholder to download
     download_lrc_placeholder.href = url
     download_lrc_placeholder.setAttribute('download', musicinfo.title + '.lrc')
@@ -149,7 +154,7 @@ function download_lrc_onclick() {
 function findClosestMatch(arr, i) {
     // finds closeset match to 'i' in array 'arr'
     // note that the match can't be larger than 'i'
-    i = i * 1; dist = -Math.max(); t = 0
+    var i = i * 1; var dist = -Math.max(); var t = 0
     for (a of arr) { a = a * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
     return t
 }
@@ -162,10 +167,9 @@ function player_update() {
     // player update event,used to update lyrics
     // note that it's usually updated every ~250ms
     if (!lyrics) return
-    lyricsbox.style.webkitAnimationPlayState = player.paused ? 'paused' : 'running'
-    tick = player.currentTime; ticks = Object.keys(lyrics)
-    lyrics_timestamp = findClosestMatch(ticks, tick)
-    matched = lyrics[lyrics_timestamp]
+    var tick = player.currentTime; var ticks = Object.keys(lyrics)
+    var lyrics_timestamp = findClosestMatch(ticks, tick)
+    var matched = lyrics[lyrics_timestamp]
 
     if (!matched) {
         matched = ['纯音乐 / 无歌词']
@@ -173,8 +177,8 @@ function player_update() {
     } else {
         // if match found,updates the lyrics
         // and plays animation for the time between this and the next lyrics
-        next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
-        next_stamp = ticks[next_tick]
+        var next_tick = ticks.indexOf(lyrics_timestamp.toString()) + 1
+        var next_stamp = ticks[next_tick]
         lyrics_duration = (next_stamp - lyrics_timestamp).toFixed(3)
         if (lyrics_duration != lyricsbox.duration) {
             // lyrics chaged
@@ -247,8 +251,7 @@ function callback_info(info, r, override = '') {
         infocontext1.innerHTML = `音乐家：<a href="https://music.163.com/#/artist?id=${musicinfo.artist_id}">${musicinfo.author}</a></br>`
         if (!!audioinfo['data']) {
             // these will only be added if audioinfo is available
-            infocontext1.innerHTML += `<a>格式：${audioinfo['data'][0]['type']} </a></br>`
-            infocontext1.innerHTML += `<a>文件大小：${getFileSize(audioinfo['data'][0]['size'])} </a>`
+            infocontext1.innerHTML += `<i style="color:#AAA;font-size:small;">音频信息：${getFileSize(audioinfo['data'][0]['size'])} / ${audioinfo['data'][0]['type']} </i></br>`        
             download.setAttribute('download', `${musicinfo.title}.${audioinfo['data'][0]['type']}`)
         }
 
@@ -352,7 +355,7 @@ function process_playids(playids) {
     }
 }
 
-function* generateID() { i = 0; while (true) { i += 1; yield ('element' + i) } }
+function* generateID() {var i = 0; while (true) { i += 1; yield ('element' + i) } }
 IDGenerator = generateID();
 
 init_clear = false
@@ -415,45 +418,55 @@ function process_playqueue() {
         song.id = song.node.id
     }
 }
-function playqueue_locate_by_id(id, keep = true) { result = playqueue.filter(function (x) { return x.id == id ? keep : !keep }); return !keep ? result : result[0] }
+
+function playqueue_locate_by_id(id, keep = true) {
+    var result = playqueue.filter(function (x) { return x.id == id ? keep : !keep })
+    return !keep ? result : result[0]
+}
+
 function playqueue_remove_by_id(id) {
-    item = playqueue_locate_by_id(id, true)
+    var item = playqueue_locate_by_id(id, true)
     item.node.remove()
     playqueue = playqueue_locate_by_id(id, false)
     // removes the item,and it's node
 }
+
 function playqueue_pop() {
     // 'pops' last item,then delete it
     if (!playqueue) return
-    song = playqueue.pop()
+    var song = playqueue.pop()
     song.node.remove()
     return song
 }
+
 playqueue_playhead = -1; playback_quality = 'lossless'
 function playqueue_playhead_onchage() {
     // plays song on list indexed by playhead
     if (playqueue.length <= playqueue_playhead || playqueue_playhead < 0) playqueue_playhead = 0
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
-    song = playqueue[playqueue_playhead]
+    var song = playqueue[playqueue_playhead]
     performRequest(song.song_id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
     lyricsbox.innerHTML = ''
     // clear lyrics
 }
+
 function playqueue_play_prev() {
     // previous song
     playqueue_playhead -= 1
     playqueue_playhead_onchage()
 }
+
 function playqueue_play_next() {
     // next song
     playqueue_playhead += 1
     playqueue_playhead_onchage()
 }
+
 function playqueue_item_onclick(caller) {
     // on item remove button click:removes the item
-    block = caller.target.parentElement.parentElement
+    var block = caller.target.parentElement.parentElement
     // locate the parent player block,then delete it
     song = playqueue_locate_by_id(block.id)
     playqueue_playhead = playqueue.indexOf(song) - 1
@@ -461,21 +474,23 @@ function playqueue_item_onclick(caller) {
     playqueue_play_next()
     // plays the song
 }
+
 function playqueue_item_remove_onclick(caller) {
     // on item remove button click:removes the item
-    block = caller.target.parentElement.parentElement
+    var block = caller.target.parentElement.parentElement
     // locate the parent player block,then delete it
     playqueue_remove_by_id(block.id)
     // removes item
 }
-const id_regex = /\d{5,}/gm
-// match any continous 5+ digit numbers
+
 function action_onclick() {
     // action button click event
     // once clicked,the button will become disabled until the XHR is finished
-    sharelink = shareinput.value.toLowerCase()
+    var sharelink = shareinput.value.toLowerCase()
     if (!sharelink) { notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger"); return }
     ids = []
+    const id_regex = /\d{5,}/gm
+    // match any continous 5+ digit numbers
     while ((m = id_regex.exec(sharelink)) !== null) {
         // This is necessary to avoid infinite loops with zero-width matches
         if (m.index === id_regex.lastIndex) id_regex.lastIndex++

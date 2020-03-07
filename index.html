@@ -28,7 +28,7 @@
     #cover {
       margin: 0 auto;
       margin-top: 20px;
-      transition: all 1.5s ease-out;
+      transition: transform 1.5s ease-out;
       float: right;
       position: absolute;
       top: 5%;
@@ -51,12 +51,13 @@
       cursor: pointer;
       font-weight: bold;
     }
-
-
   </style>
 </head>
 
-<body>
+<body style="padding-bottom: 70px">
+  <nav class="navbar fixed-bottom" onClick="location.href = '#top'">
+    <canvas id="peak-meter"></canvas>
+  </nav>
   <br />
   <div class="container" id="notifyfeed"></div>
   <div class="row">
@@ -103,7 +104,7 @@
     <br />
     <div class="input-group mb-3">
       <div class="input-group-prepend"> </div>
-      <input type="text" class="form-control" id="shareinput" placeholder="分享链接(e.g.playlist:3778678)"
+      <input type="text" class="form-control" id="shareinput" placeholder="分享链接(e.g.playlist:140133379)"
         style="margin-right:10px" aria-describedby="basicaddon1">
       <button type="button" class="btn btn-primary glyphicon glyphicon-euro" id="action">+</button>
     </div>
@@ -123,10 +124,6 @@
       </div>
     </div>
   </div>
-  <div class="card" alt="db 表" onclick="location.href = '#top'">
-    <canvas id="peak-meter" alt="回到页首">
-    </canvas>
-  </div>
   <!-- IP Tracking -->
   <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
   <!-- FFT peak meter-->
@@ -140,6 +137,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
     integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
     crossorigin="anonymous"></script>
+
 </body>
 
 </html>
