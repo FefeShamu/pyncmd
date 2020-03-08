@@ -170,7 +170,9 @@ function player_update() {
     var tick = player.currentTime; var ticks = Object.keys(lyrics)
     var lyrics_timestamp = findClosestMatch(ticks, tick)
     var matched = lyrics[lyrics_timestamp]
-
+    var pagetitle = `${musicinfo.title} - ${musicinfo.author}`
+    if (document.title != pagetitle)document.title = pagetitle
+    // update title if not already
     if (!matched) {
         lyricsbox.innerHTML = '纯音乐 / 无歌词'
     } else {
@@ -183,7 +185,7 @@ function player_update() {
             // updates lyrics
             var lyrics_duration = (ticks[ticks.indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
             // caculates duration for the animation in seconds
-            ani = lyricsbox.animate(
+            lyricsbox.animate(
                 [
                     { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
                     { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },  
@@ -191,8 +193,7 @@ function player_update() {
                 ], {
                 easing: 'ease-out',
                 duration: lyrics_duration * 1000
-            });
-            ani.play()
+            }).play()
         }
 
     }
@@ -229,7 +230,6 @@ function callback_audio(info, r, override = '') {
         } else {
             download.href = audioinfo['data'][0]['url']
             player.src = download.href
-            player.play()
         }
     }
     target = (!!override) ? override : display_audioinfo
@@ -448,7 +448,8 @@ function playqueue_playhead_onchage() {
     performRequest(song.song_id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
     lyrics = {}
-    // clear lyrics
+    setTimeout(() => { player.play() }, 1000)
+    // clear lyrics & set to play after 1s
 }
 
 function playqueue_play_prev() {
