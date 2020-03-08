@@ -166,7 +166,7 @@ function rotate(deg = 0) {
 function player_update() {
     // player update event,used to update lyrics
     // note that it's usually updated every ~250ms
-    if (!lyrics) return
+    if (!lyrics) {lyricsbox.innerHTML = '纯音乐 / 无歌词';return}
     var tick = player.currentTime; var ticks = Object.keys(lyrics)
     var lyrics_timestamp = findClosestMatch(ticks, tick)
     var matched = lyrics[lyrics_timestamp]
@@ -447,7 +447,7 @@ function playqueue_playhead_onchage() {
     var song = playqueue[playqueue_playhead]
     performRequest(song.song_id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
-    lyricsbox.innerHTML = ''
+    lyrics = {}
     // clear lyrics
 }
 
