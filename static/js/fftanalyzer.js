@@ -3,7 +3,7 @@
 
     refernced:https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
 */
-function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fftSize=256,FillStyle='rgb(0, 123, 255)') {
+function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fftSize=256,FillStyle=['rgb(0, 123, 255)','rgb(127,127,127)']) {
     fillStyle = FillStyle
     WIDTH = w;HEIGHT = h
     SPACING = spacing
@@ -13,26 +13,45 @@ function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fft
     analyser = analyserNode
     analyser.fftSize = fftSize;
     bufferLength = analyser.frequencyBinCount;
-
+    max = []
 }
 
-function draw() {
-    requestAnimationFrame(draw)
-    if (!!!bufferLength) return
+function ffta_draw() {
+    requestAnimationFrame(ffta_draw)
+    if (!bufferLength) return
     var dataArray = new Uint8Array(bufferLength)
-    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT)
+
+    canvasCtx.fillStyle = 'rgba(255,255,255,1)'
+    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT)
+
     analyser.getByteFrequencyData(dataArray)
     var barWidth = (WIDTH / (bufferLength)) * 2.5 - SPACING
     // subtract SPACING to compansate the spacing error
     var barHeight
     var x = 0
 
+
     for (var i = 0; i < bufferLength; i++) {
         barHeight = HEIGHT * (dataArray[i] / 255) * RATIO
-        canvasCtx.fillStyle = fillStyle
-        canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight)        
+
+        if (!max[i] || max[i] < barHeight) max[i] = barHeight
+
+        canvasCtx.fillStyle = fillStyle[1]
+        canvasCtx.fillRect(x, HEIGHT - max[i], barWidth, max[i])   
+        canvasCtx.fillStyle = fillStyle[0]
+        canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight)   
         x += barWidth + SPACING
-      
+
     }
+
+    ftta_offsetMaxThreshold(-1.2);
+
 }
-requestAnimationFrame(draw)
+
+function ftta_offsetMaxThreshold(offset=-1){
+    max = max.map((a)=>{return a + offset})
+}
+function ftta_resetMaxThreshold(){
+    max = []
+}
+requestAnimationFrame(ffta_draw)

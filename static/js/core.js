@@ -12,7 +12,11 @@ function updateNodes() {
     cover = document.getElementById("cover")
     player = document.getElementById("player")
     player.ontimeupdate = player_update
-    player.onended = player_ended
+    player.onended = () => {
+        // resets source,and queue the next song
+        player.src = ''
+        playqueue_play_next()
+    }    
     download = document.getElementById("download")
     download_lrc_placeholder = document.getElementById("download-lrc-placeholder")
     download_lrc = document.getElementById("download-lrc")
@@ -200,13 +204,9 @@ function player_update() {
 
     rotate(tick * 5)
     // rotates the cover
+
 }
 
-function player_ended() {
-    // playback ended,try next song if possible
-    player.src = ''
-    playqueue_play_next()
-}
 
 function _callback(target) {
     // callback funtion wrapper
