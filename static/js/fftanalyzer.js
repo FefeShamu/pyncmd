@@ -3,7 +3,7 @@
 
     refernced:https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API
 */
-function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fftSize=256,FillStyle=['rgb(0, 123, 255)','rgb(127,127,127)']) {
+function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fftSize=256,FillStyle=['rgb(0, 123, 255)','rgb(172,211,255)']) {
     fillStyle = FillStyle
     WIDTH = w;HEIGHT = h
     SPACING = spacing
