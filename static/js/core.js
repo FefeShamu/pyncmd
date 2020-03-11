@@ -94,8 +94,12 @@ function performRequest(id = 0, requirements = [], override = '', extra = {}) {
 
 function convertFromTimestamp(timestamp) {
     // this will covert LRC timestamp to seconds
-    var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
-    return (m * 60) + s + (ms / 1000)
+    try {
+        var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1    
+        return (m * 60) + s + (ms / 1000)
+    } catch (error) {
+        return 0
+    }
 }
 
 function convertToTimestamp(timecode) {
@@ -105,10 +109,9 @@ function convertToTimestamp(timecode) {
     return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
 }
 
-function parseLryics(lrc, tlrc = '', split = '\t') {
+function parseLryics(lrc, tlrc = '') {
     // lrc:original lyrics
     // tlrc:translation
-    // split:splting char between lrc & tlrc
     const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
     if (!lrc) return
     // Clear old lyrics
