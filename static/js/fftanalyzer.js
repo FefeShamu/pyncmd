@@ -21,8 +21,8 @@ function ffta_draw() {
     if (!bufferLength) return
     var dataArray = new Uint8Array(bufferLength)
 
-    canvasCtx.fillStyle = 'rgba(255,255,255,1)'
-    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT)
+    
+    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT)
 
     analyser.getByteFrequencyData(dataArray)
     var barWidth = (WIDTH / (bufferLength)) * 2.5 - SPACING
@@ -32,19 +32,20 @@ function ffta_draw() {
 
 
     for (var i = 0; i < bufferLength; i++) {
-        barHeight = HEIGHT * (dataArray[i] / 255) * RATIO
-
+        var barHeight = HEIGHT * (dataArray[i] / 255) * RATIO
+        
         if (!max[i] || max[i] < barHeight) max[i] = barHeight
 
         canvasCtx.fillStyle = fillStyle[1]
-        canvasCtx.fillRect(x, HEIGHT - max[i], barWidth, max[i])   
+        var thresholdBarHeight = max[i] + 10
+        canvasCtx.fillRect(x, HEIGHT - thresholdBarHeight, barWidth, thresholdBarHeight)   
         canvasCtx.fillStyle = fillStyle[0]
         canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight)   
         x += barWidth + SPACING
 
     }
 
-    ftta_offsetMaxThreshold(-1.2);
+    ftta_offsetMaxThreshold(-3);
 
 }
 

@@ -24,8 +24,7 @@
 [PyNCMd](https://mos9527.tooo.top/ncm)
 
 # 截图
-![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.png)
-![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot2.png)
+![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.gif)
 
 # 依赖包
 

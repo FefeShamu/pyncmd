@@ -13,8 +13,7 @@ function updateNodes() {
     player = document.getElementById("player")
     player.ontimeupdate = player_update
     player.onended = () => {
-        // resets source,and queue the next song
-        player.src = ''
+        // queue the next song
         playqueue_play_next()
     }    
     download = document.getElementById("download")
