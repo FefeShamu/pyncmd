@@ -260,8 +260,9 @@ function callback_info(info, r, override = '') {
         album.innerHTML = `<a href="https://music.163.com/#/album?id=${musicinfo.al.id}" style="color:gray">${musicinfo.al.name}</a>`
         // compose info box 1
         infocontext1.innerHTML = '音乐家：'
-        for (ar of musicinfo.ar) infocontext1.innerHTML += `<a href="https://music.163.com/#/album?id=${ar.id}" style="color:gray">${ar.name}</a><a>    </a>`
-
+        function addArtist(ar,head='<a> / </a>'){infocontext1.innerHTML += `${head}<a href="https://music.163.com/#/artist?id=${ar.id}" style="color:gray">${ar.name}</a>`}
+        addArtist(musicinfo.ar[0],head='')
+        for (ar of musicinfo.ar.slice(1)) addArtist(ar)
         if (!!audioinfo['data']) {
             // these will only be added if audioinfo is available
             infocontext1.innerHTML += `</br><i style="color:#AAA;font-size:small;">音频信息：${getFileSize(audioinfo['data'][0]['size'])} / ${audioinfo['data'][0]['type']} </i></br>`
@@ -335,16 +336,10 @@ function callback_album(info, r, override = '') {
         // once album is loaded,appends them to the end of the list
         for (item of albuminfo.songlist) {
             playqueue.push({
-                'id': item['id'],
-                'name': item['name'],
-                'al': {
-                    'id': item['album']['id'],
-                    'name': item['album']['name'],
-                    'picUrl': item['album']['picUrl']
-                }, 'ar': [{
-                    'id': item['artists'][0]['id'],
-                    'name': item['artists'][0]['name']
-                }]
+                'id': item.id,
+                'name': item.name,
+                'al': item.album, 
+                'ar': item.artists
             })
         }
         process_playqueue()
