@@ -402,7 +402,7 @@ function append_node(song) {
     }
     /* CREATE TITLE */
     var meidainfo = document.createElement('p')
-    meidainfo.innerHTML = song.al.name + '-' + concatDictsByKey(song.ar, 'name', ' / ')
+    meidainfo.innerHTML = song.al.name + ' - ' + concatDictsByKey(song.ar, 'name', ' / ')
     var closebutton = document.createElement('a')
     with (closebutton) {
         className = 'close'
