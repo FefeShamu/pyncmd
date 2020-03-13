@@ -237,7 +237,7 @@ def _(caller):
 
 count,requirement_mapping = 0,{
     'audio':NCM.GetSongInfo,
-    'info':NCM.GetExtraSongInfo,
+    'info':NCM.GetSongDetail,
     'lyrics':NCM.GetSongLyrics,
     'playlist':NCM.GetPlaylistInfo,
     'album':NCM.GetAlbumInfo,

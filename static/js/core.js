@@ -4,7 +4,7 @@
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
     cover = document.getElementById("cover")
-    cover.style.width = (window.innerWidth > window.innerHeight ?  window.innerWidth : window.innerHeight) * 0.1 + 'px'
+    cover.style.width = (window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight) * 0.1 + 'px'
     title = document.getElementById("title")
     album = document.getElementById("album")
     infocontext1 = document.getElementById("info1")
@@ -15,7 +15,7 @@ function updateNodes() {
     player.onended = () => {
         // queue the next song
         playqueue_play_next()
-    }    
+    }
     download = document.getElementById("download")
     download_lrc_placeholder = document.getElementById("download-lrc-placeholder")
     download_lrc = document.getElementById("download-lrc")
@@ -47,7 +47,7 @@ function updateNodes() {
         audioCtx.resume();
     });
 
-    ffta_init(analyzer,peakmeter,peakmeter.offsetWidth,peakmeter.offsetHeight)
+    ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight)
     player.crossOrigin = "anonymous";
 
 
@@ -92,10 +92,16 @@ function performRequest(id = 0, requirements = [], override = '', extra = {}) {
     r.send(msg);
 }
 
+function concatDictsByKey(dicts, key, split) {
+    str = ''
+    for (dict of dicts) str += dict[key] + split
+    return str.substr(0, str.length - split.length)
+}
+
 function convertFromTimestamp(timestamp) {
     // this will covert LRC timestamp to seconds
     try {
-        var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1    
+        var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
         return (m * 60) + s + (ms / 1000)
     } catch (error) {
         return 0
@@ -169,15 +175,19 @@ function rotate(deg = 0) {
     cover.style.transform = 'rotate(' + deg + 'deg)'
 }
 
+function player_setPlay(t=1000){
+    setTimeout(() => { try{player.play()}catch{setPlay()} }, t)
+}
+
 function player_update() {
     // player update event,used to update lyrics
     // note that it's usually updated every ~250ms
-    if (!lyrics) {lyricsbox.innerHTML = '纯音乐 / 无歌词';return}
+    if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
     var tick = player.currentTime; var ticks = Object.keys(lyrics)
     var lyrics_timestamp = findClosestMatch(ticks, tick)
     var matched = lyrics[lyrics_timestamp]
-    var pagetitle = `${musicinfo.title} - ${musicinfo.author}`
-    if (document.title != pagetitle)document.title = pagetitle
+    var pagetitle = `${musicinfo.name} - ${concatDictsByKey(musicinfo.ar,'name',' / ')}`
+    if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
     if (!matched) {
         lyricsbox.innerHTML = '纯音乐 / 无歌词'
@@ -185,7 +195,7 @@ function player_update() {
         // if match found,updates the lyrics
         // and plays animation for the time between this and the next lyrics
         lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
-        if (lyricsbox.innerHTML != lyrics_html) {            
+        if (lyricsbox.innerHTML != lyrics_html) {
             // lyrics chaged
             lyricsbox.innerHTML = lyrics_html
             // updates lyrics
@@ -194,8 +204,8 @@ function player_update() {
             lyricsbox.animate(
                 [
                     { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },  
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }                  
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
                 ], {
                 easing: 'ease-out',
                 duration: lyrics_duration * 1000
@@ -242,17 +252,19 @@ callback_audio = _callback(callback_audio)
 musicinfo = {}
 function callback_info(info, r, override = '') {
     // callback to process requirements['info']
-    musicinfo = info.info
+    musicinfo = info.info.songs[0]
     console.log({ 'Info callback': musicinfo })
     function display_musicinfo(musicinfo) {
-        if (info.cover != []) cover.src = musicinfo.cover
-        title.innerHTML = `<a href="https://music.163.com/#/song?id=${musicinfo.song_id}">${musicinfo.title}</a>`
-        album.innerHTML = `<a href="https://music.163.com/#/album?id=${musicinfo.album_id}" style="color:gray">${musicinfo.album}</a>`
+        if (info.cover != []) cover.src = musicinfo.al.picUrl
+        title.innerHTML = `<a href="https://music.163.com/#/song?id=${musicinfo.id}">${musicinfo.name}</a>`
+        album.innerHTML = `<a href="https://music.163.com/#/album?id=${musicinfo.al.id}" style="color:gray">${musicinfo.al.name}</a>`
         // compose info box 1
-        infocontext1.innerHTML = `音乐家：<a href="https://music.163.com/#/artist?id=${musicinfo.artist_id}">${musicinfo.author}</a></br>`
+        infocontext1.innerHTML = '音乐家：'
+        for (ar of musicinfo.ar) infocontext1.innerHTML += `<a href="https://music.163.com/#/album?id=${ar.id}" style="color:gray">${ar.name}</a><a>    </a>`
+
         if (!!audioinfo['data']) {
             // these will only be added if audioinfo is available
-            infocontext1.innerHTML += `<i style="color:#AAA;font-size:small;">音频信息：${getFileSize(audioinfo['data'][0]['size'])} / ${audioinfo['data'][0]['type']} </i></br>`        
+            infocontext1.innerHTML += `</br><i style="color:#AAA;font-size:small;">音频信息：${getFileSize(audioinfo['data'][0]['size'])} / ${audioinfo['data'][0]['type']} </i></br>`
             download.setAttribute('download', `${musicinfo.title}.${audioinfo['data'][0]['type']}`)
         }
 
@@ -301,14 +313,11 @@ function callback_playlist(info, r, override = '') {
     function load_playlist() {
         // once playlist is loaded,appends them to the end of the list
         for (item of playlistinfo.playlist.tracks) {
-            playqueue.push({
-                'song_id': item['id'],
-                'title': item['name'],
-                'cover': item['al']['picUrl'],
-                'author': item['ar'][0]['name'],
-                'album': item['al']['name'],
-                'album_id': item['al']['id'],
-                'artist_id': item['ar'][0]['id']
+            playqueue.push({            
+                'id': item['id'],
+                'name': item['name'],
+                'al': item['al'],
+                'ar': item['ar']
             })
         }
         process_playqueue()
@@ -326,13 +335,16 @@ function callback_album(info, r, override = '') {
         // once album is loaded,appends them to the end of the list
         for (item of albuminfo.songlist) {
             playqueue.push({
-                'song_id': item['id'],
-                'title': item['name'],
-                'cover': item['album']['picUrl'],
-                'author': item['artists'][0]['name'],
-                'album': item['album']['name'],
-                'album_id': item['album']['id'],
-                'artist_id': item['artists'][0]['id']
+                'id': item['id'],
+                'name': item['name'],
+                'al': {
+                    'id': item['album']['id'],
+                    'name': item['album']['name'],
+                    'picUrl': item['album']['picUrl']
+                }, 'ar': [{
+                    'id': item['artists'][0]['id'],
+                    'name': item['artists'][0]['name']
+                }]
             })
         }
         process_playqueue()
@@ -350,13 +362,14 @@ function process_playids(playids) {
         musicinfo_override = function (musicinfo) {
             // once loaded,push to the playqueue
             playqueue.push(musicinfo)
+            console.log({ 'Override': musicinfo })
             process_playqueue()
         }
         performRequest(id, ['info'], musicinfo_override)
     }
 }
 
-function* generateID() {var i = 0; while (true) { i += 1; yield ('element' + i) } }
+function* generateID() { var i = 0; while (true) { i += 1; yield ('element' + i) } }
 IDGenerator = generateID();
 
 init_clear = false
@@ -374,7 +387,7 @@ function append_node(song) {
     with (covernode) {
         className = 'd-flex mr-3 rounded'
         style = 'width:80px'
-        src = song.cover
+        src = song.al.picUrl
     }
     /* CREATE COVER */
     var mediabody = document.createElement('div')
@@ -383,13 +396,13 @@ function append_node(song) {
     var mediatitle = document.createElement('h5')
     with (mediatitle) {
         className = 'mt-0'
-        innerHTML = song.title
+        innerHTML = song.name
         style = 'cursor:pointer;color:#007bff'
         onclick = playqueue_item_onclick
     }
     /* CREATE TITLE */
     var meidainfo = document.createElement('p')
-    meidainfo.innerHTML = song.album + '-' + song.author
+    meidainfo.innerHTML = song.al.name + '-' + concatDictsByKey(song.ar, 'name', ' / ')
     var closebutton = document.createElement('a')
     with (closebutton) {
         className = 'close'
@@ -416,12 +429,11 @@ function process_playqueue() {
         // revert color chages
         if (playqueue.indexOf(song) == playqueue_playhead) song.node.style.color = '#80abd9'
         // apply color to the current playing one 
-        song.id = song.node.id
     }
 }
 
 function playqueue_locate_by_id(id, keep = true) {
-    var result = playqueue.filter(function (x) { return x.id == id ? keep : !keep })
+    var result = playqueue.filter(function (x) { return x.node.id == id ? keep : !keep })
     return !keep ? result : result[0]
 }
 
@@ -447,11 +459,12 @@ function playqueue_playhead_onchage() {
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     var song = playqueue[playqueue_playhead]
-    performRequest(song.song_id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
+    performRequest(song.id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
     lyrics = {}
-    setTimeout(() => { player.play() }, 1000)
+    
     // clear lyrics & set to play after 1s
+    player_setPlay()
 }
 
 function playqueue_play_prev() {
@@ -471,6 +484,7 @@ function playqueue_item_onclick(caller) {
     var block = caller.target.parentElement.parentElement
     // locate the parent player block,then delete it
     song = playqueue_locate_by_id(block.id)
+
     playqueue_playhead = playqueue.indexOf(song) - 1
     // goes one song before it
     playqueue_play_next()
