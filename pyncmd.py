@@ -241,6 +241,7 @@ count,requirement_mapping = 0,{
     'lyrics':NCM.GetSongLyrics,
     'playlist':NCM.GetPlaylistInfo,
     'album':NCM.GetAlbumInfo,
+    'mv':NCM.GetMVInfo,
     'contribution':lambda *args:{
         "contributer": NCM.login_info['content']['profile']['nickname'],
         "contributer_message": ContributerMessage,
