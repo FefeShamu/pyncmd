@@ -254,6 +254,11 @@ function callback_info(info, r, override = '') {
     // callback to process requirements['info']
     musicinfo = info.info.songs[0]
     console.log({ 'Info callback': musicinfo })
+    if (!musicinfo) {
+        notify(`解析歌曲 (ID:${info.required_id}) 失败`,'warning')
+        return
+    }
+    // extra error checks
     function display_musicinfo(musicinfo) {
         if (info.cover != []) cover.src = musicinfo.al.picUrl
         title.innerHTML = `<a href="https://music.163.com/#/song?id=${musicinfo.id}">${musicinfo.name}</a>`
@@ -356,9 +361,11 @@ function process_playids(playids) {
     for (id of playids) {
         musicinfo_override = function (musicinfo) {
             // once loaded,push to the playqueue
+            if(!!musicinfo){
             playqueue.push(musicinfo)
             console.log({ 'Override': musicinfo })
             process_playqueue()
+            }
         }
         performRequest(id, ['info'], musicinfo_override)
     }
