@@ -20,6 +20,7 @@
 |播放列表|✔|
 |歌曲下载|✔|
 |多语言歌词下载|✔|
+|MV 播放 / 下载|✔|
 # DEMO
 [PyNCMd](https://mos9527.tooo.top/ncm)
 
