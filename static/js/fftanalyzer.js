@@ -16,8 +16,10 @@ function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fft
     max = []
 }
 bufferLength = 0
+frameNo = 0
 function ffta_draw() {
     requestAnimationFrame(ffta_draw)
+    frameNo++
     if (bufferLength == 0) return
     var dataArray = new Uint8Array(bufferLength)
 
@@ -37,7 +39,7 @@ function ffta_draw() {
         if (!max[i] || max[i] < barHeight) max[i] = barHeight
 
         canvasCtx.fillStyle = fillStyle[1]
-        var thresholdBarHeight = max[i] + 10
+        var thresholdBarHeight = max[i] * 1.1   
         canvasCtx.fillRect(x, HEIGHT - thresholdBarHeight, barWidth, thresholdBarHeight)   
         canvasCtx.fillStyle = fillStyle[0]
         canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight)   
@@ -45,8 +47,8 @@ function ffta_draw() {
 
     }
 
-    ftta_offsetMaxThreshold(-3);
-
+    ftta_offsetMaxThreshold(-(frameNo % 127) * 0.1)
+    // linear accleration curve
 }
 
 function ftta_offsetMaxThreshold(offset=-1){
