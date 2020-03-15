@@ -226,7 +226,7 @@ function rotate(deg = 0) {
     cover.style.transform = 'rotate(' + deg + 'deg)'
 }
 
-function player_setPlay(t = 1000) {
+function player_setPlay(t = 2000) {
     setTimeout(() => {
         try {
             player.play()
@@ -373,7 +373,8 @@ function callback_album(info) {
             'id': item.id,
             'name': item.name,
             'al': item.album,
-            'ar': item.artists
+            'ar': item.artists,
+            'mv':item.mvid
         })
     }
     process_playqueue()
