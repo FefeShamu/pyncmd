@@ -533,13 +533,13 @@ function action_onclick() {
     // extract ID using regex
     if (sharelink.indexOf('list') != -1) {
         // inputed playlist URL
-        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning'); return }
+        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning');  }
         performRequest(ids[0], ['playlist'])
         shareinput.value = `playlist:${ids[0]}`
 
     } else if (sharelink.indexOf('album') != -1) {
         // inputed album URL
-        if (ids.length > 1) { notify('<strong>专辑</strong>ID只能输入一个!', 'warning'); return }
+        if (ids.length > 1) { notify('<strong>专辑</strong>ID只能输入一个!', 'warning'); }
         performRequest(ids[0], ['album'])
         shareinput.value = `album:${ids[0]}`
     } else {
