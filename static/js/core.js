@@ -435,13 +435,13 @@ function append_node(song) {
     var mediatitle = document.createElement('h5')
     with (mediatitle) {
         className = 'mt-0'
-        innerHTML = `<a>${song.name}</a>` + (!!song.mv ? '  <i class="fas fa-film" style="float:right;"></i>' : '')
+        innerHTML = `<a>${song.name}</a>`
         style = 'cursor:pointer;color:#007bff'
         onclick = playqueue_item_onclick
     }
     /* CREATE TITLE */
     var meidainfo = document.createElement('p')
-    meidainfo.innerHTML = song.al.name + ' - ' + concatDictsByKey(song.ar, 'name', ' / ')
+    meidainfo.innerHTML = song.al.name + ' - ' + concatDictsByKey(song.ar, 'name', ' / ') + (!!song.mv ? '  <i class="fas fa-film" style="float:right;"></i><a>     </a>' : '')
     var closebutton = document.createElement('a')
     with (closebutton) {
         className = 'close'
@@ -450,8 +450,8 @@ function append_node(song) {
         innerHTML = '&times;'
     }
     /* CREATE INFO */
-    mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
-    mediabox.appendChild(covernode); mediabox.appendChild(mediabody);mediabody.appendChild(closebutton); 
+    mediabody.appendChild(closebutton);mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
+    mediabox.appendChild(covernode); mediabox.appendChild(mediabody); 
     playqueue_view.appendChild(mediabox)
     return mediabox
 }
@@ -507,9 +507,9 @@ function playqueue_playhead_onchage() {
 
 function playqueue_item_onclick(caller) {
     // on item remove button click:removes the item
-    var block = caller.target.parentElement.parentElement
+    var main_block = caller.target.parentElement.parentElement.parentElement
     // locate the parent player block,then delete it
-    song = playqueue_locate_by_id(block.id)
+    song = playqueue_locate_by_id(main_block.id)
 
     playqueue_playhead = playqueue.indexOf(song) - 1
     // goes one song before it
