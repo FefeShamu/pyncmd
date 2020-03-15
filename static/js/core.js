@@ -11,6 +11,10 @@ function updateNodes() {
     infocontext2 = document.getElementById("info2")
     cover = document.getElementById("cover")
     player = document.getElementById("player")
+    download_mv = document.getElementById('download-mv')
+    mv_player = document.getElementById('mv-player')
+    mv_title =  document.getElementById('mv-title')
+    mv_dismiss = document.getElementById('mv-dismiss')
     player.ontimeupdate = player_update
     player.onended = () => {
         // queue the next song
@@ -50,13 +54,22 @@ function updateNodes() {
         }
     }
 
-    download_mv = document.getElementById("download-mv")
     download_mv.onclick = () => {
         try {
-            setDownload(mvinfo.data.url, `MV - ${musicinfo.name}.mp4`)
+            mv_title.innerHTML = `MV - ${musicinfo.name}`
+            mv_title.href = `https://music.163.com/#/mv?id=${mvinfo.data.id}`
+            mv_player.src = `${mvinfo.data.url}`
+            mv_player.play()
+            player.pause()
         } catch (e) {
-            notify(`${e}:缺失 MV 信息`, 'danger')
+            mv_player.src = ''
+            mv_title.innerHTML = `${musicinfo.name} - 无 MV`      
         }
+    }
+
+    mv_dismiss.onclick = () => {
+        mv_player.pause()
+        player.play()
     }
 
     playqueue_view = document.getElementById("playqueue")
@@ -490,10 +503,10 @@ function playqueue_playhead_onchage() {
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     var song = playqueue[playqueue_playhead]
+    lyrics = {};mvinfo = {};audioinfo = {};musicinfo = {}
+    // clear old info
     performRequest(song.id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
-    lyrics = {}
-    // clear lyrics & set to play after 1s
     player_setPlay()
 }
 
