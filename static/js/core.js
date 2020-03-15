@@ -357,12 +357,7 @@ function callback_playlist(info) {
     console.log({ 'Playlistinfo callback': playlistinfo })
     // once playlist is loaded,appends them to the end of the list
     for (item of playlistinfo.playlist.tracks) {
-        playqueue.push({
-            'id': item['id'],
-            'name': item['name'],
-            'al': item['al'],
-            'ar': item['ar']
-        })
+        playqueue.push(item)
     }
     process_playqueue()
 }
@@ -440,7 +435,7 @@ function append_node(song) {
     var mediatitle = document.createElement('h5')
     with (mediatitle) {
         className = 'mt-0'
-        innerHTML = song.name
+        innerHTML = `<a>${song.name}</a>` + (!!song.mv ? '  <i class="fas fa-film" style="float:right;"></i>' : '')
         style = 'cursor:pointer;color:#007bff'
         onclick = playqueue_item_onclick
     }
@@ -455,8 +450,8 @@ function append_node(song) {
         innerHTML = '&times;'
     }
     /* CREATE INFO */
-    mediabody.appendChild(closebutton); mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
-    mediabox.appendChild(covernode); mediabox.appendChild(mediabody)
+    mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
+    mediabox.appendChild(covernode); mediabox.appendChild(mediabody);mediabody.appendChild(closebutton); 
     playqueue_view.appendChild(mediabox)
     return mediabox
 }
