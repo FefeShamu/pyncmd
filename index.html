@@ -82,10 +82,13 @@
             class="rounded-circle img-fluid" alt="专辑图像加载失败">
 
           <div class="dropdown" style="text-overflow: clip">
-            <a href="#" class="card-link" id="download" download><i class="fas fa-cloud-download-alt"></i></a>
+            <a class="card-link" style="display: none" id="download-placeholder" download></a>
+            
+            <a class="card-link" id="download-audio" download><i class="fas fa-cloud-download-alt"></i></a>
             <a class="card-link" id="download-lrc"><i class="fas fa-file-download"></i></a>
-            <a href="#" class="card-link" style="display: none" id="download-lrc-placeholder" download>下载歌词</a>
+            <a class="card-link" id="download-mv"><i class="fas fa-file-video"></i></a>
             <a class="card-link" id="prev-song"><i class="fas fa-backward"></i></a>
+
             <a class="card-link" id="next-song"><i class="fas fa-forward"></i></a>
             <a class="card-link" id="quality-selector" data-toggle="dropdown" aria-haspopup="true"
               aria-expanded="false"><i class="fas fa-music"></i></a>

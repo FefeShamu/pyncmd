@@ -15,10 +15,10 @@ function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fft
     bufferLength = analyser.frequencyBinCount;
     max = []
 }
-
+bufferLength = 0
 function ffta_draw() {
     requestAnimationFrame(ffta_draw)
-    if (!bufferLength) return
+    if (bufferLength == 0) return
     var dataArray = new Uint8Array(bufferLength)
 
     
