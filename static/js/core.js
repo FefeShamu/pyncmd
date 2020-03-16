@@ -267,15 +267,15 @@ function player_update() {
     if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
 
     var lyrics_timestamp = findClosestMatch(Object.keys(lyrics), player.currentTime)
-    
+
     if(!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) update_lyrics(lyrics_timestamp)
 
     var pagetitle = `${musicinfo.name} - ${concatDictsByKey(musicinfo.ar, 'name', ' / ')}`
     if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
 
-    rotate(tick * 5)
-    // rotates the cover
+    rotate(player.currentTime * 5)
+    // rotates the cover via ticks of the player
 
 }
 
@@ -328,6 +328,11 @@ function callback_info(info) {
     if (!!musicinfo.mv) {
         // mv is presnet,perform such request
         performRequest(musicinfo.mv, ['mv'])
+        download_mv.firstElementChild.firstElementChild.setAttribute('fill','#007bff')
+        download_mv.disabled = false
+    } else {
+        download_mv.firstElementChild.firstElementChild.setAttribute('fill','#cccccc')
+        download_mv.disabled = true
     }
 }
 callback_info = _callback(callback_info)
