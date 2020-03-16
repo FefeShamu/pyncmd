@@ -13,7 +13,7 @@ function updateNodes() {
     player = document.getElementById("player")
     download_mv = document.getElementById('download-mv')
     mv_player = document.getElementById('mv-player')
-    mv_title =  document.getElementById('mv-title')
+    mv_title = document.getElementById('mv-title')
     mv_dismiss = document.getElementById('mv-dismiss')
     player.ontimeupdate = player_update
     player.onended = () => {
@@ -63,7 +63,7 @@ function updateNodes() {
             player.pause()
         } catch (e) {
             mv_player.src = ''
-            mv_title.innerHTML = `${musicinfo.name} - 无 MV`      
+            mv_title.innerHTML = `${musicinfo.name} - 无 MV`
         }
     }
 
@@ -226,7 +226,7 @@ function rotate(deg = 0) {
     cover.style.transform = 'rotate(' + deg + 'deg)'
 }
 
-function player_setPlay(t = 2000) {
+function player_setPlay(t = 1000) {
     setTimeout(() => {
         try {
             player.play()
@@ -236,40 +236,43 @@ function player_setPlay(t = 2000) {
     }, t)
 }
 
+function update_lyrics(lyrics_timestamp) {
+    // updates lyrics via timestamp
+    var matched = lyrics[lyrics_timestamp]
+    if (!!matched) {
+        var lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
+        // find closest matched lyrics via timestamp
+        if (lyricsbox.innerHTML == lyrics_html) return
+        // lyrics not chaged,return
+        lyricsbox.innerHTML = lyrics_html
+        // updates lyrics
+        var lyrics_duration = (Object.keys(lyrics)[Object.keys(lyrics).indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
+        // caculates duration for the animation in seconds
+        lyricsbox.animate(
+            [
+                { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
+                { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
+                { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
+            ], {
+            easing: 'ease-out',
+            duration: lyrics_duration * 1000
+        }).play()
+        lyricsbox.updated_timestamp = lyrics_timestamp
+    }
+}
+
 function player_update() {
     // player update event,used to update lyrics
     // note that it's usually updated every ~250ms
     if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
-    var tick = player.currentTime; var ticks = Object.keys(lyrics)
-    var lyrics_timestamp = findClosestMatch(ticks, tick)
-    var matched = lyrics[lyrics_timestamp]
+
+    var lyrics_timestamp = findClosestMatch(Object.keys(lyrics), player.currentTime)
+    
+    if(!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) update_lyrics(lyrics_timestamp)
+
     var pagetitle = `${musicinfo.name} - ${concatDictsByKey(musicinfo.ar, 'name', ' / ')}`
     if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
-    if (!matched) {
-        lyricsbox.innerHTML = '纯音乐 / 无歌词'
-    } else {
-        // if match found,updates the lyrics
-        // and plays animation for the time between this and the next lyrics
-        lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
-        if (lyricsbox.innerHTML != lyrics_html) {
-            // lyrics chaged
-            lyricsbox.innerHTML = lyrics_html
-            // updates lyrics
-            var lyrics_duration = (ticks[ticks.indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
-            // caculates duration for the animation in seconds
-            lyricsbox.animate(
-                [
-                    { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
-                ], {
-                easing: 'ease-out',
-                duration: lyrics_duration * 1000
-            }).play()
-        }
-
-    }
 
     rotate(tick * 5)
     // rotates the cover
@@ -374,7 +377,7 @@ function callback_album(info) {
             'name': item.name,
             'al': item.album,
             'ar': item.artists,
-            'mv':item.mvid
+            'mv': item.mvid
         })
     }
     process_playqueue()
@@ -451,8 +454,8 @@ function append_node(song) {
         innerHTML = '&times;'
     }
     /* CREATE INFO */
-    mediabody.appendChild(closebutton);mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
-    mediabox.appendChild(covernode); mediabox.appendChild(mediabody); 
+    mediabody.appendChild(closebutton); mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
+    mediabox.appendChild(covernode); mediabox.appendChild(mediabody);
     playqueue_view.appendChild(mediabox)
     return mediabox
 }
@@ -499,7 +502,7 @@ function playqueue_playhead_onchage() {
     if (!playqueue) return
     console.log(`Playhead seeking at index of ${playqueue_playhead}`)
     var song = playqueue[playqueue_playhead]
-    lyrics = {};mvinfo = {};audioinfo = {};musicinfo = {}
+    lyrics = {}; mvinfo = {}; audioinfo = {}; musicinfo = {}
     // clear old info
     performRequest(song.id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
     process_playqueue()
@@ -542,7 +545,7 @@ function action_onclick() {
     // extract ID using regex
     if (sharelink.indexOf('list') != -1) {
         // inputed playlist URL
-        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning');  }
+        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning'); }
         performRequest(ids[0], ['playlist'])
         shareinput.value = `playlist:${ids[0]}`
 
