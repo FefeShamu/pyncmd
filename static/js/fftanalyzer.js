@@ -15,6 +15,9 @@ function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fft
     bufferLength = analyser.frequencyBinCount;
     peak = [{'val':0,'vel':0}]
 }
+function clamp(val,max,min){
+    return (val > max ? max : val ) < min ? min : (val > max ? max : val )
+}
 bufferLength = 0
 frameNo = 0
 function ffta_draw() {
@@ -38,8 +41,9 @@ function ffta_draw() {
         if (!peak[i]) peak[i] = {'val':0,'vel':0}
         if (!peak[i].val || (peak[i].val < barHeight && barHeight != 0)) {peak[i].vel = (barHeight - peak[i].val) >> 6; peak[i].val = barHeight}
         // reset force once peak was reached            
-        peak[i].vel -= peak[i].vel > -5 ? 0.1 : 0        
-        // linear accleation curve within range of (-5,0) with step of 0.1
+        peak[i].vel -= 0.1      
+        peak[i].vel = clamp(peak[i].vel,5,-5)
+        // linear accleation curve within range of (-5,5) with step of 0.1
 
         canvasCtx.fillStyle = fillStyle[1]
         var thresholdBarHeight = peak[i].val + 5   
