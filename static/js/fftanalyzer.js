@@ -13,7 +13,7 @@ function ffta_init(analyserNode, canvasElement,w=300,h=150,spacing=2,ratio=1,fft
     analyser = analyserNode
     analyser.fftSize = fftSize;
     bufferLength = analyser.frequencyBinCount;
-    max = []
+    peak = [{'val':0,'vel':0}]
 }
 bufferLength = 0
 frameNo = 0
@@ -35,26 +35,26 @@ function ffta_draw() {
 
     for (var i = 0; i < bufferLength; i++) {
         var barHeight = HEIGHT * (dataArray[i] / 255) * RATIO
-        
-        if (!max[i] || max[i] < barHeight) max[i] = barHeight
+        if (!peak[i]) peak[i] = {'val':0,'vel':0}
+        if (!peak[i].val || (peak[i].val < barHeight && barHeight != 0)) {peak[i].vel = (barHeight - peak[i].val) >> 6; peak[i].val = barHeight}
+        // reset force once peak was reached            
+        peak[i].vel -= peak[i].vel > -5 ? 0.1 : 0        
+        // linear accleation curve within range of (-5,0) with step of 0.1
 
         canvasCtx.fillStyle = fillStyle[1]
-        var thresholdBarHeight = max[i] * 1.1   
+        var thresholdBarHeight = peak[i].val + 5   
         canvasCtx.fillRect(x, HEIGHT - thresholdBarHeight, barWidth, thresholdBarHeight)   
         canvasCtx.fillStyle = fillStyle[0]
         canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight)   
         x += barWidth + SPACING
-
+        // drawing the bars
     }
 
-    ftta_offsetMaxThreshold(-(frameNo % 127) * 0.1)
-    // linear accleration curve
+    ftta_applyForce()
 }
 
-function ftta_offsetMaxThreshold(offset=-1){
-    max = max.map((a)=>{return a + offset})
+function ftta_applyForce(){
+    peak = peak.map((a,i)=>{return {'val':a.val + a.vel,'vel':a.vel}})
 }
-function ftta_resetMaxThreshold(){
-    max = []
-}
+
 requestAnimationFrame(ffta_draw)
