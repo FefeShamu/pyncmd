@@ -480,7 +480,7 @@ function process_playids(playids) {
 }
 
 _generateID = 0
-function generateID() { _generateID += 1; return _generateID }
+function generateID() { _generateID += 1; return 'element' + _generateID }
 
 init_clear = false
 function append_node(song) {
@@ -489,7 +489,7 @@ function append_node(song) {
     var mediabox = document.createElement('li')
     mediabox.className = 'media'
     mediabox.style = 'padding:2px'
-    mediabox.id = generateID()['value']
+    mediabox.id = generateID()
     /* CREATE MEDIABOX */
     var covernode = document.createElement('img')
     covernode.className = 'd-flex mr-3 rounded covernode'
