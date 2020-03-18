@@ -16,7 +16,7 @@ function updateNodes() {
     mv_title = document.getElementById('mv-title')
     mv_dismiss = document.getElementById('mv-dismiss')
     player.ontimeupdate = player_update
-    player.onended = () => {
+    player.onended = function () {
         // queue the next song
         next_song.click()
     }
@@ -24,23 +24,25 @@ function updateNodes() {
     download_placeholder = document.getElementById("download-placeholder")
 
     download_audio = document.getElementById("download-audio")
-    download_audio.onclick = () => {
+    download_audio.onclick = function () {
         // happens once Download Audio button is clicked
         // this will start to download audio file of currently playing song
         try {
-            setDownload(player.src, `${musicinfo.name}.${audioinfo['data'][0]['type']}`)
+            setDownload(player.src, "".concat(musicinfo.name, ".").concat(audioinfo["data"][0]["type"]))
         } catch (e) {
-            notify(`${e}:缺失音频信息`, 'danger')
+            notify(e + ":缺失音频信息", "danger");
+
         }
     }
 
     download_lrc = document.getElementById("download-lrc")
-    download_lrc.onclick = () => {
+    download_lrc.onclick = function () {
         // happens once Download Lyrics button is clicked
         // this will covert the dictionary to standard LRC format
         try {
             var lrc = ''
-            for (key in lyrics) {
+            for (index in lyrics) {
+                key = lyrics[index]
                 timestamp = convertToTimestamp(key)
                 line = '[' + timestamp + ']' + lyrics[key].join('\t')
                 lrc += line + '\n'
@@ -50,24 +52,25 @@ function updateNodes() {
             // uses the invisble placeholder to download
             setDownload(url, musicinfo.name + '.lrc')
         } catch (e) {
-            notify(`${e}:缺失歌词信息`, 'danger')
+            notify(e + ":缺失歌词信息", "danger");
         }
     }
 
-    download_mv.onclick = () => {
+    download_mv.onclick = function () {
         try {
-            mv_title.innerHTML = `MV - ${musicinfo.name}`
-            mv_title.href = `https://music.163.com/#/mv?id=${mvinfo.data.id}`
-            mv_player.src = `${mvinfo.data.url}`
-            mv_player.play()
-            player.pause()
+            mv_title.innerHTML = "MV - " + musicinfo.name
+            mv_title.href = "https://music.163.com/#/mv?id=" + mvinfo.data.id;
+            mv_player.src = mvinfo.data.url;
+            mv_player.play();
+            player.pause();
         } catch (e) {
-            mv_player.src = ''
-            mv_title.innerHTML = `${musicinfo.name} - 无 MV`
+            mv_player.src = "";
+            mv_title.innerHTML = musicinfo.name + " - 无 MV"
         }
+
     }
 
-    mv_dismiss.onclick = () => {
+    mv_dismiss.onclick = function () {
         mv_player.pause()
         player.play()
     }
@@ -80,34 +83,49 @@ function updateNodes() {
     action.onclick = action_onclick
 
     prev_song = document.getElementById('prev-song')
-    prev_song.onclick = () => { playqueue_playhead -= 1; playqueue_playhead_onchage() }
+    prev_song.onclick = function () { playqueue_playhead -= 1; playqueue_playhead_onchage() }
 
     next_song = document.getElementById('next-song')
-    next_song.onclick = () => { playqueue_playhead += 1; playqueue_playhead_onchage() }
+    next_song.onclick = function () { playqueue_playhead += 1; playqueue_playhead_onchage() }
 
 
     qualitySelector = document.getElementById('quality-selector')
 
-    window.onload = () => {
-        performRequest(`Connected from ${returnCitySN.cip}`, ['contribution'])
+    window.onload = function () {
+        performRequest("Connected from " + returnCitySN.cip, ["contribution"]);
+    };
+
+    function initFFTWindow() {
+        // initalizing visualizer
+        peakmeter = document.getElementById('peak-meter')
+        audioCtx = new window.AudioContext()
+        // connecting the analyzer
+        var source = audioCtx.createMediaElementSource(player)
+        source.connect(audioCtx.destination)
+        var analyzer = audioCtx.createAnalyser()
+        source.connect(analyzer)
+        // in case audioCtx don't get actived if user dind't interact
+        // with the page
+        player.addEventListener('play', function () {
+            audioCtx.resume();
+        });
+
+        ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, {
+            'fillstyle': ['rgb(0, 123, 255)', 'rgb(172,211,255)'],
+            'spacing': 2,
+            'ratio': 1,
+            'force': 0.02,
+            'fftSize': 256
+        })
     }
-    // initalizing visualizer
-    peakmeter = document.getElementById('peak-meter')
-    audioCtx = new window.AudioContext()
-    // connecting the analyzer
-    var source = audioCtx.createMediaElementSource(player)
-    source.connect(audioCtx.destination)
-    var analyzer = audioCtx.createAnalyser()
-    source.connect(analyzer)
-    // in case audioCtx don't get actived if user dind't interact
-    // with the page
-    player.addEventListener('play', function () {
-        audioCtx.resume();
-    });
 
-    ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight)
+    try {
+        initFFTWindow()
+    } catch (error) {
+        console.error(error)
+    }
+
     player.crossOrigin = "anonymous";
-
 
 }
 updateNodes()
@@ -118,11 +136,11 @@ function setDownload(href, saveAs) {
     download_placeholder.click()
 }
 
-function notify(message, level = "success") {
+function notify(message, level) {
     var notice = document.createElement('div')
-    notice.className = "alert alert-" + level
+    notice.className = "alert alert-" + (!!level ? level : 'success')
     notice.innerHTML = '<a href="#" class="close" data-dismiss="alert">&times;</a>' + message
-    notifyfeed.before(notice)
+    notifyfeed.appendChild(notice)
     scrollTo(0, 0)
 }
 
@@ -131,19 +149,25 @@ function getAPI(api) {
         "song": "api/song"
     }
     // removes anomalous chars,then concat the api
-    return `${location.origin}${location.pathname}${apis[api]}`
+    return "".concat(location.origin).concat(location.pathname).concat(apis[api]);
 }
 
-function performRequest(id = 0, requirements = [], override = '', extra = {}) {
+function performRequest() {
+    var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var requirements = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+    var override = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : "";
+    var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
     var msg = JSON.stringify({ "id": id, "requirements": requirements, "extras": extra })
     var r = new XMLHttpRequest();
     var api = getAPI('song')
     r.open("POST", api, true);
-    r.onreadystatechange = () => {
+    r.onreadystatechange = function () {
         if (r.readyState == XMLHttpRequest.DONE) {
             try {
                 var info = JSON.parse(r.responseText)
-                for (requirement of info.requirements) {
+                for (i in info.requirements) {
+                    requirement = info.requirements[i]
                     eval('callback_' + requirement + '(info=info,r,override=override)');
                 }
                 // reflect the callback using eval
@@ -158,7 +182,10 @@ function performRequest(id = 0, requirements = [], override = '', extra = {}) {
 
 function concatDictsByKey(dicts, key, split) {
     str = ''
-    for (dict of dicts) str += dict[key] + split
+    for (index in dicts) {
+        dict = dicts[index]
+        str += dict[key] + split
+    }
     return str.substr(0, str.length - split.length)
 }
 
@@ -174,12 +201,12 @@ function convertFromTimestamp(timestamp) {
 
 function convertToTimestamp(timecode) {
     // this will convert seconds back to LRC timestamp
-    function pad(str, p, length, before = false) { if (str.length < length) { str = before ? p + str : str + p; return pad(str, p, length, before) } else { return str } }
-    var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * (10 ** 3))
+    function pad(str, p, length) { if (str.length < length) { str = str + p; return pad(str, p, length, before) } else { return str } }
+    var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * 1000)
     return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
 }
 
-function parseLryics(lrc, tlrc = '') {
+function parseLryics(lrc, tlrc) {
     // lrc:original lyrics
     // tlrc:translation
     const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
@@ -204,9 +231,9 @@ function parseLryics(lrc, tlrc = '') {
             // Where match[2] contains the second capture group
         }
     }
-    addMatches(lrc)
-    addMatches(tlrc)
-    console.table(lyrics)
+    if (!!lrc) addMatches(lrc)
+    if (!!tlrc) addMatches(tlrc)
+    console.log({ 'Translated Lyrics': lyrics })
     return lyrics
 }
 
@@ -218,22 +245,18 @@ function findClosestMatch(arr, i) {
     // finds closeset match to 'i' in array 'arr'
     // note that the match can't be larger than 'i'
     var i = i * 1; var dist = -Math.max(); var t = 0
-    for (a of arr) { a = a * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
+    for (index in arr) { a = arr[index] * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
     return t
 }
 
-function rotate(deg = 0) {
+function rotate(deg) {
     cover.style.transform = 'rotate(' + deg + 'deg)'
 }
 
-function player_setPlay(t = 1000) {
-    setTimeout(() => {
-        try {
-            player.play()
-        } catch (e) {
-            setPlay()
-        }
-    }, t)
+function player_setPlay(t) {
+    setTimeout(function () {
+        player.play()
+    }, !!t ? t : 1000)
 }
 
 function update_lyrics(lyrics_timestamp) {
@@ -248,15 +271,17 @@ function update_lyrics(lyrics_timestamp) {
         // updates lyrics
         var lyrics_duration = (Object.keys(lyrics)[Object.keys(lyrics).indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
         // caculates duration for the animation in seconds
-        lyricsbox.animate(
-            [
-                { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
-                { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
-                { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
-            ], {
-            easing: 'ease-out',
-            duration: lyrics_duration * 1000
-        }).play()
+        try {
+            lyricsbox.animate(
+                [
+                    { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
+                ], {
+                easing: 'ease-out',
+                duration: lyrics_duration * 1000
+            }).play()
+        } catch (e) { }
         lyricsbox.updated_timestamp = lyrics_timestamp
     }
 }
@@ -268,9 +293,10 @@ function player_update() {
 
     var lyrics_timestamp = findClosestMatch(Object.keys(lyrics), player.currentTime)
 
-    if(!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) update_lyrics(lyrics_timestamp)
+    if (!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) update_lyrics(lyrics_timestamp)
 
-    var pagetitle = `${musicinfo.name} - ${concatDictsByKey(musicinfo.ar, 'name', ' / ')}`
+    var pagetitle = "".concat(musicinfo.name, " - ").concat(concatDictsByKey(musicinfo.ar, "name", " / "));
+
     if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
 
@@ -282,7 +308,7 @@ function player_update() {
 
 function _callback(target) {
     // callback funtion wrapper
-    return function (info, r, override = '') {
+    return function (info, r, override) {
         if (r.status != 200) { notify(info.message, 'danger'); return }
         // server-side error message,notabliy dangerous and should be alerted to the user
         if (!!override) { override(info) } else { target(info) }
@@ -297,7 +323,13 @@ function callback_audio(info) {
     console.log({ 'Audio callback': audioinfo })
     if (audioinfo.message != 'success') {
         // error on netease's API side.
-        notify(`歌曲(id:${audioinfo.data[0].id})音频解析失败（${audioinfo.message}）`, 'warning')
+        notify(
+            "歌曲(id:"
+                .concat(audioinfo.data[0].id, ")音频解析失败(")
+                .concat(audioinfo.message, ")"),
+            "warning"
+        );
+
     } else {
         player.src = audioinfo['data'][0]['url']
     }
@@ -309,29 +341,51 @@ function callback_info(info) {
     musicinfo = info.info.songs[0]
     console.log({ 'Info callback': musicinfo })
     if (!musicinfo) {
-        notify(`解析歌曲 (ID:${info.required_id}) 失败`, 'warning')
+        notify(
+            "解析 (ID:".concat(info.required_id, ") 失败"),
+            "warning"
+        );
+
         return
     }
     // extra error checks
     if (info.cover != []) cover.src = musicinfo.al.picUrl
-    title.innerHTML = `<a href="https://music.163.com/#/song?id=${musicinfo.id}">${musicinfo.name}</a>`
-    album.innerHTML = `<a href="https://music.163.com/#/album?id=${musicinfo.al.id}" style="color:gray">${musicinfo.al.name}</a>`
+
+    title.innerHTML = '<a href="https://music.163.com/#/song?id='
+        .concat(musicinfo.id, '">')
+        .concat(musicinfo.name, "</a>");
+    album.innerHTML = '<a href="https://music.163.com/#/album?id='
+        .concat(musicinfo.al.id, '" style="color:gray">')
+        .concat(musicinfo.al.name, "</a>");
     // compose info box 1
+
     infocontext1.innerHTML = '音乐家：'
-    function addArtist(ar, head = '<a> / </a>') { infocontext1.innerHTML += `${head}<a href="https://music.163.com/#/artist?id=${ar.id}" style="color:gray">${ar.name}</a>` }
+    function addArtist(ar) {
+        var head = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "<a> / </a>";
+        infocontext1.innerHTML += ""
+            .concat(head, '<a href="https://music.163.com/#/artist?id=')
+            .concat(ar.id, '" style="color:gray">')
+            .concat(ar.name, "</a>");
+    }
     addArtist(musicinfo.ar[0], head = '')
-    for (ar of musicinfo.ar.slice(1)) addArtist(ar)
+    for (index in musicinfo.ar.slice(1)) {
+        ar = musicinfo.ar.slice(1)[index]
+        addArtist(ar)
+    }
     if (!!audioinfo.data) {
         // these will only be added if audioinfo is available
-        infocontext1.innerHTML += `</br><i style="color:#AAA;font-size:small;">音频信息：${getFileSize(audioinfo['data'][0]['size'])} / ${audioinfo['data'][0]['type']} </i></br>`
+        infocontext1.innerHTML += '</br><i style="color:#AAA;font-size:small;"> 音频信息 '
+            .concat(getFileSize(audioinfo["data"][0]["size"]), " / ")
+            .concat(audioinfo["data"][0]["type"], " </i></br>");
+
     }
     if (!!musicinfo.mv) {
         // mv is presnet,perform such request
         performRequest(musicinfo.mv, ['mv'])
-        download_mv.firstElementChild.firstElementChild.setAttribute('fill','#007bff')
+        download_mv.firstElementChild.firstElementChild.setAttribute('fill', '#007bff')
         download_mv.disabled = false
     } else {
-        download_mv.firstElementChild.firstElementChild.setAttribute('fill','#cccccc')
+        download_mv.firstElementChild.firstElementChild.setAttribute('fill', '#cccccc')
         download_mv.disabled = true
     }
 }
@@ -353,9 +407,19 @@ function callback_contribution(info) {
     contributioninfo = info.contribution
     console.log({ 'Contribution callback': contributioninfo })
     // compose infobox 2
-    infocontext2.innerHTML = `<a style="color:#888;margin=top:30px">服务贡献者:<strong> ${contributioninfo.contributer} </strong>`
-    infocontext2.innerHTML += `<i style="color:#AAA;"> ${contributioninfo.contributer_message} </i></a></br>`
-    infocontext2.innerHTML += `<i style="color:#AAA;font-size:small;"> 该服务已被使用 <strong> ${contributioninfo.count} </strong> 次</i>`
+    infocontext2.innerHTML = '<a style="color:#888;margin=top:30px">服务贡献者:<strong> '.concat(
+        contributioninfo.contributer,
+        " </strong>"
+    );
+    infocontext2.innerHTML += '<i style="color:#AAA;"> '.concat(
+        contributioninfo.contributer_message,
+        " </i></a></br>"
+    );
+    infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 服务已使用  <strong> '.concat(
+        contributioninfo.count,
+        " </strong> 次 </i>"
+    );
+
 }
 callback_contribution = _callback(callback_contribution)
 
@@ -364,7 +428,8 @@ function callback_playlist(info) {
     playlistinfo = info.playlist
     console.log({ 'Playlistinfo callback': playlistinfo })
     // once playlist is loaded,appends them to the end of the list
-    for (item of playlistinfo.playlist.tracks) {
+    for (index in playlistinfo.playlist.tracks) {
+        item = playlistinfo.playlist.tracks[index]
         playqueue.push(item)
     }
     process_playqueue()
@@ -376,7 +441,8 @@ function callback_album(info) {
     albuminfo = info.album
     console.log({ 'Albuminfo callback': albuminfo })
     // once album is loaded,appends them to the end of the list
-    for (item of albuminfo.songlist) {
+    for (index in albuminfo.songlist) {
+        item = albuminfo.songlist[index]
         playqueue.push({
             'id': item.id,
             'name': item.name,
@@ -403,7 +469,8 @@ playqueue = []
 // the queue which is to be played and displayed
 function process_playids(playids) {
     // process id in playids,one at a time
-    for (id of playids) {
+    for (index in playids) {
+        id = playids[index]
         musicinfo_override = function (info) {
             // once loaded,push to the playqueue
             musicinfo = info.info.songs[0]
@@ -417,47 +484,39 @@ function process_playids(playids) {
     }
 }
 
-function* generateID() { var i = 0; while (true) { i += 1; yield ('element' + i) } }
-IDGenerator = generateID();
+_generateID = 0
+function generateID() { _generateID += 1; return _generateID }
 
 init_clear = false
 function append_node(song) {
     if (!init_clear) { playqueue_view.innerHTML = '</br>'; init_clear = true }
     // clear if not cleared since page is loaded
     var mediabox = document.createElement('li')
-    with (mediabox) {
-        className = 'media'
-        style = 'padding:2px'
-        id = IDGenerator.next()['value']
-    }
+    mediabox.className = 'media'
+    mediabox.style = 'padding:2px'
+    mediabox.id = generateID()['value']
     /* CREATE MEDIABOX */
     var covernode = document.createElement('img')
-    with (covernode) {
-        className = 'd-flex mr-3 rounded'
-        style = 'width:80px'
-        src = song.al.picUrl
-    }
+    covernode.className = 'd-flex mr-3 rounded covernode'
+    covernode.src = song.al.picUrl
     /* CREATE COVER */
     var mediabody = document.createElement('div')
     mediabody.className = 'media-body'
     /* CREATE MEDIABODY */
     var mediatitle = document.createElement('h5')
-    with (mediatitle) {
-        className = 'mt-0'
-        innerHTML = `<a>${song.name}</a>`
-        style = 'cursor:pointer;color:#007bff'
-        onclick = playqueue_item_onclick
-    }
+    mediatitle.className = 'mt-0'
+    mediatitle.innerHTML = "<a>".concat(song.name, "</a>");
+
+    mediatitle.style = 'cursor:pointer;color:#007bff'
+    mediatitle.onclick = playqueue_item_onclick
     /* CREATE TITLE */
     var meidainfo = document.createElement('p')
     meidainfo.innerHTML = song.al.name + ' - ' + concatDictsByKey(song.ar, 'name', ' / ') + (!!song.mv ? '  <i class="fas fa-film" style="float:right;"></i><a>     </a>' : '')
     var closebutton = document.createElement('a')
-    with (closebutton) {
-        className = 'close'
-        onclick = playqueue_item_remove_onclick
-        style = 'cursor:pointer'
-        innerHTML = '&times;'
-    }
+    closebutton.className = 'close'
+    closebutton.onclick = playqueue_item_remove_onclick
+    closebutton.style = 'cursor:pointer'
+    closebutton.innerHTML = '&times;'
     /* CREATE INFO */
     mediabody.appendChild(closebutton); mediabody.appendChild(mediatitle); mediabody.appendChild(meidainfo);
     mediabox.appendChild(covernode); mediabox.appendChild(mediabody);
@@ -468,7 +527,8 @@ function append_node(song) {
 function process_playqueue() {
     // process every item inside playqueue,and add nodes
     if (!playqueue) return
-    for (song of playqueue) {
+    for (index in playqueue) {
+        song = playqueue[index]
         if (!song.node) {
             song.node = append_node(song)
             // add node if not already
@@ -480,7 +540,8 @@ function process_playqueue() {
     }
 }
 
-function playqueue_locate_by_id(id, keep = true) {
+function playqueue_locate_by_id(id, keep) {
+    if (!!!keep) keep = true
     var result = playqueue.filter(function (x) { return x.node.id == id ? keep : !keep })
     return !keep ? result : result[0]
 }
@@ -500,16 +561,21 @@ function playqueue_pop() {
     return song
 }
 
-playqueue_playhead = -1; playback_quality = 'lossless'
+playqueue_playhead = -1; playback_quality = 'standard'
 function playqueue_playhead_onchage() {
     // plays song on list indexed by playhead
     if (playqueue.length <= playqueue_playhead || playqueue_playhead < 0) playqueue_playhead = 0
     if (!playqueue) return
-    console.log(`Playhead seeking at index of ${playqueue_playhead}`)
+    console.log('Playhead seeking at index of ' + playqueue_playhead)
     var song = playqueue[playqueue_playhead]
     lyrics = {}; mvinfo = {}; audioinfo = {}; musicinfo = {}
     // clear old info
-    performRequest(song.id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
+    try {
+        performRequest(song.id, ['contribution', 'audio', 'info', 'lyrics'], '', { 'audio': { 'quality': playback_quality } })
+    } catch (error) {
+        notify(error, 'warning')
+    }
+
     process_playqueue()
     player_setPlay()
 }
@@ -545,29 +611,29 @@ function action_onclick() {
     while ((m = id_regex.exec(sharelink)) !== null) {
         // This is necessary to avoid infinite loops with zero-width matches
         if (m.index === id_regex.lastIndex) id_regex.lastIndex++
-        m.forEach((match, groupIndex) => { ids.push(match) });
+        m.forEach(function (match, groupIndex) { ids.push(match) });
     }
     // extract ID using regex
     if (sharelink.indexOf('list') != -1) {
         // inputed playlist URL
         if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning'); }
         performRequest(ids[0], ['playlist'])
-        shareinput.value = `playlist:${ids[0]}`
+        shareinput.value = "playlist:".concat(ids[0]);
 
     } else if (sharelink.indexOf('album') != -1) {
         // inputed album URL
         if (ids.length > 1) { notify('<strong>专辑</strong>ID只能输入一个!', 'warning'); }
         performRequest(ids[0], ['album'])
-        shareinput.value = `album:${ids[0]}`
+        shareinput.value = "album:".concat(ids[0]);
     } else {
         // anything else (containting any 5+ digit numbers)
         // will be treated as song IDs
-        id_string = ''; ids.filter((id) => { id_string += id + ' ' })
-        shareinput.value = `song:${id_string}`
+        id_string = ''; ids.filter(function (id) { id_string += id + ' ' })
+        shareinput.value = "song:".concat(id_string);
         process_playids(ids)
     }
     action.disabled = true
-    setTimeout(() => { action.disabled = false; if (!player.duration) next_song.click() }, 1000)
+    setTimeout(function () { action.disabled = false; if (!player.duration) next_song.click() }, 1000)
     // re-activate after 1s
 }
 
