@@ -49,12 +49,12 @@ function ffta_draw() {
         if (!peak[i].val || peak[i].val < barHeight && barHeight != 0) {
             peak[i].vel = (barHeight - peak[i].val) * FORCE;
             peak[i].val = barHeight;
-        } // reset force once peak was reached            
+        } // reset force once peak was reached    
 
+        peak[i].vel = clamp(peak[i].vel, 2, -5); // linear accleation curve within range of (-5,2) with step of 0.1
         peak[i].val = peak[i].val + peak[i].vel
         // apply velocity
         peak[i].vel -= 0.1;
-        peak[i].vel = clamp(peak[i].vel, 5, -5); // linear accleation curve within range of (-5,5) with step of 0.1
 
         canvasCtx.fillStyle = fillStyle[1];
         var thresholdBarHeight = peak[i].val + 5;
