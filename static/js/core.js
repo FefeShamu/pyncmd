@@ -606,7 +606,6 @@ function playqueue_update() {
 }
 
 function playqueue_locate_by_id(id, keep) {
-    if (!!!keep) keep = true
     var result = playqueue.filter(function (x) { return x.node.id == id ? keep : !keep })
     return !keep ? result : result[0]
 }
