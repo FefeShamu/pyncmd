@@ -131,7 +131,7 @@ function updateNodes() {
 
     player.crossOrigin = "anonymous";
 
-}updateNodes()
+} updateNodes()
 /***************************/
 
 /* Front-end related calls */
@@ -451,13 +451,17 @@ callback_mv = _callback(callback_mv)
 /* Utilities */
 function urlParams() {
     dict_params = {}
-    if (!!location.href.split('?')[1]){
-        params = location.href.split('?')[1].split('&')
-        for (index in params){
-            param = params[index]
-            dict_params[param.split('=')[0]] = param.split('=')[1]
-        }
+    if (location.href.indexOf('?') == -1) return dict_params
+    // returns none if no '?' symbol was found
+    query = location.href.substr(location.href.indexOf('?') + 1)
+
+    dict_params['?'] = query
+    params = query.split('&')
+    for (index in params) {
+        param = params[index]
+        dict_params[param.split('=')[0]] = param.split('=')[1]
     }
+
     return dict_params
 }
 
@@ -680,9 +684,9 @@ function load_ids(playids) {
 /***************************/
 
 /* Automated actions by params */
-if (!!params.action){
+if (!!params) {
     // Action was specified
-    shareinput.value = params.action
-    setTimeout(action_onclick,1000)
+    shareinput.value = params['?']
+    setTimeout(action_onclick, 1000)
 }
 /***************************/

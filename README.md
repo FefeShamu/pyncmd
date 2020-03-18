@@ -22,7 +22,8 @@
 |多语言歌词下载|✔|
 |MV 播放 / 下载|✔|
 # DEMO
-[PyNCMd](https://mos9527.tooo.top/ncm)
+使用:
+[PyNCMd](https://mos9527.tooo.top/ncm/) *使用 '..../ncm/?[链接]' URL参数自动填入*
 
 # 截图
 ![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.gif)
