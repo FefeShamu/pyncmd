@@ -30,7 +30,7 @@ bufferLength = 0;
 
 function ffta_draw() {
     requestAnimationFrame(ffta_draw);
-    if (!!!bufferLength) return;
+    if (!bufferLength) return;
     var dataArray = new Uint8Array(bufferLength);
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
     analyser.getByteFrequencyData(dataArray);
@@ -51,7 +51,8 @@ function ffta_draw() {
             peak[i].val = barHeight;
         } // reset force once peak was reached            
 
-
+        peak[i].val = peak[i].val + peak[i].vel
+        // apply velocity
         peak[i].vel -= 0.1;
         peak[i].vel = clamp(peak[i].vel, 5, -5); // linear accleation curve within range of (-5,5) with step of 0.1
 
@@ -63,16 +64,8 @@ function ffta_draw() {
         x += barWidth + SPACING; // drawing the bars
     }
 
-    ftta_applyForce();
+   
 }
 
-function ftta_applyForce() {
-    peak = peak.map(function (a) {
-        return {
-            'val': a.val + a.vel,
-            'vel': a.vel
-        };
-    });
-}
 
 requestAnimationFrame(ffta_draw);

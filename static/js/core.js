@@ -237,10 +237,6 @@ function parseLryics(lrc, tlrc) {
     return lyrics
 }
 
-function download_lrc_onclick() {
-
-}
-
 function findClosestMatch(arr, i) {
     // finds closeset match to 'i' in array 'arr'
     // note that the match can't be larger than 'i'
@@ -258,7 +254,6 @@ function player_setPlay(t) {
         player.play()
     }, !!t ? t : 1000)
 }
-
 function update_lyrics(lyrics_timestamp) {
     // updates lyrics via timestamp
     var matched = lyrics[lyrics_timestamp]
