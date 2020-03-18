@@ -9,7 +9,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  
+
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>Netease Cloud Music Fronted</title>
   <!--Bootstrap & Fontawesome-->
@@ -17,7 +17,6 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
     integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <style>
-
     a {
       cursor: pointer;
       font-weight: bold;
@@ -31,11 +30,13 @@
       overflow-x: hidden;
     }
 
-    .covernode{
+    .covernode {
       width: 80px;
     }
 
-    #lyricsbox,#info2,.lyrics {
+    #lyricsbox,
+    #info2,
+    .lyrics {
       height: 50px;
       width: auto;
       animation: animate 2s linear 1;
@@ -73,8 +74,6 @@
     .autofade:hover {
       opacity: 1;
     }
-
-
   </style>
 </head>
 
@@ -123,14 +122,16 @@
           <div class="dropdown" style="text-overflow: clip">
             <a class="card-link" style="display: none" id="download-placeholder" download></a>
 
-            <a class="card-link" id="download-audio" download><i class="fas fa-cloud-download-alt"></i></a>
-            <a class="card-link" id="download-lrc"><i class="fas fa-file-download"></i></a>
-            <a class="card-link" id="download-mv" data-toggle="modal" data-target="#mv-modal"><i
-                class="fas fa-file-video"></i></a>
-            <a class="card-link" id="prev-song"><i class="fas fa-backward"></i></a>
+            <a class="card-link" id="download-audio" data-toggle="tooltip" title="下载音频" download><i
+                class="fas fa-cloud-download-alt"></i></a>
+            <a class="card-link" id="download-lrc" data-toggle="tooltip" title="下载歌词"><i
+                class="fas fa-file-download"></i></a>
+            <a class="card-link" id="download-mv" data-toggle="tooltip" title="下载 MV" data-toggle="modal"
+              data-target="#mv-modal"><i class="fas fa-file-video"></i></a>
+            <a class="card-link" id="prev-song" data-toggle="tooltip" title="上一首"><i class="fas fa-backward"></i></a>
 
-            <a class="card-link" id="next-song"><i class="fas fa-forward"></i></a>
-            <a class="card-link" id="quality-selector" data-toggle="dropdown" aria-haspopup="true"
+            <a class="card-link" id="next-song" data-toggle="tooltip" title="下一首"><i class="fas fa-forward"></i></a>
+            <a class="card-link" id="quality-selector" title="音质" data-toggle="dropdown" aria-haspopup="true"
               aria-expanded="false"><i class="fas fa-music"></i></a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuHeader">
               <h6 class="dropdown-header">歌曲品质</h6>
@@ -183,7 +184,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
     integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
     crossorigin="anonymous"></script>
-
+  <script>
+    $(document).ready(function () {
+      $('[data-toggle="tooltip"]').tooltip();
+    });
+  </script>
 </body>
 
 </html>
