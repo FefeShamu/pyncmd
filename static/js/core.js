@@ -250,9 +250,18 @@ function rotate(deg) {
 }
 
 function player_setPlay(t) {
+    t  = !!t ? t : 1000
     setTimeout(function () {
-        player.play()
-    }, !!t ? t : 1000)
+        var p = player.play()
+        if (!!p) {
+            p.then(function () {
+                console.log('Playback inialized')
+            }).catch(function (e) {
+                console.log(e + '...Retrying playback in ' + t + 'ms')
+                player_setPlay(t)
+            })
+        }
+    }, t)   
 }
 function update_lyrics(lyrics_timestamp) {
     // updates lyrics via timestamp
