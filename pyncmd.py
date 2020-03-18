@@ -184,11 +184,10 @@ class Server(http.server.ThreadingHTTPServer):
         '''
             Process all methods.GET,POST,OPTIONS,etc
         '''
-        path = caller.path.replace('/', '_')
-        # repalce '/' with '_' since it's illegal to use '/' inside a function name
-        if hasattr(self, path):
-            # Reflect funtion if exsists
-            getattr(self, path)(caller)
+        path = caller.path
+        if path in self.paths.keys():
+            # Reflect funtion via dictionary if exsists
+            self.paths[path](caller)
         else:
             # Try to send files if cannot reflect the funtion
             path = root + caller.path[1:]
@@ -209,11 +208,16 @@ class Server(http.server.ThreadingHTTPServer):
                         content_type = 'text/html;charset=utf-8/html'                    
                     self.write_file(caller, path, content_type)
             else:
-                caller.send_response(404)
-                self.write_page(caller, 'static/404.html')
-                caller.end_headers()
-                # Page not found
+                self.paths['/'](caller)
+                # Page not found,defaults to '/'
         return
+
+    def PATH(self,path='/'):
+        # PATH Decorator
+        def wrapper(func):
+            self.paths[path] = func
+            return func
+        return wrapper
 
     def callback(self, kwargs):
         if hasattr(self, kwargs['type']):
@@ -223,13 +227,15 @@ class Server(http.server.ThreadingHTTPServer):
                           kwargs['type'], 'with argument', kwargs['args'])
 
     def __init__(self, server_address):
+        self.paths = {}
         super().__init__(server_address, lambda request, client_address,
                          server: Handler(request, client_address, server, self.callback))
 
 
 server = Server(('', port))
 
-def _(caller):
+@server.PATH('/')
+def IndexPage(caller):
     # /
     # Index page
     caller.send_response(200)
@@ -248,8 +254,9 @@ count,requirement_mapping = 0,{
         "count":count                   
     }
 }
-def _api_song(caller):
-    # /api/song
+@server.PATH('/api/aio')
+def AIOHandler(caller):
+    # All-In-One API call handler
     # Utilizing PyNCM to load music info
     # With given music ID
     global count,requirement_mapping
@@ -308,10 +315,6 @@ def _api_song(caller):
     simple_logger('Processed request.Total times:%s , ID: %s' %
                   (count, content['id'] if content else 'INVALID'))
 
-
-
-server._ = _
-server._api_song = _api_song
 
 simple_logger(
     'Listening:\n    http://{0}:{1}'.format(*server.server_address))

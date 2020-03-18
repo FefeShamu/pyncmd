@@ -2,7 +2,8 @@
     Core.js：Front-End Interface logic
 */
 
-/* Front-end related calls */
+/* Initalizing */
+params = urlParams()
 
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
@@ -131,6 +132,9 @@ function updateNodes() {
     player.crossOrigin = "anonymous";
 
 }updateNodes()
+/***************************/
+
+/* Front-end related calls */
 
 function action_onclick() {
     // action button click event
@@ -252,7 +256,7 @@ function notify(message, level) {
 /* Networking / Callback related calls */
 function getAPI(api) {
     var apis = {
-        "song": "api/song"
+        "song": "api/aio"
     }
     // removes anomalous chars,then concat the api
     return "".concat(location.origin).concat(location.pathname).concat(apis[api]);
@@ -445,6 +449,18 @@ callback_mv = _callback(callback_mv)
 /***************************/
 
 /* Utilities */
+function urlParams() {
+    dict_params = {}
+    if (!!location.href.split('?')[1]){
+        params = location.href.split('?')[1].split('&')
+        for (index in params){
+            param = params[index]
+            dict_params[param.split('=')[0]] = param.split('=')[1]
+        }
+    }
+    return dict_params
+}
+
 function concatDictsByKey(dicts, key, split) {
     str = ''
     for (index in dicts) {
@@ -663,3 +679,10 @@ function load_ids(playids) {
 }
 /***************************/
 
+/* Automated actions by params */
+if (!!params.action){
+    // Action was specified
+    shareinput.value = params.action
+    setTimeout(action_onclick,1000)
+}
+/***************************/
