@@ -1,6 +1,9 @@
 /*
     Core.js：Front-End Interface logic
 */
+
+/* Front-end related calls */
+
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
     cover = document.getElementById("cover")
@@ -127,8 +130,109 @@ function updateNodes() {
 
     player.crossOrigin = "anonymous";
 
+}updateNodes()
+
+function action_onclick() {
+    // action button click event
+    // once clicked,the button will become disabled until the XHR is finished
+    var sharelink = shareinput.value.toLowerCase()
+    if (!sharelink) { notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger"); return }
+    ids = []
+    const id_regex = /\d{5,}/gm
+    // match any continous 5+ digit numbers
+    while ((m = id_regex.exec(sharelink)) !== null) {
+        // This is necessary to avoid infinite loops with zero-width matches
+        if (m.index === id_regex.lastIndex) id_regex.lastIndex++
+        m.forEach(function (match, groupIndex) { ids.push(match) });
+    }
+    // extract ID using regex
+    if (sharelink.indexOf('list') != -1) {
+        // inputed playlist URL
+        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning'); }
+        performRequest(ids[0], ['playlist'])
+        shareinput.value = "playlist:".concat(ids[0]);
+
+    } else if (sharelink.indexOf('album') != -1) {
+        // inputed album URL
+        if (ids.length > 1) { notify('<strong>专辑</strong>ID只能输入一个!', 'warning'); }
+        performRequest(ids[0], ['album'])
+        shareinput.value = "album:".concat(ids[0]);
+    } else {
+        // anything else (containting any 5+ digit numbers)
+        // will be treated as song IDs
+        id_string = ''; ids.filter(function (id) { id_string += id + ' ' })
+        shareinput.value = "song:".concat(id_string);
+        load_ids(ids)
+    }
+    action.disabled = true
+    setTimeout(function () { action.disabled = false; if (!player.duration) next_song.click() }, 1000)
+    // re-activate after 1s
 }
-updateNodes()
+
+function cover_rotate(deg) {
+    cover.style.transform = 'rotate(' + deg + 'deg)'
+}
+
+function player_setPlay(t) {
+    t = !!t ? t : 1000
+    setTimeout(function () {
+        var p = player.play()
+        if (!!p) {
+            p.then(function () {
+                console.log('Playback inialized')
+            }).catch(function (e) {
+                console.log(e + '...Retrying playback in ' + t + 'ms')
+                player_setPlay(t)
+            })
+        }
+    }, t)
+}
+
+function lyricsbox_update(lyrics_timestamp) {
+    // updates lyrics via timestamp
+    var matched = lyrics[lyrics_timestamp]
+    if (!!matched) {
+        var lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
+        // find closest matched lyrics via timestamp
+        if (lyricsbox.innerHTML == lyrics_html) return
+        // lyrics not chaged,return
+        lyricsbox.innerHTML = lyrics_html
+        // updates lyrics
+        var lyrics_duration = (Object.keys(lyrics)[Object.keys(lyrics).indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
+        // caculates duration for the animation in seconds
+        try {
+            lyricsbox.animate(
+                [
+                    { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
+                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
+                ], {
+                easing: 'ease-out',
+                duration: lyrics_duration * 1000
+            }).play()
+        } catch (e) { }
+        lyricsbox.updated_timestamp = lyrics_timestamp
+    }
+}
+
+function player_update() {
+    // player update event,used to update lyrics
+    // note that it's usually updated every ~250ms
+    if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
+
+    var lyrics_timestamp = findClosestMatch(Object.keys(lyrics), player.currentTime)
+
+    if (!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) lyricsbox_update(lyrics_timestamp)
+
+    var pagetitle = "".concat(musicinfo.name, " - ").concat(concatDictsByKey(musicinfo.ar, "name", " / "));
+
+    if (document.title != pagetitle) document.title = pagetitle
+    // update title if not already
+
+    cover_rotate(player.currentTime * 5)
+    // rotates the cover via ticks of the player
+
+}
 
 function setDownload(href, saveAs) {
     download_placeholder.href = href
@@ -143,7 +247,9 @@ function notify(message, level) {
     notifyfeed.appendChild(notice)
     scrollTo(0, 0)
 }
+/***************************/
 
+/* Networking / Callback related calls */
 function getAPI(api) {
     var apis = {
         "song": "api/song"
@@ -179,136 +285,6 @@ function performRequest() {
     }
     r.send(msg);
 }
-
-function concatDictsByKey(dicts, key, split) {
-    str = ''
-    for (index in dicts) {
-        dict = dicts[index]
-        str += dict[key] + split
-    }
-    return str.substr(0, str.length - split.length)
-}
-
-function convertFromTimestamp(timestamp) {
-    // this will covert LRC timestamp to seconds
-    try {
-        var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
-        return (m * 60) + s + (ms / 1000)
-    } catch (error) {
-        return 0
-    }
-}
-
-function convertToTimestamp(timecode) {
-    // this will convert seconds back to LRC timestamp
-    function pad(str, p, length) { if (str.length < length) { str = str + p; return pad(str, p, length, before) } else { return str } }
-    var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * 1000)
-    return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
-}
-
-function parseLryics(lrc, tlrc) {
-    // lrc:original lyrics
-    // tlrc:translation
-    const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-    if (!lrc) return
-    // Clear old lyrics
-    lyrics = {}
-    // not a local variable
-    function addMatches(lrc_string) {
-        while ((match = lrc_regex.exec(lrc_string)) !== null) {
-            if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++
-            // This is necessary to avoid infinite loops with zero-width matches
-            timestamp = match[1]
-            if (timestamp.indexOf('.') == -1) timestamp += '.000'
-            // Pad with 0ms if no milliseconds is defined
-            // match[1] contains the first capture group
-            timestamp = convertFromTimestamp(timestamp)
-            if (!lyrics[timestamp.toString()]) {
-                lyrics[timestamp.toString()] = [match[2]]
-            } else {
-                lyrics[timestamp.toString()].push(match[2])
-            }
-            // Where match[2] contains the second capture group
-        }
-    }
-    if (!!lrc) addMatches(lrc)
-    if (!!tlrc) addMatches(tlrc)
-    console.log({ 'Translated Lyrics': lyrics })
-    return lyrics
-}
-
-function findClosestMatch(arr, i) {
-    // finds closeset match to 'i' in array 'arr'
-    // note that the match can't be larger than 'i'
-    var i = i * 1; var dist = -Math.max(); var t = 0
-    for (index in arr) { a = arr[index] * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
-    return t
-}
-
-function rotate(deg) {
-    cover.style.transform = 'rotate(' + deg + 'deg)'
-}
-
-function player_setPlay(t) {
-    t  = !!t ? t : 1000
-    setTimeout(function () {
-        var p = player.play()
-        if (!!p) {
-            p.then(function () {
-                console.log('Playback inialized')
-            }).catch(function (e) {
-                console.log(e + '...Retrying playback in ' + t + 'ms')
-                player_setPlay(t)
-            })
-        }
-    }, t)   
-}
-function update_lyrics(lyrics_timestamp) {
-    // updates lyrics via timestamp
-    var matched = lyrics[lyrics_timestamp]
-    if (!!matched) {
-        var lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
-        // find closest matched lyrics via timestamp
-        if (lyricsbox.innerHTML == lyrics_html) return
-        // lyrics not chaged,return
-        lyricsbox.innerHTML = lyrics_html
-        // updates lyrics
-        var lyrics_duration = (Object.keys(lyrics)[Object.keys(lyrics).indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
-        // caculates duration for the animation in seconds
-        try {
-            lyricsbox.animate(
-                [
-                    { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
-                ], {
-                easing: 'ease-out',
-                duration: lyrics_duration * 1000
-            }).play()
-        } catch (e) { }
-        lyricsbox.updated_timestamp = lyrics_timestamp
-    }
-}
-
-function player_update() {
-    // player update event,used to update lyrics
-    // note that it's usually updated every ~250ms
-    if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
-
-    var lyrics_timestamp = findClosestMatch(Object.keys(lyrics), player.currentTime)
-
-    if (!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) update_lyrics(lyrics_timestamp)
-
-    var pagetitle = "".concat(musicinfo.name, " - ").concat(concatDictsByKey(musicinfo.ar, "name", " / "));
-
-    if (document.title != pagetitle) document.title = pagetitle
-    // update title if not already
-
-    rotate(player.currentTime * 5)
-    // rotates the cover via ticks of the player
-
-}
-
 
 function _callback(target) {
     // callback funtion wrapper
@@ -379,7 +355,7 @@ function callback_info(info) {
     if (!!audioinfo.data) {
         // these will only be added if audioinfo is available
         infocontext1.innerHTML += '</br><i style="color:#AAA;font-size:small;"> 音频信息 '
-            .concat(getFileSize(audioinfo["data"][0]["size"]), " / ")
+            .concat(hrsify(audioinfo["data"][0]["size"]), " / ")
             .concat(audioinfo["data"][0]["type"], " </i></br>");
 
     }
@@ -436,7 +412,7 @@ function callback_playlist(info) {
         item = playlistinfo.playlist.tracks[index]
         playqueue.push(item)
     }
-    process_playqueue()
+    playqueue_update()
 }
 callback_playlist = _callback(callback_playlist)
 
@@ -455,7 +431,7 @@ function callback_album(info) {
             'mv': item.mvid
         })
     }
-    process_playqueue()
+    playqueue_update()
 }
 callback_album = _callback(callback_album)
 
@@ -466,39 +442,104 @@ function callback_mv(info) {
 
 }
 callback_mv = _callback(callback_mv)
+/***************************/
 
+/* Utilities */
+function concatDictsByKey(dicts, key, split) {
+    str = ''
+    for (index in dicts) {
+        dict = dicts[index]
+        str += dict[key] + split
+    }
+    return str.substr(0, str.length - split.length)
+}
 
-
-playqueue = []
-// the queue which is to be played and displayed
-function process_playids(playids) {
-    // process id in playids,one at a time
-    for (index in playids) {
-        id = playids[index]
-        musicinfo_override = function (info) {
-            // once loaded,push to the playqueue
-            musicinfo = info.info.songs[0]
-            if (!!musicinfo) {
-                playqueue.push(musicinfo)
-                console.log({ 'Info Override': musicinfo })
-                process_playqueue()
-            }
-        }
-        performRequest(id, ['info'], musicinfo_override)
+function convertFromTimestamp(timestamp) {
+    // this will covert LRC timestamp to seconds
+    try {
+        var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
+        return (m * 60) + s + (ms / 1000)
+    } catch (error) {
+        return 0
     }
 }
 
-_generateID = 0
-function generateID() { _generateID += 1; return 'element' + _generateID }
+function convertToTimestamp(timecode) {
+    // this will convert seconds back to LRC timestamp
+    function pad(str, p, length) { if (str.length < length) { str = str + p; return pad(str, p, length, before) } else { return str } }
+    var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * 1000)
+    return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
+}
 
-init_clear = false
-function append_node(song) {
-    if (!init_clear) { playqueue_view.innerHTML = '</br>'; init_clear = true }
+function parseLryics(lrc, tlrc) {
+    // lrc:original lyrics
+    // tlrc:translation
+    const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
+    if (!lrc) return
+    // Clear old lyrics
+    lyrics = {}
+    // not a local variable
+    function addMatches(lrc_string) {
+        while ((match = lrc_regex.exec(lrc_string)) !== null) {
+            if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++
+            // This is necessary to avoid infinite loops with zero-width matches
+            timestamp = match[1]
+            if (timestamp.indexOf('.') == -1) timestamp += '.000'
+            // Pad with 0ms if no milliseconds is defined
+            // match[1] contains the first capture group
+            timestamp = convertFromTimestamp(timestamp)
+            if (!lyrics[timestamp.toString()]) {
+                lyrics[timestamp.toString()] = [match[2]]
+            } else {
+                lyrics[timestamp.toString()].push(match[2])
+            }
+            // Where match[2] contains the second capture group
+        }
+    }
+    if (!!lrc) addMatches(lrc)
+    if (!!tlrc) addMatches(tlrc)
+    console.log({ 'Translated Lyrics': lyrics })
+    return lyrics
+}
+
+function findClosestMatch(arr, i) {
+    // finds closeset match to 'i' in array 'arr'
+    // note that the match can't be larger than 'i'
+    var i = i * 1; var dist = -Math.max(); var t = 0
+    for (index in arr) { a = arr[index] * 1; if (!((d = Math.abs(a - i)) > dist) && i > a) { dist = d; t = a } }
+    return t
+}
+
+function hrsify(fileByte) {
+    // Human-Readable-Size-ify byte length
+    // snippet from:https://blog.csdn.net/silence_hgt/article/details/80943900
+    var fileSizeByte = fileByte;
+    var fileSizeMsg = "";
+    if (fileSizeByte < 1048576) fileSizeMsg = (fileSizeByte / 1024).toFixed(2) + "KB";
+    else if (fileSizeByte == 1048576) fileSizeMsg = "1MB";
+    else if (fileSizeByte > 1048576 && fileSizeByte < 1073741824) fileSizeMsg = (fileSizeByte / (1024 * 1024)).toFixed(2) + "MB";
+    else if (fileSizeByte > 1048576 && fileSizeByte == 1073741824) fileSizeMsg = "1GB";
+    else if (fileSizeByte > 1073741824 && fileSizeByte < 1099511627776) fileSizeMsg = (fileSizeByte / (1024 * 1024 * 1024)).toFixed(2) + "GB";
+    else fileSizeMsg = "文件超过1TB";
+    return fileSizeMsg;
+}
+/***************************/
+
+/* Play queueing calls */
+playqueue = []
+// the queue which is to be played and displayed
+
+_generateNodeID = 0
+function generateNodeID() { _generateNodeID += 1; return 'element' + _generateNodeID }
+
+nodes_initialized = false
+function nodes_append(song) {
+    if (!nodes_initialized) { playqueue_view.innerHTML = '</br>'; nodes_initialized = true }
     // clear if not cleared since page is loaded
     var mediabox = document.createElement('li')
     mediabox.className = 'media'
     mediabox.style = 'padding:2px'
-    mediabox.id = generateID()
+    mediabox.id = generateNodeID()
     /* CREATE MEDIABOX */
     var covernode = document.createElement('img')
     covernode.className = 'd-flex mr-3 rounded covernode'
@@ -528,13 +569,13 @@ function append_node(song) {
     return mediabox
 }
 
-function process_playqueue() {
+function playqueue_update() {
     // process every item inside playqueue,and add nodes
     if (!playqueue) return
     for (index in playqueue) {
         song = playqueue[index]
         if (!song.node) {
-            song.node = append_node(song)
+            song.node = nodes_append(song)
             // add node if not already
         }
         song.node.style.color = 'black'
@@ -580,7 +621,7 @@ function playqueue_playhead_onchage() {
         notify(error, 'warning')
     }
 
-    process_playqueue()
+    playqueue_update()
     player_setPlay()
 }
 
@@ -604,52 +645,21 @@ function playqueue_item_remove_onclick(caller) {
     // removes item
 }
 
-function action_onclick() {
-    // action button click event
-    // once clicked,the button will become disabled until the XHR is finished
-    var sharelink = shareinput.value.toLowerCase()
-    if (!sharelink) { notify("请输入<strong>歌曲、歌单或专辑</strong>链接", "danger"); return }
-    ids = []
-    const id_regex = /\d{5,}/gm
-    // match any continous 5+ digit numbers
-    while ((m = id_regex.exec(sharelink)) !== null) {
-        // This is necessary to avoid infinite loops with zero-width matches
-        if (m.index === id_regex.lastIndex) id_regex.lastIndex++
-        m.forEach(function (match, groupIndex) { ids.push(match) });
+function load_ids(playids) {
+    // process id in playids,one at a time
+    for (index in playids) {
+        id = playids[index]
+        musicinfo_override = function (info) {
+            // once loaded,push to the playqueue
+            musicinfo = info.info.songs[0]
+            if (!!musicinfo) {
+                playqueue.push(musicinfo)
+                console.log({ 'Info Override': musicinfo })
+                playqueue_update()
+            }
+        }
+        performRequest(id, ['info'], musicinfo_override)
     }
-    // extract ID using regex
-    if (sharelink.indexOf('list') != -1) {
-        // inputed playlist URL
-        if (ids.length > 1) { notify('<strong>歌单</strong>ID只能输入一个!', 'warning'); }
-        performRequest(ids[0], ['playlist'])
-        shareinput.value = "playlist:".concat(ids[0]);
-
-    } else if (sharelink.indexOf('album') != -1) {
-        // inputed album URL
-        if (ids.length > 1) { notify('<strong>专辑</strong>ID只能输入一个!', 'warning'); }
-        performRequest(ids[0], ['album'])
-        shareinput.value = "album:".concat(ids[0]);
-    } else {
-        // anything else (containting any 5+ digit numbers)
-        // will be treated as song IDs
-        id_string = ''; ids.filter(function (id) { id_string += id + ' ' })
-        shareinput.value = "song:".concat(id_string);
-        process_playids(ids)
-    }
-    action.disabled = true
-    setTimeout(function () { action.disabled = false; if (!player.duration) next_song.click() }, 1000)
-    // re-activate after 1s
 }
+/***************************/
 
-function getFileSize(fileByte) {
-    // snippet from:https://blog.csdn.net/silence_hgt/article/details/80943900
-    var fileSizeByte = fileByte;
-    var fileSizeMsg = "";
-    if (fileSizeByte < 1048576) fileSizeMsg = (fileSizeByte / 1024).toFixed(2) + "KB";
-    else if (fileSizeByte == 1048576) fileSizeMsg = "1MB";
-    else if (fileSizeByte > 1048576 && fileSizeByte < 1073741824) fileSizeMsg = (fileSizeByte / (1024 * 1024)).toFixed(2) + "MB";
-    else if (fileSizeByte > 1048576 && fileSizeByte == 1073741824) fileSizeMsg = "1GB";
-    else if (fileSizeByte > 1073741824 && fileSizeByte < 1099511627776) fileSizeMsg = (fileSizeByte / (1024 * 1024 * 1024)).toFixed(2) + "GB";
-    else fileSizeMsg = "文件超过1TB";
-    return fileSizeMsg;
-}
