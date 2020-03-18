@@ -684,7 +684,7 @@ function load_ids(playids) {
 /***************************/
 
 /* Automated actions by params */
-if (!!params) {
+if (!!params['?']) {
     // Action was specified
     shareinput.value = params['?']
     setTimeout(action_onclick, 1000)
