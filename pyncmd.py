@@ -133,7 +133,8 @@ class Server(http.server.ThreadingHTTPServer):
             while sent < size:
                 try:
                     # Read file with buffer of 1MB,then send
-                    caller.wfile.write(data:= f.read(1024 * 1024))
+                    data = f.read(1024 * 1024) 
+                    caller.wfile.write(data)
                 except Exception as e:
                     print(e)
                     break
