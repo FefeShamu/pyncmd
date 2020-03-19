@@ -313,7 +313,11 @@ function callback_audio(info) {
                 .concat(audioinfo.message, ")"),
             "warning"
         );
-
+        if (playqueue.length > 1) {
+            notify("即将跳过本歌曲", 'warning')
+            setTimeout(function () { next_song.click() }, 1000)
+            // skips to next song when fails and more songs are available
+        }
     } else {
         player.src = audioinfo['data'][0]['url']
     }
@@ -606,7 +610,7 @@ function playqueue_update() {
 }
 
 function playqueue_locate_by_id(id, keep) {
-    if (keep==undefined)keep = true
+    if (keep == undefined) keep = true
     var result = playqueue.filter(function (x) { return x.node.id == id ? keep : !keep })
     return !keep ? result : result[0]
 }
