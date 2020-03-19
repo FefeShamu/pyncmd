@@ -1,0 +1,3 @@
+[submodule "pyncm"]
+	path = pyncm
+	url = https://github.com/greats3an/pyncm
