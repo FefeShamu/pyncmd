@@ -30,7 +30,11 @@
 
 # 依赖包
 
-    (必须) requests,pycryptodome,colorama
+    requests,pycryptodome,colorama
+
+## 依赖安装
+
+    pip install -r requirements.txt
 
 # 感谢
 
