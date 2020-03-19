@@ -57,8 +57,8 @@ class NCMFunctions():
         filename = normalize(filename)
         folder = os.path.join(folder, str(id)) if folder else os.path.join(self.temp, str(id))
         result = os.path.join(folder, filename)
-
-        if (path := os.path.split(result))[0]:
+        path = os.path.split(result)
+        if path[0]:
              if not os.path.exists(path[0]):os.makedirs(path[0])
         # Make the folder tree
         return result
@@ -93,7 +93,7 @@ class NCMFunctions():
         open(target, mode='w', encoding='utf-8').write(json.dumps(info))
         # Writes metadata to JSON file
 
-    def QueueDownloadAllSongsInAlbum(self,id, quality='loseless', folder=''):
+    def QueueDownloadAllSongsInAlbum(self,id, quality='lossless', folder=''):
         '''
             This will get every song's ID inside the album resovled
 
@@ -128,7 +128,7 @@ class NCMFunctions():
             self.QueueDownload(meta['cover'], self.GenerateDownloadPath(
                 filename='cover.jpg', folder=track_root))
 
-    def QueueDownloadAllSongsInPlaylist(self,id, quality='loseless', folder=''):
+    def QueueDownloadAllSongsInPlaylist(self,id, quality='lossless', folder=''):
         '''
             This will try and get all songs' ID and such in the playlist,then try to download them.
 
@@ -183,8 +183,7 @@ class NCMFunctions():
             return
         lyrics = json.loads(open(lyrics, encoding='utf-8').read())
         # Load lyrics into json file
-        lrc_lists = [lyrics[lrc]['lyric']
-                    for lrc in lyrics.keys() if lrc in ['lrc', 'tlyric']]
+        lrc_lists = [lyrics[lrc]['lyric'] for lrc in lyrics.keys() if lrc in ['lrc', 'tlyric'] and 'lyric' in lyrics[lrc].keys()]
         # List all lyrics.Translation is optional
         timestamp_regex = r"(?:\[)(\d{2,}:\d{2,}.\d{2,})(?:\])(.*)"
         lyrics_combined = {}
@@ -244,9 +243,7 @@ class NCMFunctions():
         '''
         export = export if export else self.output
         folder = str(folder)
-        format = ''
-
-        audio = [f for f in os.listdir(folder) if (format:= f.split('.')[-1]) in ['mp3', 'm4a', 'flac']]
+        audio = [f for f in os.listdir(folder) if f.split('.')[-1] in ['mp3', 'm4a', 'flac']]
         if not audio:return
         audio = audio[-1]
         audio = self.GenerateDownloadPath(filename=audio, folder=folder)
@@ -310,7 +307,8 @@ class NCMFunctions():
         # Rename & move file
         savename = '{1} - {0}.{2}'.format(meta['title'], meta['author'], format)
         try:
-            shutil.copy(audio, path:= self.GenerateDownloadPath(filename=savename, folder=export))
+            path = self.GenerateDownloadPath(filename=savename, folder=export)
+            shutil.copy(audio, path)
             self.log(path, format=strings.INFO_EXPORT_COMPLETE)
         except Exception as e:
             self.log(e,format=strings.ERROR_INVALID_OPERATION)
@@ -326,6 +324,7 @@ class NCMFunctions():
         self.QueueDownloadSongAudio(id, quality, folder)
         self.DL.wait(func=self.ShowDownloadStatus)
         self.log(strings.INFO_BATCH_DOWNLOAD_COMPLETE)
+        return True
 
     def DownloadSongInfo(self,id, folder=''):
         '''
@@ -336,6 +335,7 @@ class NCMFunctions():
         self.QueueDownloadSongInfo(id, folder)
         self.DL.wait(func=self.ShowDownloadStatus)
         self.log(strings.INFO_BATCH_DOWNLOAD_COMPLETE)
+        return True
 
     def DownloadAndFormatLyrics(self,id, folder=''):
         '''
@@ -345,6 +345,7 @@ class NCMFunctions():
             folder = self.GenerateDownloadPath(id=id, folder=folder)
         self.DownloadSongLyrics(id, folder)
         self.FormatLyrics(folder)
+        return True
 
     def DownloadAllInfo(self,id, quality='lossless', folder=''):
         '''
@@ -361,8 +362,9 @@ class NCMFunctions():
         self.QueueDownloadSongAudio(id, quality, folder)
         self.DL.wait(func=self.ShowDownloadStatus)
         self.log(strings.INFO_BATCH_DOWNLOAD_COMPLETE)
+        return True
 
-    def DownloadAllAndMerge(self,id, quality='loseless', folder=''):
+    def DownloadAllAndMerge(self,id, quality='lossless', folder=''):
         '''
             This will merge the infomation once download is finished
         '''
@@ -372,12 +374,13 @@ class NCMFunctions():
         self.DownloadAllInfo(id, quality, folder)
         self.DownloadAndFormatLyrics(id, folder)
         self.FormatSong(folder)
+        return True
 
     def Login(self,username, password):
         '''
         Login method,equals to ncm_core.UpdateLoginInfo
         '''
-        self.NCM.UpdateLoginInfo(username, password)
+        return self.NCM.UpdateLoginInfo(username, password)
 
     def MutilWrapper(self,queue_func):
         '''
@@ -385,7 +388,7 @@ class NCMFunctions():
             
             perform the merging proceess for each and every sub folder
         '''
-        def wrapper(id, quality='loseless', folder=None,merge_only=False):
+        def wrapper(id, quality='lossless', folder=None,merge_only=False):
             if not folder:
                 folder = self.GenerateDownloadPath(id=id, folder=folder)
             quality = quality.replace('quality_', '')
@@ -405,8 +408,8 @@ class NCMFunctions():
             pool.wait()
         return wrapper
 
-    def DownloadAllSongsInPlaylistAndMerge(self,id, quality='loseless', folder=None,merge_only=False):
-        self.MutilWrapper(self.QueueDownloadAllSongsInPlaylist)(id, quality, folder,merge_only)
+    def DownloadAllSongsInPlaylistAndMerge(self,id, quality='lossless', folder=None,merge_only=False):
+        return self.MutilWrapper(self.QueueDownloadAllSongsInPlaylist)(id, quality, folder,merge_only)
 
-    def DownloadAllSongsInAlbumAndMerge(self,id, quality='loseless', folder=None,merge_only=False):
-        self.MutilWrapper(self.QueueDownloadAllSongsInAlbum)(id, quality, folder,merge_only)
+    def DownloadAllSongsInAlbumAndMerge(self,id, quality='lossless', folder=None,merge_only=False):
+        return self.MutilWrapper(self.QueueDownloadAllSongsInAlbum)(id, quality, folder,merge_only)
