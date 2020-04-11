@@ -119,7 +119,8 @@ function updateNodes() {
             'spacing': 2,
             'ratio': 1,
             'force': 0.02,
-            'fftSize': 256
+            'fftSize': 256,
+            'g':10
         })
     }
 

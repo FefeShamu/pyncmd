@@ -54,7 +54,7 @@ function ffta_draw() {
         } // reset force once peak was reached    
 
         peak[i].vel = clamp(peak[i].vel, 2, -5); // linear accleation curve within range of (-5,2) with step of 0.1
-        peak[i].vel -= 0.1;
+        peak[i].vel -= _.g;
         peak[i].val = peak[i].val + peak[i].vel
         // apply velocity
         if (!_.noPeaks) {
