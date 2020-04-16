@@ -19,6 +19,7 @@ import os
 
 from pyncm.ncm.strings import strings, simple_logger
 from pyncm.ncm.ncm_core import NeteaseCloudMusic
+from pyncm.ncm import Depercated
 from http import HTTPStatus
 from threading import Timer
 root = ''
@@ -41,8 +42,10 @@ password = args['password']
 ContributerMessage = args['message']
 # Parsing argumnets
 NCM = NeteaseCloudMusic(simple_logger)
-LoginTimeout = 600
-# CSRF Token will expire in 1200s,we perform a normal re-login every 600s(10 mins)
+LoginTimeout = 86400 * 7
+# NE Will now limit the login devices,thus this feature will be Deprecated soon
+# For now,timeout will be 7 days per renew
+@Depercated
 def LoginLooper():
     simple_logger('[W] Automaticly Updating Login Info!')
     result = NCM.UpdateLoginInfo(phone,password)
@@ -50,13 +53,11 @@ def LoginLooper():
         # Exceptions Might be:
         #   ip高频   (Anti-Scraper)
         #   出现错误 (Usually,wrong username or password)
-        simple_logger('\n\n',str(result),'\n\n')
-        LoginTimeout = 10
+        Timer(10,LoginLooper).start()
         # Retry after 10s if an exception has been risen
     else:
-        LoginTimeout = 600
-        # Re-login after 5 mins if succeed
-    Timer(LoginTimeout,LoginLooper).start()
+        # Re-check again sometime
+        Timer(LoginTimeout,LoginLooper).start()
 LoginLooper()
 
 class Handler(http.server.BaseHTTPRequestHandler):
