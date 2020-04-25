@@ -3,3 +3,4 @@
 *.pyc
 log.txt
 *.db
+pyncmd.exe
