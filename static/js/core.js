@@ -120,7 +120,7 @@ function updateNodes() {
             'ratio': 1,
             'force': 0.02,
             'fftSize': 256,
-            'g':10
+            'g':0.98
         })
     }
 

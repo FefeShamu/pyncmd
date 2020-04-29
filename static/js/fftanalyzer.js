@@ -28,7 +28,7 @@ function clamp(val, max, min) {
 bufferLength = 0;
 tick = Date.now();
 function ffta_draw() {
-    var tickdelta = (Date.now() - tick).toString()
+    var tickdelta = (Date.now() - tick)
     tick = Date.now()
 
     requestAnimationFrame(ffta_draw);
@@ -45,17 +45,22 @@ function ffta_draw() {
         var barHeight = HEIGHT * (dataArray[i] / 255) * _.ratio;
         if (!peak[i]) peak[i] = {
             'val': 0,
-            'vel': 0
+            'vel': 0,
+            'tick':0
         };
-
+        peak[i].tick = !peak[i].tick ? tickdelta : peak[i].tick + tickdelta
         if (!peak[i].val || peak[i].val < barHeight && barHeight != 0) {
             peak[i].vel = (barHeight - peak[i].val) * _.force;
             peak[i].val = barHeight;
-        } // reset force once peak was reached    
 
-        peak[i].vel = clamp(peak[i].vel, 2, -5); // linear accleation curve within range of (-5,2) with step of 0.1
-        peak[i].vel -= _.g;
-        peak[i].val = peak[i].val + peak[i].vel
+        } // reset force once peak was reached    
+        // this part runs at ~60FPS
+        if (peak[i].tick > 16) {
+            peak[i].vel = clamp(peak[i].vel, 2, -5); // linear accleation curve within range of (-5,2) with step of 0.1
+            peak[i].vel -= _.g;
+            peak[i].val = peak[i].val + peak[i].vel
+            peak[i].tick = 0
+        }
         // apply velocity
         if (!_.noPeaks) {
             canvasCtx.fillStyle = _.fillstyle[1];
@@ -68,10 +73,10 @@ function ffta_draw() {
     }
 
     if (_.showFPS) {
-        canvasCtx.fillStyle = 'rgb(255,255,0)'
+        canvasCtx.fillStyle = 'rgb(0,255,0)'
         canvasCtx.font = "30px Arial"
         canvasCtx.fillText(
-            (1000 / tickdelta).toFixed(0).toString() + ' FPS', 10, 50
+            (1000 / tickdelta).toFixed(0).toString() + ' FPS    ' + tickdelta.toString() + 'ms', 10, 50
         )
     }
 }
