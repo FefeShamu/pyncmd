@@ -45,8 +45,8 @@ function updateNodes() {
         // this will covert the dictionary to standard LRC format
         try {
             var lrc = ''
-            for (index in lyrics) {
-                key = lyrics[index]
+            for (index in Object.keys(lyrics)) {
+                key = Object.keys(lyrics)[index]
                 timestamp = convertToTimestamp(key)
                 line = '[' + timestamp + ']' + lyrics[key].join('\t')
                 lrc += line + '\n'
@@ -491,7 +491,7 @@ function convertFromTimestamp(timestamp) {
 
 function convertToTimestamp(timecode) {
     // this will convert seconds back to LRC timestamp
-    function pad(str, p, length) { if (str.length < length) { str = str + p; return pad(str, p, length, before) } else { return str } }
+    function pad(str, p, length) { if (str.length < length) { str = str + p; return pad(str, p, length) } else { return str } }
     var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * 1000)
     return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
 }
