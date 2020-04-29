@@ -217,6 +217,8 @@ function lyricsbox_update(lyrics_timestamp) {
             }).play()
         } catch (e) { }
         lyricsbox.updated_timestamp = lyrics_timestamp
+    } else {
+        lyricsbox.innerHTML = ''
     }
 }
 
@@ -225,7 +227,7 @@ function player_update() {
     // note that it's usually updated every ~250ms
     if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
 
-    var lyrics_timestamp = findClosestMatch(Object.keys(lyrics), player.currentTime)
+    var lyrics_timestamp = findClosestLesserMatch(Object.keys(lyrics), player.currentTime)
 
     if (!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) lyricsbox_update(lyrics_timestamp)
 
@@ -491,7 +493,7 @@ function convertFromTimestamp(timestamp) {
 
 function convertToTimestamp(timecode) {
     // this will convert seconds back to LRC timestamp
-    function pad(str, p, length) { if (str.length < length) { str = str + p; return pad(str, p, length) } else { return str } }
+    function pad(str, p, length) { if (str.length < length) { str = p + str; return pad(str, p, length) } else { return str } }
     var m = Math.floor(timecode / 60); s = Math.floor(timecode - m * 60); ms = Math.floor((timecode - m * 60 - s) * 1000)
     return pad(m.toString(), '0', 2) + ":" + pad(s.toString(), '0', 2) + "." + pad(ms.toString(), '0', 3, true)
 }
@@ -523,11 +525,12 @@ function parseLryics(lrc, tlrc) {
     }
     if (!!lrc) addMatches(lrc)
     if (!!tlrc) addMatches(tlrc)
+
     console.log({ 'Translated Lyrics': lyrics })
     return lyrics
 }
 
-function findClosestMatch(arr, i) {
+function findClosestLesserMatch(arr, i) {
     // finds closeset match to 'i' in array 'arr'
     // note that the match can't be larger than 'i'
     var i = i * 1; var dist = -Math.max(); var t = 0
@@ -648,6 +651,7 @@ function playqueue_playhead_onchage() {
 
     playqueue_update()
     player_setPlay()
+    player_update()
 }
 
 function playqueue_item_onclick(caller) {
