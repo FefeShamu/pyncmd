@@ -16,8 +16,8 @@ import random
 import json
 import socket
 import os
-
-from pyncm.ncm.strings import strings, simple_logger
+import logging,coloredlogs
+coloredlogs.install(level=logging.DEBUG)
 from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from pyncm.ncm import Depercated
 from http import HTTPStatus
@@ -41,13 +41,13 @@ phone = args['phone']
 password = args['password']
 ContributerMessage = args['message']
 # Parsing argumnets
-NCM = NeteaseCloudMusic(simple_logger)
+NCM = NeteaseCloudMusic()
 LoginTimeout = 86400 * 7
 # NE Will now limit the login devices,thus this feature will be Deprecated soon
 # For now,timeout will be 7 days per renew
 @Depercated
 def LoginLooper():
-    simple_logger('[W] Automaticly Updating Login Info!')
+    logging.warn('Automaticly Updating Login Info!')
     result = NCM.UpdateLoginInfo(phone,password)
     if not result['success']:
         # Exceptions Might be:
@@ -225,8 +225,7 @@ class Server(http.server.ThreadingHTTPServer):
         if hasattr(self, kwargs['type']):
             getattr(self, kwargs['type'])(kwargs['args'])
         else:
-            simple_logger('Cannot reflect function',
-                          kwargs['type'], 'with argument', kwargs['args'])
+            logging.warn('Cannot reflect function ' + kwargs['type'] + ' with argument ' + kwargs['args'])
 
     def __init__(self, server_address):
         self.paths = {}
@@ -285,7 +284,7 @@ def AIOHandler(caller):
             // sets audio quality
         }
         '''
-        simple_logger(f'[Procssing Request] {id} Requirements:{requirements} Extras:{extras}')
+        logging.debug(f'[Procssing Request] {id} Requirements:{requirements} Extras:{extras}')
         response = {}
         for requirement in requirements:
             # composing response
@@ -314,10 +313,8 @@ def AIOHandler(caller):
         caller.send_response(500)
         server.write_string(caller, '{"message":"unexcepted error:%s"}' % e)
     count += 1
-    simple_logger('Processed request.Total times:%s , ID: %s' %
-                  (count, content['id'] if content else 'INVALID'))
+    logging.debug('Processed request.Total times:%s , ID: %s' % (count, content['id'] if content else 'INVALID'))
 
 
-simple_logger(
-    'Listening:\n    http://{0}:{1}'.format(*server.server_address))
+logging.info('Listening:\n    http://{0}:{1}'.format(*server.server_address))
 server.serve_forever()
