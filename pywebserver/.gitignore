@@ -1,0 +1,6 @@
+.vscode
+__pycahce__
+*.pyc
+\!*
+html
+test
