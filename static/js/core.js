@@ -258,11 +258,8 @@ function notify(message, level) {
 
 /* Networking / Callback related calls */
 function getAPI(api) {
-    var apis = {
-        "song": "api/aio"
-    }
     // removes anomalous chars,then concat the api
-    return "".concat(location.origin).concat(location.pathname).concat(apis[api]);
+    return "".concat(location.origin).concat(location.pathname).concat('api');
 }
 
 function performRequest() {
@@ -273,7 +270,7 @@ function performRequest() {
 
     var msg = JSON.stringify({ "id": id, "requirements": requirements, "extras": extra })
     var r = new XMLHttpRequest();
-    var api = getAPI('song')
+    var api = getAPI()
     r.open("POST", api, true);
     r.onreadystatechange = function () {
         if (r.readyState == XMLHttpRequest.DONE) {

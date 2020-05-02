@@ -22,46 +22,42 @@ from threading import Timer
 
 from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from pyncm.ncm import Depercated
+import pyncm.ncm
 from pywebserver.pywebserver import PyWebServer
 from pywebserver.pywebserver.proto import http
-coloredlogs.install(level=logging.DEBUG)
+coloredlogs.install(level=logging.INFO)
 root = ''
 # Set root working driectory,modifiy if needed
 parser = argparse.ArgumentParser(description='PyNCM Web Server')
-parser.add_argument('phone',metavar='PHONE',help='Phone number to your account')
-parser.add_argument('password', metavar='PASSWORD',help='Password to your account')
+parser.add_argument('--phone',metavar='PHONE',help='Phone number to your account')
+parser.add_argument('--password', metavar='PASSWORD',help='Password to your account')
 parser.add_argument('--port', metavar='PORT',help='Port to be listened on',default='3301')
-parser.add_argument('--message', metavar='MSG',help='Custom message to be displayed',default='You guys are awsome👍')
-if len(sys.argv) < 2:
-    parser.print_help()
-    sys.exit(2)
-else:
-    args = parser.parse_args()
-    args = args.__dict__
+parser.add_argument('--message', metavar='MSG',help='Custom message to be displayed',default='')
 
-port = int(args['port'])
-phone = args['phone']
-password = args['password']
-ContributerMessage = args['message']
+args = parser.parse_args()
+args = args.__dict__
+
+port,phone,password,ContributerMessage = int(args['port']),args['phone'],args['password'],args['message']
 # Parsing argumnets
 NCM = NeteaseCloudMusic()
-LoginTimeout = 86400 * 7
-# NE Will now limit the login devices,thus this feature will be Deprecated soon
-# For now,timeout will be 7 days per renew
-@Depercated
-def LoginLooper():
-    logging.warn('Automaticly Updating Login Info!')
-    result = NCM.UpdateLoginInfo(phone,password)
-    if not result['success']:
-        # Exceptions Might be:
-        #   ip高频   (Anti-Scraper)
-        #   出现错误 (Usually,wrong username or password)
-        Timer(10,LoginLooper).start()
-        # Retry after 10s if an exception has been risen
-    else:
-        # Re-check again sometime
-        Timer(LoginTimeout,LoginLooper).start()
-LoginLooper()
+
+if os.path.exists('.cookies'):
+    # If cookies,userinfo are stored,load them in
+    try:
+        pyncm.ncm.session.cookies.update(json.loads(open('.cookies',encoding='utf-8').read()))
+        logging.info('Loaded stored cookies,continue...')
+        NCM.login_info = json.loads(open('.user',encoding='utf-8').read())
+        logging.info('Loaded stored user info!')        
+    except Exception as e:
+        logging.error('Failed while loading saved info:%s' % e)
+
+if phone and password:
+    # Provided.login and save the info
+    NCM.UpdateLoginInfo(phone,password)
+    open('.cookies','w+',encoding='utf-8').write(json.dumps(pyncm.ncm.session.cookies.get_dict()))
+    logging.info('Saved cookies to `.cookies`')
+    open('.user','w+',encoding='utf-8').write(json.dumps(NCM.login_info))
+    logging.info('Saved user login info to `.user`')
 
 server = PyWebServer(('', port),protos=[http.HTTP])
 
@@ -80,7 +76,7 @@ count,requirement_mapping = 0,{
     'album':NCM.GetAlbumInfo,
     'mv':NCM.GetMVInfo,
     'contribution':lambda *args:{
-        "contributer": NCM.login_info['content']['profile']['nickname'],
+        "contributer": NCM.login_info['content']['profile']['nickname'] if NCM.GetUserAccountLevel() != 'NOLOGIN' else '未登录',
         "contributer_message": ContributerMessage,
         "count":count                   
     }
@@ -115,7 +111,7 @@ def API(handler):
             // sets audio quality
         }
         '''
-        logging.debug(f'[Procssing Request] {id} Requirements:{requirements} Extras:{extras}')
+        logging.info(f'[Procssing Request] {id} Requirements:{requirements} Extras:{extras}')
         response = {}
         for requirement in requirements:
             # composing response
@@ -138,13 +134,15 @@ def API(handler):
         response = {**response,'requirements':requirements,'required_id':id}
         # Select what to send based on 'requirements' value
         handler.send_response(200)              
+        handler.end_headers()
         http.Modules.write_string(handler.proto, json.dumps(response))
     except Exception as e:
         # failed!
         handler.send_response(500)
+        handler.end_headers()
         http.Modules.write_string(handler.proto, '{"message":"unexcepted error:%s"}' % e)
     count += 1
-    logging.debug('Processed request.Total times:%s , ID: %s' % (count, content['id'] if content else 'INVALID'))
+    logging.info('Processed request.Total times:%s , ID: %s' % (count, content['id'] if content else 'INVALID'))
 
 server.add_relative('GET','/',http.HTTP,local='.',modules={
     'file':http.Modules.write_file
