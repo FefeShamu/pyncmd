@@ -27,6 +27,9 @@ class PyWebServer(socketserver.ThreadingMixIn, socketserver.TCPServer,):
         handler should have `proto` property for the pre-determined protocol
         '''
         def check_for_absolute():
+            if not handler.command in self.absolute.keys():
+                # No suitable command
+                return 403
             if not handler.path in self.absolute[handler.command].keys():            
                 # No suitable path
                 return 404
@@ -84,7 +87,7 @@ class PyWebServer(socketserver.ThreadingMixIn, socketserver.TCPServer,):
         if not path in self.relative[command].keys():self.relative[command][path] = {}
         self.relative[command][path][protocol] = RelativeMapping(path,modules,**kw)
 
-    def path_absolute(self,command,path,protocol,settings={}):
+    def path_absolute(self,command,path,protocol):
         '''
         Decorator for ABSOLUTE path and its command
         
