@@ -17,11 +17,14 @@ import json
 import socket
 import os
 import logging,coloredlogs
-coloredlogs.install(level=logging.DEBUG)
-from pyncm.ncm.ncm_core import NeteaseCloudMusic
-from pyncm.ncm import Depercated
 from http import HTTPStatus
 from threading import Timer
+
+from pyncm.ncm.ncm_core import NeteaseCloudMusic
+from pyncm.ncm import Depercated
+from pywebserver.pywebserver import PyWebServer
+from pywebserver.pywebserver.proto import http
+coloredlogs.install(level=logging.DEBUG)
 root = ''
 # Set root working driectory,modifiy if needed
 parser = argparse.ArgumentParser(description='PyNCM Web Server')
@@ -60,187 +63,14 @@ def LoginLooper():
         Timer(LoginTimeout,LoginLooper).start()
 LoginLooper()
 
-class Handler(http.server.BaseHTTPRequestHandler):
-    '''
-    HTTP Handler,added callback funtionality
-        reqeust         :       requst socket
-        client_address  :       Client address
-        server          :       server socket
-        callback        :       request events
-    '''
-    def __init__(self, request, client_address, server, callback=None):
-        self.callback = callback
-        super().__init__(
-            request, client_address, server)
+server = PyWebServer(('', port),protos=[http.HTTP])
 
-    def log_message(self,*args):
-        # Disable interal logging
-        pass
-
-    def log_error(self,*args):
-        # Disable interal logging
-        pass
-
-    def handle_one_request(self):
-        """Handle a single HTTP request.
-
-        You normally don't need to override this method; see the class
-        __doc__ string for information on how to handle specific HTTP
-        commands such as GET and POST.
-        """
-        try:
-            self.raw_requestline = self.rfile.readline(65537)
-            if len(self.raw_requestline) > 65536:
-                self.requestline = ''
-                self.request_version = ''
-                self.command = ''
-                self.send_error(HTTPStatus.REQUEST_URI_TOO_LONG)
-                return
-            if not self.raw_requestline:
-                self.close_connection = True
-                return
-            if not self.parse_request():
-                # An error code has been sent, just exit
-                return
-            self.callback({'type': self.command, 'args': self})
-            # actually send the response if not already done.
-            self.wfile.flush()
-        except socket.timeout as e:
-            # a read or a write timed out.  Discard this connection
-            self.log_error("Request timed out: %r", e)
-            self.close_connection = True
-            return
-
-
-class Server(http.server.ThreadingHTTPServer):
-    '''
-        Threading HTTP Server contating NE's api,exposed by PyNCM
-            server_address  :   Tuplet(ip,addr)
-    '''
-    def write_file(self, caller, path='.', content_type='application/octet-stream'):
-        '''
-        Send a file in sparse
-            caller      :    A 'Handler' object
-            path        :    File path
-            content_type:    The 'Content-Type' Header
-        '''
-        sent, size = 0, os.path.getsize(path)
-        # Visualize the progress
-        caller.send_header('Content-Type', content_type)
-        caller.send_header('Content-Length', size)
-        # Send OCTET-STREAM header to transfer files
-        caller.end_headers()
-        with open(path, 'rb') as f:
-            while sent < size:
-                try:
-                    # Read file with buffer of 1MB,then send
-                    data = f.read(1024 * 1024) 
-                    caller.wfile.write(data)
-                except Exception as e:
-                    print(e)
-                    break
-                sent += len(data)
-
-    def write_page(self, caller, page, html_headers=True, end_headers=True):
-        '''
-        Send a html page
-            caller      :    A 'Handler' object
-            page        :    Page's file path
-            html_headers:    Do send 'Content-type' headers
-            end_headers :    Apply Handler.end_headers()
-        '''
-        if html_headers:
-            caller.send_header('Content-type', 'text/html;charset=utf-8/html')
-        # Send HTML & UTF-8 Headers
-        size = os.path.getsize(page)
-        # Send in sparse if size's over 1MB
-        if size > 1024 * 1024:
-            self.write_file(
-                caller, page, content_type='text/html;charset=utf-8/html')
-        else:
-            if end_headers:
-                caller.end_headers()
-            caller.wfile.write(open(page, 'rb').read())
-
-    def write_string(self, caller, string, html_headers=False, end_headers=True):
-        '''
-        Send a html page
-            caller      :    A 'Handler' object
-            string      :    Content to be sent
-            html_headers:    Do send 'Content-type' headers
-            end_headers :    Apply Handler.end_headers()
-        '''
-        if html_headers:
-            caller.send_header('Content-type', 'text/html;charset=utf-8/html')
-        if end_headers:
-            caller.end_headers()
-        caller.wfile.write(string.encode('utf-8'))
-
-    def GET(self, caller):
-        return self.METHOD(caller)
-
-    def POST(self, caller):
-        return self.METHOD(caller)
-
-    def METHOD(self, caller):
-        '''
-            Process all methods.GET,POST,OPTIONS,etc
-        '''
-        path = caller.path
-        if path in self.paths.keys():
-            # Reflect funtion via dictionary if exsists
-            self.paths[path](caller)
-        else:
-            # Try to send files if cannot reflect the funtion
-            path = root + caller.path[1:]
-            # Removes '/'
-            if os.path.exists(path):
-                if os.path.isdir(path):
-                    caller.send_response(403)
-                    self.write_page(caller, 'static/403.html')
-                    # Restrict directory access
-                else:
-                    caller.send_response(200)
-                    content_type = 'application/octet-stream'
-                    if 'css' in path:
-                        content_type = 'text/css'
-                    if 'js' in path:
-                        content_type = 'text/javascript'
-                    if 'html' in path:
-                        content_type = 'text/html;charset=utf-8/html'                    
-                    self.write_file(caller, path, content_type)
-            else:
-                self.paths['/'](caller)
-                # Page not found,defaults to '/'
-        return
-
-    def PATH(self,path='/'):
-        # PATH Decorator
-        def wrapper(func):
-            self.paths[path] = func
-            return func
-        return wrapper
-
-    def callback(self, kwargs):
-        if hasattr(self, kwargs['type']):
-            getattr(self, kwargs['type'])(kwargs['args'])
-        else:
-            logging.warn('Cannot reflect function ' + kwargs['type'] + ' with argument ' + kwargs['args'])
-
-    def __init__(self, server_address):
-        self.paths = {}
-        super().__init__(server_address, lambda request, client_address,
-                         server: Handler(request, client_address, server, self.callback))
-
-
-server = Server(('', port))
-
-@server.PATH('/')
-def IndexPage(caller):
+@server.path_absolute('GET','/',http.HTTP)
+def IndexPage(handler):
     # /
     # Index page
-    caller.send_response(200)
-    server.write_page(caller, 'index.html')
+    handler.send_response(200)
+    http.Modules.write_file(handler.proto, 'index.html')
 
 count,requirement_mapping = 0,{
     'audio':NCM.GetSongInfo,
@@ -255,14 +85,15 @@ count,requirement_mapping = 0,{
         "count":count                   
     }
 }
-@server.PATH('/api/aio')
-def AIOHandler(caller):
+
+@server.path_absolute('POST','/api',http.HTTP)
+def API(handler):
     # All-In-One API call handler
     # Utilizing PyNCM to load music info
     # With given music ID
     global count,requirement_mapping
-    content_length = caller.headers.get('content-length')
-    content = caller.rfile.read(int(content_length)).decode(
+    content_length = handler.headers.get('content-length')
+    content = handler.rfile.read(int(content_length)).decode(
         'utf-8') if content_length else None
     # load content inside request body
     try:
@@ -306,15 +137,18 @@ def AIOHandler(caller):
                 response[requirement] = {'message':'func not found'}
         response = {**response,'requirements':requirements,'required_id':id}
         # Select what to send based on 'requirements' value
-        caller.send_response(200)              
-        server.write_string(caller, json.dumps(response))
+        handler.send_response(200)              
+        http.Modules.write_string(handler.proto, json.dumps(response))
     except Exception as e:
         # failed!
-        caller.send_response(500)
-        server.write_string(caller, '{"message":"unexcepted error:%s"}' % e)
+        handler.send_response(500)
+        http.Modules.write_string(handler.proto, '{"message":"unexcepted error:%s"}' % e)
     count += 1
     logging.debug('Processed request.Total times:%s , ID: %s' % (count, content['id'] if content else 'INVALID'))
 
+server.add_relative('GET','/',http.HTTP,local='.',modules={
+    'file':http.Modules.write_file
+})
 
 logging.info('Listening:\n    http://{0}:{1}'.format(*server.server_address))
 server.serve_forever()
