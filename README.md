@@ -8,7 +8,7 @@
 下载所调用的eapi实为网易云web端播放用api，故下载不会计入VIP下载额度
 
 # 使用
-    pyncmd.py [手机号] [密码] --message [附加信息] --port [端口号]
+    pyncmd.py --phone [手机号] --password [密码] --message [附加信息] --port [端口号]
 
 # 工程进度
 |功能|进度|
@@ -21,6 +21,7 @@
 |歌曲下载|✔|
 |多语言歌词下载|✔|
 |MV 播放 / 下载|✔|
+|保存登录信息|✔|
 # DEMO
 使用:
 [PyNCMd](https://mos9527.tooo.top/ncm/) *使用 '..../ncm/?[链接]' URL参数自动填入*
