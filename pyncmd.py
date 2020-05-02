@@ -8,6 +8,7 @@ import random
 import json
 import socket
 import os
+import base64
 import logging,coloredlogs
 from http import HTTPStatus
 from threading import Timer
@@ -18,8 +19,26 @@ import pyncm.ncm
 from pywebserver.pywebserver import PyWebServer
 from pywebserver.pywebserver.proto import http
 coloredlogs.install(level=logging.INFO)
-root = ''
-# Set root working driectory,modifiy if needed
+splash = '''
+\033[35m
+         p0000,
+   _p00 ]0#^~M!       ___           __  ___            _
+  p00M~  00          / _ \_   _  /\ \ \/ __\ /\/\   __| |
+ j0@^  pg0000g_     / /_)/ | | |/  \/ / /   /    \ / _` |
+]00   #00M0#M00g   / ___/| |_| / /\  / /___/ /\/\ \ (_| |
+00'  j0F  00 ^Q0g  \/     \__, \_\ \/\____/\/    \/\__,_|
+00   00   #0f  00         |___/
+00   #0&__#0f  #0c  ———————————————————————————————————————
+#0t   M0000F   00                 by greats3an @ mos9527.tooo.top
+ 00,       +-+-+--+ SYANTAX HELP:
+ ~00g      | | | ||     --help,-h show manual
+  `000pg,pp+------|
+    ~M00000| | | ||
+           +-+-+--+
+\033[0m
+'''
+print(splash)
+# ascii splash!
 parser = argparse.ArgumentParser(description='PyNCM Web Server')
 parser.add_argument('--phone',metavar='PHONE',help='Phone number to your account')
 parser.add_argument('--password', metavar='PASSWORD',help='Password to your account')
@@ -52,6 +71,14 @@ if phone and password:
     logging.info('Saved user login info to `.user`')
 
 server = PyWebServer(('', port),protos=[http.HTTP])
+@server.path_absolute('GET','/favicon.ico',http.HTTP)
+def favicon(handler):
+    favicon_base64 = '''iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABXSURBVDhPpc1LDsBACALQuf+lrQ2EMpr059tMhNCu+OgcrB2Lhjk6HOkqLHR/B45FwxyPqChmgzwci4Y5nvfGf1BRzAZ5OBSFcg5w3KgDh6JQ/vztTcQBqP4l98/X4gAAAAAASUVORK5CYII=    
+    '''
+    handler.send_response(200)
+    handler.send_header('Content-Type','image/x-icon')
+    handler.end_headers()
+    http.Modules.write_string(handler.proto,base64.b64decode(favicon_base64))
 
 @server.path_absolute('GET','/',http.HTTP)
 def IndexPage(handler):
@@ -103,7 +130,7 @@ def API(handler):
             // sets audio quality
         }
         '''
-        logging.info(f'[Procssing Request] {id} Requirements:{requirements} Extras:{extras}')
+        logging.info(f'[Procssing Request] ID:{id} Requirements:{requirements} Extras:{extras}')
         response = {}
         for requirement in requirements:
             # composing response
@@ -134,11 +161,12 @@ def API(handler):
         handler.end_headers()
         http.Modules.write_string(handler.proto, '{"message":"unexcepted error:%s"}' % e)
     count += 1
-    logging.info('Processed request.Total times:%s , ID: %s' % (count, content['id'] if content else 'INVALID'))
+    logging.info('[Processed Request] No.%s ID: %s' % (count, content['id'] if content else 'INVALID'))
 
 server.add_relative('GET','/',http.HTTP,local='html',modules={
     'file':http.Modules.write_file
 })
+# Don't index folders
 
 logging.info('Listening:\n    http://{0}:{1}'.format(*server.server_address))
 server.serve_forever()
