@@ -1,11 +1,3 @@
-'''
-@Author: greats3an
-@Date: 2020-01-14 17:08:10
-@LastEditors  : greats3an
-@LastEditTime : 2020-01-28 12:22:24
-@Site: mos9527.tooo.top
-@Description: PyNCM Web解析服务器
-'''
 import http.server
 import time
 import json
@@ -66,7 +58,7 @@ def IndexPage(handler):
     # /
     # Index page
     handler.send_response(200)
-    http.Modules.write_file(handler.proto, 'index.html')
+    http.Modules.write_file(handler.proto, 'html/index.html')
 
 count,requirement_mapping = 0,{
     'audio':NCM.GetSongInfo,
@@ -144,7 +136,7 @@ def API(handler):
     count += 1
     logging.info('Processed request.Total times:%s , ID: %s' % (count, content['id'] if content else 'INVALID'))
 
-server.add_relative('GET','/',http.HTTP,local='.',modules={
+server.add_relative('GET','/',http.HTTP,local='html',modules={
     'file':http.Modules.write_file
 })
 
