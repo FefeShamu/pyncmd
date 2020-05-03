@@ -28,11 +28,13 @@ function clamp(val, max, min) {
 bufferLength = 0;
 tick = Date.now();
 function ffta_draw() {
+    requestAnimationFrame(ffta_draw);
+    if (!bufferLength || !!_.disable){
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        return
+    }
     var tickdelta = (Date.now() - tick)
     tick = Date.now()
-
-    requestAnimationFrame(ffta_draw);
-    if (!bufferLength) return;
     var dataArray = new Uint8Array(bufferLength);
     canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
     analyser.getByteFrequencyData(dataArray);

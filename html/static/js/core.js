@@ -19,7 +19,6 @@ function updateNodes() {
     mv_player = document.getElementById('mv-player')
     mv_title = document.getElementById('mv-title')
     mv_dismiss = document.getElementById('mv-dismiss')
-    player.ontimeupdate = player_update
     player.onended = function () {
         // queue the next song
         next_song.click()
@@ -174,10 +173,6 @@ function action_onclick() {
     // re-activate after 1s
 }
 
-function cover_rotate(deg) {
-    cover.style.transform = 'rotate(' + deg + 'deg)'
-}
-
 function player_setPlay(t) {
     t = !!t ? t : 1000
     setTimeout(function () {
@@ -224,7 +219,6 @@ function lyricsbox_update(lyrics_timestamp) {
 
 function player_update() {
     // player update event,used to update lyrics
-    // note that it's usually updated every ~250ms
     if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
 
     var lyrics_timestamp = findClosestLesserMatch(Object.keys(lyrics), player.currentTime)
@@ -235,12 +229,9 @@ function player_update() {
 
     if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
-
-    cover_rotate(player.currentTime * 5)
-    // rotates the cover via ticks of the player
-
 }
-
+setInterval(player_update,1000)
+// runs every 1000ms
 function setDownload(href, saveAs) {
     download_placeholder.href = href
     download_placeholder.setAttribute('download', saveAs)

@@ -112,7 +112,7 @@
           <h6 class="card-subtitle mb-2 text-muted" id="album" style="width: auto">by greats3an</h6>
           <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a>
           </p>
-          <h6 id="lyricsbox">支持 歌曲、歌单、专辑分享链接解析</h6>
+          <h6 id="lyricsbox" >支持 歌曲、歌单、专辑分享链接解析</h6>
           <p class="card-text" id="info2">连接中...</p>
           <audio id="player" src="" style="width:100%" controls></audio>
 
@@ -129,15 +129,16 @@
             <a class="card-link" id="download-mv" title="下载 MV" data-toggle="modal"
               data-target="#mv-modal"><i class="fas fa-file-video"></i></a>
             <a class="card-link" id="prev-song" data-toggle="tooltip" title="上一首"><i class="fas fa-backward"></i></a>
-
             <a class="card-link" id="next-song" data-toggle="tooltip" title="下一首"><i class="fas fa-forward"></i></a>
-            <a class="card-link" id="quality-selector" title="音质" data-toggle="dropdown" aria-haspopup="true"
-              aria-expanded="false"><i class="fas fa-music"></i></a>
+            <a class="card-link" title="设置" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-cog"></i></a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuHeader">
-              <h6 class="dropdown-header" onClick="_.showFPS=!_.showFPS">歌曲品质</h6>
+              <h6 class="dropdown-header">歌曲品质</h6>
               <a class="dropdown-item" onClick="playback_quality='standard'">标准</a>
               <a class="dropdown-item" onClick="playback_quality='higher'">高</a>
               <a class="dropdown-item" onClick="playback_quality='lossless'">无损</a>
+              <h6 class="dropdown-header">频谱设置</h6>
+              <a class="dropdown-item" onClick="_.disable=!_.disable;notify(_.disable ? '已禁用频谱显示' : '已启用频谱显示',_.disable ? 'warning' : 'success')">开关频谱绘制</a>
+              <a class="dropdown-item" onClick="_.showFPS=!_.showFPS;notify(!_.showFPS ? '已禁用FPS显示' : '已启用FPS显示',_.showFPS ? 'warning' : 'success')">显示 FPS</a>
             </div>
           </div>
         </div>
