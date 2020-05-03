@@ -9,7 +9,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>Netease Cloud Music Fronted</title>
   <!--Bootstrap & Fontawesome-->
@@ -74,6 +74,21 @@
     .autofade:hover {
       opacity: 1;
     }
+
+    .notice {
+      transition: all 0.1s ease-out;
+    }
+
+    .notice:hover {
+      background-color: white;
+    }
+    
+    .download-progress{
+      float:right;
+      transform: translateY(25%);
+      width: 30%;
+    }
+
   </style>
 </head>
 

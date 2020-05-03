@@ -232,18 +232,54 @@ function player_update() {
 }
 setInterval(player_update,500)
 // runs every x-ms
-function setDownload(href, saveAs) {
-    download_placeholder.href = href
-    download_placeholder.setAttribute('download', saveAs)
-    download_placeholder.click()
+
+function setDownload(src, saveAs) {
+    function getBlob(url,notifier) {
+        return new Promise(function(resolve,reject) {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'blob';
+            xhr.onprogress = function (e){                        
+                notifier.innerHTML = '下载中 ...' + src.substr(-16) +
+                 '<progress class="download-progress" max="' + e.total + '" value="' + e.loaded + '"></progress>'
+            }
+            xhr.onload = function (){
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                } else {
+                    reject(xhr.status)
+                }
+            };
+            xhr.send();
+        });
+    }
+    if (src.substr(0,4) == 'blob'){
+        // already a blob url,download it directly
+        download_placeholder.href = src
+        download_placeholder.setAttribute('download', saveAs)
+        download_placeholder.click()
+    } else {
+        // create the blob,then call us when it finishes
+        notifier = notify('下载中 [...' + src.substr(-16) + ']')
+        getBlob(src,notifier).then(function (blob){           
+            setDownload(window.URL.createObjectURL(blob),saveAs)
+            notifier.innerHTML = '下载完成！...' + src.substr(-16) + ' (保存为 ' + saveAs + ')'
+        }).catch(function (err){
+            notifier.className = 'notice alert alert-error'
+            notifier.innerHTML = '下载失败 ' + src + ':code ' + err
+        })
+    }
+    
 }
 
 function notify(message, level) {
     var notice = document.createElement('div')
-    notice.className = "alert alert-" + (!!level ? level : 'success')
-    notice.innerHTML = '<a href="#" class="close" data-dismiss="alert">&times;</a>' + message
+    notice.className = "notice alert alert-" + (!!level ? level : 'success')
+    notice.setAttribute('data-dismiss','alert')
+    notice.innerHTML = message
     notifyfeed.appendChild(notice)
     scrollTo(0, 0)
+    return notice
 }
 /***************************/
 
