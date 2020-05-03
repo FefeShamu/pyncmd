@@ -14,7 +14,7 @@ from .progressbar import ProgressBar
 from .clisheet import CLISheet
 
 def GetProgressBar(*a,**k):
-    return ProgressBar(*a,**k,prefix='\033[33m',suffix='\033[0m',fill='█')
+    return ProgressBar(*a,**k,prefix='\033[33m',suffix='\033[0m',fill='#')
 
 class PoolWorker(Thread):
     '''
@@ -29,10 +29,11 @@ class PoolWorker(Thread):
         # Once set,the main thread won't stay to wait for its sub-threads to end
 
     def run(self):
-        while True:
+        while True:            
             task,args = self.task_queue.get()
             task(args) if args else task()
             self.task_queue.task_done()
+        self.task_queue.task_done()
 
 class DownloadWorker(PoolWorker):
     '''
