@@ -230,8 +230,8 @@ function player_update() {
     if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
 }
-setInterval(player_update,1000)
-// runs every 1000ms
+setInterval(player_update,500)
+// runs every x-ms
 function setDownload(href, saveAs) {
     download_placeholder.href = href
     download_placeholder.setAttribute('download', saveAs)
