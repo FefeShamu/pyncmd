@@ -40,19 +40,33 @@ class NCMFunctions():
     
     def ShowDownloadStatus(self):
         '''
-            Shows downloader info
+            Shows downloader info,also returns the content
         '''
-        content = self.DL.report('''Downloading....{1} in queue,{2} not finished\n{0}''')
-        print(content, Cursor.UP(content.count('\n') + 1))
+        content = self.DL.report('''\nDownloading....{1} in queue,{2} not finished\n{0}''')
+        logger.info(content + Cursor.UP(content.count('\n') + 1))
         time.sleep(1)
-
+        return content
     def GenerateDownloadPath(self,id='', filename='', folder=''):
         '''
             Generates output path with its leaf folders and such.Similar to mktree
 
             Specify folder to change the root folder somewhere else
         '''
-        def normalize(s):return s.replace(':','：').replace('\n','_').replace('-','_').replace(',','，').replace('"','“').replace('\'','”').replace('/','、').replace('\\','，')
+        def normalize(s):
+            mapping = {
+                '\\':' ',
+                '/' :'',
+                ':' :'：',
+                '*' :'·',
+                '?' :'？',
+                '"' :'”',
+                '<' :'《',
+                '>' :'》',
+                '|' :'、'
+            }
+            for k,v in mapping.items():
+                s = s.replace(k,v)
+            return s
         filename = normalize(filename)
         folder = os.path.join(folder, str(id)) if folder else os.path.join(self.temp, str(id))
         result = os.path.join(folder, filename)
@@ -66,6 +80,7 @@ class NCMFunctions():
         '''
             Queue a download
         '''
+        if not (url and path):return
         self.DL.append(url, path)
         logger.debug('Queued download ...%s -> ...%s' % (url[-16:],path[-16:]))
 
@@ -388,17 +403,24 @@ class NCMFunctions():
             if not folder:
                 folder = self.GenerateDownloadPath(id=id, folder=folder)
             if not self.merge_only:
+                logger.info('Queuing download for specified resources...')
                 queue_func(id, quality, folder)
                 self.DL.wait(func=self.ShowDownloadStatus)
                 # Queue then wait
-            def merge(subfolder):
+            processed = 0
+            def tag(subfolder):
                 self.FormatLyrics(subfolder)
                 self.FormatSong(subfolder)
             # Start merging every subfolder via threadpool,where it's a mutation of the Downloader
             pool = Downloader(worker=PoolWorker,pool_size=8)
             for sub in os.listdir(folder):
-                merge(os.path.join(folder,sub))
-            pool.wait()
+                pool.append(tag, os.path.join(folder,sub))
+            print('\n' * 12)
+            def wait():
+                logger.info(f'Tagging... {len(os.listdir(folder)) - pool.task_queue.unfinished_tasks} / {len(os.listdir(folder))}{Cursor.UP(1)}')
+                time.sleep(1)
+            pool.wait(func=wait)
+            print()
         return wrapper
 
     def DownloadAllSongsInPlaylistAndMerge(self,id, quality='lossless', folder=None,merge_only=False):
