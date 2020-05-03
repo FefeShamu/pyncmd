@@ -219,8 +219,8 @@ function lyricsbox_update(lyrics_timestamp) {
 
 function player_update() {
     // player update event,used to update lyrics
-    if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
-
+    if (typeof lyrics == "undefined") { return }
+    if (!lyrics) {lyricsbox.innerHTML = '纯音乐 / 无歌词';return}
     var lyrics_timestamp = findClosestLesserMatch(Object.keys(lyrics), player.currentTime)
 
     if (!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) lyricsbox_update(lyrics_timestamp)
@@ -239,9 +239,15 @@ function setDownload(src, saveAs) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);
             xhr.responseType = 'blob';
-            xhr.onprogress = function (e){                        
-                notifier.innerHTML = '下载中 ...' + src.substr(-16) +
-                 '<progress class="download-progress" max="' + e.total + '" value="' + e.loaded + '"></progress>'
+            xhr.onprogress = function (e){ 
+                try {
+                    if (notifier.className == 'removed') reject('已取消下载')
+                    notifier.innerHTML = '下载中 ...' + src.substr(-16) +
+                    '<progress class="download-progress" max="' + e.total + '" value="' + e.loaded + '"></progress>'                    
+                } catch (error) {
+                    reject(error + ' (' + xhr.status + ')')
+                }                                    
+                
             }
             xhr.onload = function (){
                 if (xhr.status === 200) {
@@ -260,13 +266,12 @@ function setDownload(src, saveAs) {
         download_placeholder.click()
     } else {
         // create the blob,then call us when it finishes
-        notifier = notify('下载中 [...' + src.substr(-16) + ']')
+        var notifier = notify('下载中 [...' + src.substr(-16) + ']')
         getBlob(src,notifier).then(function (blob){           
             setDownload(window.URL.createObjectURL(blob),saveAs)
             notifier.innerHTML = '下载完成！...' + src.substr(-16) + ' (保存为 ' + saveAs + ')'
-        }).catch(function (err){
-            notifier.className = 'notice alert alert-error'
-            notifier.innerHTML = '下载失败 ' + src + ':code ' + err
+        }).catch(function (err){            
+            notify('<b>下载失败</b><br><a href="'+ src +'">' + src + '</a><br>' + err,'danger')
         })
     }
     
@@ -275,7 +280,17 @@ function setDownload(src, saveAs) {
 function notify(message, level) {
     var notice = document.createElement('div')
     notice.className = "notice alert alert-" + (!!level ? level : 'success')
-    notice.setAttribute('data-dismiss','alert')
+    notice.onclick = function(){ 
+        setTimeout(function(){   
+            if(notice.className == 'removed')return
+            notice.remove()
+            notice.className = 'removed'
+        },200)
+        notice.style.opacity = 0
+        notice.style.height = 0
+        notice.style.padding = 0
+        // to animate the leaving animation
+    }
     notice.innerHTML = message
     notifyfeed.appendChild(notice)
     scrollTo(0, 0)
