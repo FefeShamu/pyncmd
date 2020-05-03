@@ -249,8 +249,8 @@ function setDownload(src, saveAs) {
                 }                                    
                 
             }
-            xhr.onload = function (){
-                if (xhr.status === 200) {
+            xhr.onloadend = function (){
+                if (xhr.status == 200 || xhr.status == 206) {
                     resolve(xhr.response);
                 } else {
                     reject(xhr.status)
