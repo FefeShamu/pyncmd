@@ -33,7 +33,7 @@ function updateNodes() {
         try {
             setDownload(player.src, "".concat(musicinfo.name, ".").concat(audioinfo["data"][0]["type"]))
         } catch (e) {
-            notify(e + ":缺失音频信息", "danger");
+            notify(e, "danger");
 
         }
     }
@@ -51,11 +51,9 @@ function updateNodes() {
                 lrc += line + '\n'
             }
             var blob = new Blob([lrc], { type: "text/plain;charset=utf-8" })
-            var url = window.URL.createObjectURL(blob)
-            // uses the invisble placeholder to download
-            setDownload(url, musicinfo.name + '.lrc')
+            setDownload(blob, musicinfo.name + '.lrc')
         } catch (e) {
-            notify(e + ":缺失歌词信息", "danger");
+            notify(e, "danger");
         }
     }
 
@@ -119,7 +117,7 @@ function updateNodes() {
             'ratio': 1,
             'force': 0.02,
             'fftSize': 256,
-            'g':0.3
+            'g': 0.3
         })
     }
 
@@ -220,7 +218,7 @@ function lyricsbox_update(lyrics_timestamp) {
 function player_update() {
     // player update event,used to update lyrics
     if (typeof lyrics == "undefined") { return }
-    if (!lyrics) {lyricsbox.innerHTML = '纯音乐 / 无歌词';return}
+    if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
     var lyrics_timestamp = findClosestLesserMatch(Object.keys(lyrics), player.currentTime)
 
     if (!lyricsbox.updated_timestamp || lyricsbox.updated_timestamp != lyrics_timestamp) lyricsbox_update(lyrics_timestamp)
@@ -230,26 +228,28 @@ function player_update() {
     if (document.title != pagetitle) document.title = pagetitle
     // update title if not already
 }
-setInterval(player_update,500)
+setInterval(player_update, 500)
 // runs every x-ms
 
 function setDownload(src, saveAs) {
-    function getBlob(url,notifier) {
-        return new Promise(function(resolve,reject) {
+    function getBlob(url, notifier) {
+        // why Promise?well,if a webbrowser does not support that
+        // then it will likely not support Blobs either
+        // and it's way much prettier to use it instead of ugly callbacks
+        return new Promise(function (resolve, reject) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);
             xhr.responseType = 'blob';
-            xhr.onprogress = function (e){ 
+            xhr.onprogress = function (e) {
                 try {
                     if (notifier.className == 'removed') reject('已取消下载')
                     notifier.innerHTML = '下载中 ...' + src.substr(-16) +
-                    '<progress class="download-progress" max="' + e.total + '" value="' + e.loaded + '"></progress>'                    
+                        '<progress class="download-progress" max="' + e.total + '" value="' + e.loaded + '"></progress>'
                 } catch (error) {
                     reject(error + ' (' + xhr.status + ')')
-                }                                    
-                
+                }
             }
-            xhr.onloadend = function (){
+            xhr.onloadend = function () {
                 if (xhr.status == 200 || xhr.status == 206) {
                     resolve(xhr.response);
                 } else {
@@ -259,33 +259,38 @@ function setDownload(src, saveAs) {
             xhr.send();
         });
     }
-    if (src.substr(0,4) == 'blob'){
-        // already a blob url,download it directly
-        download_placeholder.href = src
-        download_placeholder.setAttribute('download', saveAs)
-        download_placeholder.click()
+    if (typeof src == 'object') {
+        // assuming it's a blob
+        if (window.navigator.msSaveOrOpenBlob) {
+            //ie11
+            window.navigator.msSaveOrOpenBlob(src,saveAs)
+        } else {
+            download_placeholder.href = window.URL.createObjectURL(src)
+            download_placeholder.setAttribute('download', saveAs)
+            download_placeholder.click()
+        }
     } else {
         // create the blob,then call us when it finishes
-        var notifier = notify('下载中 [...' + src.substr(-16) + ']')
-        getBlob(src,notifier).then(function (blob){           
-            setDownload(window.URL.createObjectURL(blob),saveAs)
-            notifier.innerHTML = '下载完成！...' + src.substr(-16) + ' (保存为 ' + saveAs + ')'
-        }).catch(function (err){            
-            notify('<b>下载失败</b><br><a href="'+ src +'">' + src + '</a><br>' + err,'danger')
+        var notifier = notify('下载中' + '<a href="' + src + '">...' + src.substr(-16) + '</a>' + '')
+        getBlob(src, notifier).then(function (blob) {
+            setDownload(blob, saveAs)
+            notifier.innerHTML = '下载完成' + '<a href="' + src + '">...' + src.substr(-16) + '</a>' + ' (保存为 ' + saveAs + ')'
+        }).catch(function (err) {
+            notify('<b>下载失败</b>' + '<a href="' + src + '">...' + src.substr(-16) + '</a></br>' + err, 'danger')
         })
     }
-    
+
 }
 
 function notify(message, level) {
     var notice = document.createElement('div')
     notice.className = "notice alert alert-" + (!!level ? level : 'success')
-    notice.onclick = function(){ 
-        setTimeout(function(){   
-            if(notice.className == 'removed')return
+    notice.onclick = function () {
+        setTimeout(function () {
+            if (notice.className == 'removed') return
             notice.remove()
             notice.className = 'removed'
-        },200)
+        }, 200)
         notice.style.opacity = 0
         notice.style.height = 0
         notice.style.padding = 0

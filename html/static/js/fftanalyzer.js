@@ -28,6 +28,8 @@ function clamp(val, max, min) {
 bufferLength = 0;
 tick = Date.now();
 function ffta_draw() {
+    if (typeof canvasCtx == 'undefined')return
+    // browser does not support canvas,no further drawing calls will be processed
     requestAnimationFrame(ffta_draw);
     if (!bufferLength || !!_.disable){
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
