@@ -22,15 +22,15 @@ class Websocket(Protocol):
         # Websocket object
 
         - handler          :       RequestHandler object
-        - run             :       starts receiving.must be executed during the request
+        - handshake       :       Performs the handshake,**MUST** be done before any further operation
+        - serve            :       Starts serving the client and blocks the thread
             - Performing `run` will block the current request thread until either the server / client decides to close the connection
         - send            :       put message into queue,then it will be sent later if possible
         - receive         :       immediately recieve a frame
         - callback_receive:       callback for received frame
             - Called once the packet is received
-        - kill            :       kills the current session
-            - This will set the `keep_alive` flag `False`
-        - handshake       :       Performs the handshake,**MUST** be done before any further operation
+        - shutdown
+            - This will set the kill switch,and wait for the session to actually end
     '''
 
     @staticmethod
@@ -44,7 +44,7 @@ class Websocket(Protocol):
 
     def __init__(self,handler):  
         '''Creates the websocket object'''  
-        self.keep_alive = True
+        self.keep_alive,self.is_shutdown,self.handshook = True,False,False
         self.queue = []
         super().__init__(handler)
 
@@ -57,14 +57,15 @@ class Websocket(Protocol):
         self.handler.end_headers()
         self.handler.wfile.flush()
         self.handler.log_message('New Websocket session from %s:%s' % self.handler.client_address)   
-
+        self.handshook = True
+    
     def callback_receive(self, frame) -> tuple:
         '''
             Callback funtionality.Executes after `frame` is received
 
                 frame    : The received frame
 
-            Note that a `frame` is a tuple:
+            Frame structure:
 
                 tuple(FIN,RSV1,RSV2,RSV3,OPCODE,MASK,PAYLOAD_LENGTH,MASKEY,PAYLOAD(unmasked))
         '''
@@ -74,52 +75,52 @@ class Websocket(Protocol):
     def handle_once(self):
         '''Handles IO event for once'''
         # Using select() to process selectable IOs
-        inputs = (sel:=([self.handler.request], [self.handler.request], [], 1.0))[0]
-        outputs = sel[1]
+        if not self.handshook:self.handshake()
+        # Handshake if not already
+        inputs,outputs,error = select.select([self.handler.request], [self.handler.request], [],1.0)
         if inputs:
             # target socket is ready to send,process frame,then callback
             if (frame:= self.receive()):
                 if frame[4] == WebsocketOPCODE.CLOSE_CONN:
                     # client requested to close connection
-                    self.send_nowait(
-                        b'', OPCODE=WebsocketOPCODE.CLOSE_CONN)
-                    raise Exception(
-                        'Client %s:%s requested to close connection' % self.handler.client_address)
+                    self.send_nowait(b'', OPCODE=WebsocketOPCODE.CLOSE_CONN)
+                    # accepts such request
+                    raise Exception('Client %s:%s requested to close connection' % self.handler.client_address)
                 self.callback_receive(frame)
         if outputs:
             # target socket is ready to receive,sending frame from the top of the list
             if self.queue:
+                # is there anything in queue?
                 self.handler.wfile.write(self.queue.pop(0))
 
-    def run(self):
+    def serve(self,pool_interval=0.01):
         '''
             Starts processing I/O,and blocks until connection is closed or flag is set
         '''
         while self.keep_alive:
             try:
                 self.handle_once()
-                time.sleep(0.01)
+                time.sleep(pool_interval)
+                # How frequent will we poll?
             except Exception as e:
                 # Quit once any exception occured
-                self.handler.log_message(str(e))
+                self.handler.log_error(str(e))
                 self.keep_alive = False
-        self.handler.log_request(
-            'Websocket Connection closed:%s:%s' % self.handler.client_address)
+        self.handler.log_request('Websocket Connection closed:%s:%s' % self.handler.client_address)
+        self.is_shutdown = True
 
     def send_nowait(self, PAYLOAD, FIN=1, OPCODE=WebsocketOPCODE.TEXT, MASK=0):
         '''
             Sends a constructed message without putting it inside the queue
         '''
-        self.handler.wfile.write(
-            self.__websocket_constructframe(PAYLOAD, FIN, OPCODE, MASK))
+        self.handler.wfile.write(self.__websocket_constructframe(PAYLOAD, FIN, OPCODE, MASK))
         self.handler.wfile.flush()
 
     def send(self, PAYLOAD, FIN=1, OPCODE=WebsocketOPCODE.TEXT, MASK=0):
         '''
-            Adds a constructed message to the queue,OPCODE included
+            Adds a constructed message to the queue
         '''
-        self.queue.append(self.__websocket_constructframe(
-            PAYLOAD, FIN, OPCODE, MASK))
+        self.queue.append(self.__websocket_constructframe(PAYLOAD, FIN, OPCODE, MASK))
 
     def receive(self):
         '''
@@ -129,26 +130,19 @@ class Websocket(Protocol):
             return self.__websocket_recieveframe(self.handler.rfile)
         except Exception:
             return None
-
-    def kill(self):
-        '''
-            Set keep_alive flag False
-        '''
-        self.keep_alive = False
-
-    def wait(self):
-        '''
-            Wait until messages are all sent
-        '''
-        while self.queue:
-            pass
-
-
     
+    def shutdown(self):
+        '''Sets kill switch,and wait for the loop to end'''
+        self.send_nowait(b'', OPCODE=WebsocketOPCODE.CLOSE_CONN)
+        self.keep_alive = False
+        while not self.is_shutdown:pass
+
     def __websocket_constructframe(self, data: bytearray, FIN=1, OPCODE=WebsocketOPCODE.TEXT, MASK=0):
         '''
         Constructing frame
+
         5.2.  Base Framing Protocol:https://tools.ietf.org/html/rfc6455#section-5.2
+
             0                   1                   2                   3
             0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
             +-+-+-+-+-------+-+-------------+-------------------------------+
@@ -198,8 +192,10 @@ class Websocket(Protocol):
 
     def __websocket_recieveframe(self, rfile: typing.BinaryIO = None):
         '''
-        Receiving frame，note that PAYLOAD is returned unmasked
+        Receiving frame,PAYLOAD is unmasked
+
         5.2.  Base Framing Protocol:https://tools.ietf.org/html/rfc6455#section-5.2
+
             0                   1                   2                   3
             0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
             +-+-+-+-+-------+-+-------------+-------------------------------+
@@ -251,12 +247,17 @@ class Websocket(Protocol):
     def __mask(self, d, k):
         '''
         5.3.  Client-to-Server Masking:https://tools.ietf.org/html/rfc6455#section-5.3
+
         Octet i of the transformed data ("transformed-octet-i") is the XOR of
+
         octet i of the original data ("original-octet-i") with octet at index
+
         i modulo 4 of the masking key ("masking-key-octet-j")
+
                 j                           =                          i MOD 4
                 transformed-octet-i = original-octet-i XOR masking-key-octet-j
-            To get DECODED, loop through the octets (bytes a.k.a. characters for text data) of ENCODED and XOR the octet with the (i modulo 4)th octet of MASK.
+            
+        To get DECODED, loop through the octets (bytes a.k.a. characters for text data) of ENCODED and XOR the octet with the (i modulo 4)th octet of MASK.
         '''
         return bytearray([d[i] ^ k[i % 4] for i in range(0, len(d))])
 
@@ -281,17 +282,26 @@ class Websocket(Protocol):
     def __ws_gen_responsekey(self, key):
         '''
         As described in RFC6455:https://tools.ietf.org/html/rfc6455#section-1.3
+
             Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
 
-            For this header field, the server has to take the value (as present
-            in the header field, e.g., the base64-encoded [RFC4648] version minus
-            any leading and trailing whitespace) and concatenate this with the
-            Globally Unique Identifier (GUID, [RFC4122]) "258EAFA5-E914-47DA-
-            95CA-C5AB0DC85B11" in string form, which is unlikely to be used by
-            network endpoints that do not understand the WebSocket Protocol.  A
-            SHA-1 hash (160 bits) [FIPS.180-3], base64-encoded (see Section 4 of
-            [RFC4648]), of this concatenation is then returned in the server's
-            handshake.
+        For this header field, the server has to take the value (as present
+        
+        in the header field, e.g., the base64-encoded [RFC4648] version minus
+        
+        any leading and trailing whitespace) and concatenate this with the
+       
+        Globally Unique Identifier (GUID, [RFC4122]) "258EAFA5-E914-47DA-
+       
+        95CA-C5AB0DC85B11" in string form, which is unlikely to be used by
+       
+        network endpoints that do not understand the WebSocket Protocol.  A
+       
+        SHA-1 hash (160 bits) [FIPS.180-3], base64-encoded (see Section 4 of
+       
+        [RFC4648]), of this concatenation is then returned in the server's
+       
+        handshake.
         '''
         GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
         rkey = key + GUID    # contact in string form
