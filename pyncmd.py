@@ -79,14 +79,14 @@ def favicon(request : RequestHandler):
     request.send_response(200)
     request.send_header('Content-Type','image/x-icon')
     request.end_headers()
-    http.Modules.write_string(request.proto,base64.b64decode(favicon_base64))
+    HTTPModules.WriteString(request,base64.b64decode(favicon_base64))
 
 @server.route(PathMakerModules.Absolute('/'))
 def IndexPage(request : RequestHandler):
     # /
     # Index page
     request.send_response(200)
-    http.Modules.write_file(request.proto, 'html/index.html')
+    HTTPModules.WriteFileHTTP(request,'html/index.html')
 
 count,requirement_mapping = 0,{
     'audio':NCM.GetSongInfo,
@@ -107,10 +107,10 @@ def API(request : RequestHandler):
     # All-In-One API call handler
     # Utilizing PyNCM to load music info
     # With given music ID
+    HTTPModules.RestrictVerbs(request,['POST'])
     global count,requirement_mapping
     content_length = request.headers.get('Content-Length')
-    content = request.rfile.read(int(content_length)).decode(
-        'utf-8') if content_length else None
+    content = request.rfile.read(int(content_length)).decode('utf-8') if content_length else None
     # load content inside request body
     try:
         content = json.loads(content)
@@ -131,7 +131,7 @@ def API(request : RequestHandler):
             // sets audio quality
         }
         '''
-        logging.info(f'[Procssing Request] ID:{id} Requirements:{requirements} Extras:{extras}')
+        logging.info(f'ID:{id} Requirements:{requirements} Extras:{extras}')
         response = {}
         for requirement in requirements:
             # composing response
@@ -155,18 +155,17 @@ def API(request : RequestHandler):
         # Select what to send based on 'requirements' value
         request.send_response(200)              
         request.end_headers()
-        http.Modules.write_string(request.proto, json.dumps(response))
+        HTTPModules.WriteString(request,json.dumps(response))
     except Exception as e:
         # failed!
         request.send_response(500)
         request.end_headers()
-        http.Modules.write_string(request.proto, '{"message":"unexcepted error:%s"}' % e)
+        HTTPModules.WriteString(request,'{"message":"unexcepted error:%s"}' % e)
     count += 1
-    logging.info('[Processed Request] No.%s ID: %s' % (count, content['id'] if content else 'INVALID'))
 
-@server.route(PathMakerModules.DirectoryPath('/html/'))
+@server.route(PathMakerModules.DirectoryPath('/static/'))
 def html(request : RequestHandler):
-    HTTPModules.WriteFileHTTP(request,'.' + request.path[1:]) # Removes first backslash & adds '.',referncing local paths
+    HTTPModules.WriteFileHTTP(request,'./html' + request.path) # Adds '.',referncing local paths
 # Don't index folders
 
 logging.info('Listening:\n    http://{0}:{1}'.format(*server.server_address))
