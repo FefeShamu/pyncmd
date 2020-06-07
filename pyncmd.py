@@ -17,7 +17,8 @@ from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from pyncm.ncm import Depercated
 import pyncm.ncm
 from pywebserver.pywebserver import PyWebServer
-from pywebserver.pywebserver.proto import http
+from pywebserver.pywebserver.handler import RequestHandler,HTTPStatus
+from pywebserver.pywebserver.modules import HTTPModules,PathMakerModules
 coloredlogs.install(level=logging.INFO)
 splash = '''
 \033[35m
@@ -70,22 +71,22 @@ if phone and password:
     open('.user','w+',encoding='utf-8').write(json.dumps(NCM.login_info))
     logging.info('Saved user login info to `.user`')
 
-server = PyWebServer(('', port),protos=[http.HTTP])
-@server.path_absolute('GET','/favicon.ico',http.HTTP)
-def favicon(handler):
+server = PyWebServer(('', port))
+@server.route(PathMakerModules.AbsoluteWithoutCaps('/favicon.ico'))
+def favicon(request : RequestHandler):
     favicon_base64 = '''iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABXSURBVDhPpc1LDsBACALQuf+lrQ2EMpr059tMhNCu+OgcrB2Lhjk6HOkqLHR/B45FwxyPqChmgzwci4Y5nvfGf1BRzAZ5OBSFcg5w3KgDh6JQ/vztTcQBqP4l98/X4gAAAAAASUVORK5CYII=    
     '''
-    handler.send_response(200)
-    handler.send_header('Content-Type','image/x-icon')
-    handler.end_headers()
-    http.Modules.write_string(handler.proto,base64.b64decode(favicon_base64))
+    request.send_response(200)
+    request.send_header('Content-Type','image/x-icon')
+    request.end_headers()
+    http.Modules.write_string(request.proto,base64.b64decode(favicon_base64))
 
-@server.path_absolute('GET','/',http.HTTP)
-def IndexPage(handler):
+@server.route(PathMakerModules.Absolute('/'))
+def IndexPage(request : RequestHandler):
     # /
     # Index page
-    handler.send_response(200)
-    http.Modules.write_file(handler.proto, 'html/index.html')
+    request.send_response(200)
+    http.Modules.write_file(request.proto, 'html/index.html')
 
 count,requirement_mapping = 0,{
     'audio':NCM.GetSongInfo,
@@ -101,14 +102,14 @@ count,requirement_mapping = 0,{
     }
 }
 
-@server.path_absolute('POST','/api',http.HTTP)
-def API(handler):
+@server.route(PathMakerModules.Absolute('/api'))
+def API(request : RequestHandler):
     # All-In-One API call handler
     # Utilizing PyNCM to load music info
     # With given music ID
     global count,requirement_mapping
-    content_length = handler.headers.get('content-length')
-    content = handler.rfile.read(int(content_length)).decode(
+    content_length = request.headers.get('Content-Length')
+    content = request.rfile.read(int(content_length)).decode(
         'utf-8') if content_length else None
     # load content inside request body
     try:
@@ -152,20 +153,20 @@ def API(handler):
                 response[requirement] = {'message':'func not found'}
         response = {**response,'requirements':requirements,'required_id':id}
         # Select what to send based on 'requirements' value
-        handler.send_response(200)              
-        handler.end_headers()
-        http.Modules.write_string(handler.proto, json.dumps(response))
+        request.send_response(200)              
+        request.end_headers()
+        http.Modules.write_string(request.proto, json.dumps(response))
     except Exception as e:
         # failed!
-        handler.send_response(500)
-        handler.end_headers()
-        http.Modules.write_string(handler.proto, '{"message":"unexcepted error:%s"}' % e)
+        request.send_response(500)
+        request.end_headers()
+        http.Modules.write_string(request.proto, '{"message":"unexcepted error:%s"}' % e)
     count += 1
     logging.info('[Processed Request] No.%s ID: %s' % (count, content['id'] if content else 'INVALID'))
 
-server.add_relative('GET','/',http.HTTP,local='html',modules={
-    'file':http.Modules.write_file
-})
+@server.route(PathMakerModules.DirectoryPath('/html/'))
+def html(request : RequestHandler):
+    HTTPModules.WriteFileHTTP(request,'.' + request.path[1:]) # Removes first backslash & adds '.',referncing local paths
 # Don't index folders
 
 logging.info('Listening:\n    http://{0}:{1}'.format(*server.server_address))
