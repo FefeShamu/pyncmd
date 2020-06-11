@@ -27,7 +27,7 @@ class HTTPModules():
     
     @staticmethod
     def IndexFolder(request:RequestHandler,path,stylesheet='',encoding='utf-8'):
-        '''Automaticly indexes the folder to human readable HTML page'''
+        '''Automaticly indexes the folder and renders a human readable HTML page'''
         if os.path.isfile(path):return HTTPModules.WriteFileHTTP(request,path)
         # Call `WriteFileHTTP` if we are somehow given a file path
         request.send_response(HTTPStatus.OK)
@@ -42,8 +42,8 @@ class HTTPModules():
 <body>
     <h1>Index of {path}</h1>
     <hr><pre><a href="..">..</a>\n'''
-        for item in os.listdir(path):
-            html += f'<a href="{request.path}/{item}"/>{item}</a>\n'
+        for item in sorted(os.listdir(path)):
+            html += f'<a href="{item}/"/>{item}/</a>\n' if os.path.isdir(os.path.join(path,item)) else f'<a href="{item}"/>{item}</a>\n'
         html+= f'''</pre><hr><body>\n'''
         HTTPModules.WriteString(request,html)
         request.wfile.flush()
@@ -66,6 +66,7 @@ class HTTPModules():
             request.send_response(HTTPStatus.OK)
             if s:
                 # a `real` file
+                if support_range:request.send_header('Accept-Ranges','bytes')
                 request.send_header('Content-Length',str(s))
                 request.send_header('Content-Type',Utilties.GuessMIME(file))
             request.end_headers()            
@@ -99,6 +100,7 @@ class HTTPModules():
             # Otherwise,good to go!
             request.send_response(HTTPStatus.PARTIAL_CONTENT)
             request.send_header('Accept-Ranges','bytes')
+            request.send_header('Content-Length',str(end - start))
             request.send_header('Content-Type',Utilties.GuessMIME(file))
             request.send_header('Content-Range','bytes %s-%s/%s' % (start,end,s))
             request.end_headers()            
@@ -127,7 +129,6 @@ class PathMakerModules():
     Provides static methods for `PathMaker` to map paths
 
     The methods,takes 1 string argument and returns a `callable`,
-
     which again,takes 1 string argument then returns a bool value
     '''
     @staticmethod
@@ -158,7 +159,7 @@ class PathMakerModules():
             if path[:len(target)] == target:
                 # the url begins with the target path with the backslash
                 return True            
-            return PathMakerModules.AbsoluteWithoutCaps(target[:-1])(path)
+            return PathMakerModules.Absolute(target[:-1])(path)
             # Otherwise,if the path is exactly the same as the target
             # without backslash,still returns True.Otherwise False
         return check

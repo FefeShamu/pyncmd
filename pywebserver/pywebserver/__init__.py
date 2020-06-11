@@ -7,7 +7,6 @@ class PathMaker(dict):
     '''For storing and handling path mapping
     
         The keys and values are stored as functions.Or their addresses to be exact
-
         Keys are used to check is the target URL matching the stored URL,which,using regexes will be a great idea
 
         To set an item:
@@ -27,10 +26,8 @@ class PathMaker(dict):
         '''
         Setting an item,multiple values can be stacked '''
         if not callable(keytester) or not callable(value):raise Exception('The keys & values must be callable')
-        try:
-            return super().__setitem__(keytester, super().__getitem__(keytester) + [value])
-        except KeyError:
-            super().__setitem__(keytester, [value])
+        super().__setitem__(keytester,value)
+
         # Initalizes with an empty list
 
     def __getitem__(self, key):
@@ -40,29 +37,18 @@ class PathMaker(dict):
         '''
         for keytester in self.keys():
             if keytester(key):
-                return super().__getitem__(keytester)
-        return None
+                yield super().__getitem__(keytester)
 
 class PyWebServer(socketserver.ThreadingMixIn, socketserver.TCPServer,):
     '''
-        Base server class
-
-        The `__handle__` method handles all HTTP based requests,
-
-        Notes:
-        -   Server will check absolute mapping first,then the Direcotry file mapping
-
-        __init__():
-
-                server_address  :   A tuple-like address,for example : `('localhost',1234)`                
-
+        # PyWebServer
+        
         To start a server:
 
             server = PyWebServer(('',1234))
             server.serve_forever()
 
         This way,you can test by typing `http://localhost:1234` into your browser
-        
         And BEHOLD!An error page.
 
         Surely you are going to read the documents to make sth with this.
@@ -70,9 +56,10 @@ class PyWebServer(socketserver.ThreadingMixIn, socketserver.TCPServer,):
     def handle_error(self, request : RequestHandler, client_address):
         """Handle an error gracefully.  May be overridden.
 
-        By default,it does nothing
+        By default,it prints the latest stack trace
         """
-        pass
+        super().handle_error(request,client_address)
+
     
     def __handle__(self, request : RequestHandler):
         '''
@@ -80,16 +67,19 @@ class PyWebServer(socketserver.ThreadingMixIn, socketserver.TCPServer,):
         
         The `request` is provided to the router
         '''
-        methods = self.paths[request.path]
-        if not methods:
-            return request.send_error(HTTPStatus.NOT_FOUND)
-        for method in methods:
+        excepted_excptions = 0
+        for method in self.paths[request.path]:
             try:
                 return method(request)
                 # Succeed,end this handle call
-            except UnfinishedException as e:
+            except UnfinishedException:
                 # Ignore UnfinishedException and go on
-                pass
+                excepted_excptions += 1
+            except Exception as e:
+                # For Other server-side exceptions,let the client know
+                return request.send_error(HTTPStatus.SERVICE_UNAVAILABLE,explain=e)
+        # Request's not handled,and no UnfinishedException is ever called:No URI matched
+        if not excepted_excptions:return request.send_error(HTTPStatus.NOT_FOUND)
         # No fatal exceptions,assume the response is unfinished
         request.send_error(HTTPStatus.FORBIDDEN)
         request.end_headers()

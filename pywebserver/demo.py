@@ -51,31 +51,58 @@ pre {
     line-height: 2em;
 }'''
 # Stylesheet!
-IndexPath = PathMakerModules.Absolute('/')
-# For same paths,use *one* variable to refence them
-# Otherwise,only the first declared path will be accessable
-@server.route(IndexPath)
+# Multiple items of the same path will be tested if previous handler raised `UnfinishedException`
+@server.route(PathMakerModules.Absolute('/'))
 def index(request : RequestHandler):
     HTTPModules.RestrictVerbs(request,['POST'])
-    HTTPModules.Redirect(request,'files')
+    # This is to show how you map certain HTTP Verbs to the same path
+    # Visiting with a web browser will cause UnfinishedException
+    # As it uses verb `GET` for getting webpages.
+    # Thus,the next `index()` is called since they share the same path
 
-@server.route(IndexPath)
+@server.route(PathMakerModules.Absolute('/'))
 def index(request : RequestHandler):
     HTTPModules.RestrictVerbs(request,['GET'])
+    # Redirects to 'files'
     HTTPModules.Redirect(request,'files')
 
+@server.route(PathMakerModules.Absolute('/files'))
+def files(request : RequestHandler):
+    HTTPModules.RestrictVerbs(request,['GET'])
+    # Redirects to 'files/'
+    HTTPModules.Redirect(request,'files/')
+
 @server.route(PathMakerModules.DirectoryPath('/files/'))
-def subfolder(request : RequestHandler):
+def files(request : RequestHandler):
+    # Indexes folders of local path and renders a webpage
     HTTPModules.IndexFolder(request,'./' + request.path[7:],GetStyleSheet())
+
+ws_list = []
 @server.route(PathMakerModules.Absolute('/ws'))
 def websocket(request : RequestHandler):
+    # A simple WebSocket echo server,which will boardcast
+    # Message to all connected sessions
     ws = Websocket(request)
+    ws_list.append(ws)
+    # Store the session
     ws.handshake()
-    def callback(msg):
-        print(msg)
-        ws.send(b'recevied:' + msg[-1])
+    ws.send_nowait(b'<b>Name yourself:</b>')
+    def callback(msg):   
+        if not hasattr(ws,'name'):
+            # 1st message,aquire username
+            setattr(ws,'name', msg[-1].decode())
+            ws.send(f'<b>Welcome,{ws.name}</b>...<i>Online users:{",".join([ws_.name if hasattr(ws_,"name") else "[PENDING]" for ws_ in ws_list])}</i>'.encode())                       
+            return
+        for ws_ in ws_list:
+            if ws != ws_:ws_.send(
+                f'{ws.name} says: {msg[-1].decode()}'.encode()
+            )
+            # Avoid sending to ourself
+        ws.send(('<i>[your message has been sent to %s other members]</i>' % (len(ws_list) - 1)).encode())
     ws.callback = callback
     ws.serve()
+    ws_list.remove(ws)
+    # Removes session after it closes
 
 server.error_message_format = f'<style>{GetStyleSheet()}</style>' + server.error_message_format
 # Adds the style sheet to the error page
