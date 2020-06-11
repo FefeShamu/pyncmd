@@ -22,16 +22,11 @@ class RequestHandler(StreamRequestHandler):
     """
     Modified version of Python's internal HTTP/1.1 Compatiable `BaseHTTPHandler`
 
-    Modifications had been made to prettify the code and as to fit this server
-
-    better
+    Modifications had been made to prettify the code and to fix some annoying stuff ;)
     """
     def __init__(self, request, client_address, server):
         '''The `server`,which is what instantlizes this handler,must have `__handle__` method
-        
         which takes 1 argument (for the handler itself) 
-        
-        and then the server can do whatever it wants to ;)
         '''
         self.logger = logging.getLogger('RequestHandler')
 
@@ -41,7 +36,6 @@ class RequestHandler(StreamRequestHandler):
         self.protocol_version = server.protocol_version
         # Error page formats
         self.error_message_format = server.error_message_format
-        
         # hack to maintain backwards compatibility
         self.responses = {
             v: (v.phrase, v.description)
@@ -59,7 +53,6 @@ class RequestHandler(StreamRequestHandler):
 
         Return True for success, False for failure; on failure, any relevant
         error response has already been sent back.
-
         """
         self.command = None  # set in case of error on the first line
         self.request_version = default_request_version
@@ -155,7 +148,6 @@ class RequestHandler(StreamRequestHandler):
         This method should either return True (possibly after sending
         a 100 Continue response) or send an error response and return
         False.
-
         """
         self.send_response_only(HTTPStatus.CONTINUE)
         self.end_headers()
@@ -167,7 +159,6 @@ class RequestHandler(StreamRequestHandler):
         You normally don't need to override this method; see the class
         __doc__ string for information on how to handle specific HTTP
         commands such as GET and POST.
-
         """
         try:
             self.raw_requestline = self.rfile.readline(65537)
@@ -215,7 +206,6 @@ class RequestHandler(StreamRequestHandler):
         This sends an error response (so it must be called before any
         output has been generated), logs the error, and finally sends
         a piece of HTML explaining the error to the user.
-
         """
 
         try:
@@ -226,7 +216,7 @@ class RequestHandler(StreamRequestHandler):
             message = shortmsg
         if explain is None:
             explain = longmsg
-        self.log_error("code %d, message %s", code, message)
+        self.log_error("HTTP %d -- %s", code, message)
         self.send_response(code, message)
         self.send_header('Connection', 'close')
 
@@ -270,8 +260,9 @@ class RequestHandler(StreamRequestHandler):
                     message = ''
             if not hasattr(self, '_headers_buffer'):
                 self._headers_buffer = []
-            self._headers_buffer.append(("%s %d %s\r\n" %(self.protocol_version, code, message)).encode('latin-1', 'strict'))
-
+            self._headers_buffer = [("%s %d %s\r\n" % (self.protocol_version, code, message)).encode('latin-1', 'strict')] + self._headers_buffer
+            # Always send this at the begining
+    
     def send_header(self, keyword, value):
         """Send a MIME header to the headers buffer."""
         if self.request_version != 'HTTP/0.9':
@@ -287,7 +278,8 @@ class RequestHandler(StreamRequestHandler):
                 self.close_connection = False
 
     def end_headers(self):
-        """Send the blank line ending the MIME headers."""
+        """Adds the blank line ending the MIME headers to the buffer,
+        then flushes the buffer"""
         if self.request_version != 'HTTP/0.9':
             self._headers_buffer.append(b"\r\n")
             self.flush_headers()
@@ -300,8 +292,7 @@ class RequestHandler(StreamRequestHandler):
     def log_request(self, code='-'):
         """Log an accepted request.
 
-        This is called by send_response().
-
+        This is called by send_response()
         """
         if isinstance(code, HTTPStatus):
             code = code.value
@@ -323,11 +314,9 @@ class RequestHandler(StreamRequestHandler):
         Formats a logging message
 
         Takes `format` and `args` which will construct the base message
-
         ...and adds other componet into the string
 
-        This method CAN be overwritten.This defaults to mimic the
-
+        This method CAN be overwritten.This tries to mimic the
         NGINX Style logging,which looks like this:
 
             {Client Address} [{Time}] "{Verb} {Path} {HTTP Version}" {Message}
@@ -345,9 +334,6 @@ class RequestHandler(StreamRequestHandler):
         default it passes the message on to log_message().
 
         Arguments are the same as for log_message().
-
-        XXX This should go to the separate error log.
-
         """
         self.logger.error(self.format_log(format,*args))        
 
@@ -364,14 +350,12 @@ class RequestHandler(StreamRequestHandler):
         printf!).
 
         The formats are decided by `format_log`
-
         """
-        self.logger.debug(self.format_log(format,*args))
+        self.logger.info(self.format_log(format,*args))
     
     """
     Properties.These funtions do nothing but providing documents
-    
-    and will be overriden once the `RequestHandler` is initialized
+    and will be overriden
     """
     @property
     def wfile(self) -> BufferedIOBase:return self._wfile
