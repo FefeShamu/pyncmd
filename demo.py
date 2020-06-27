@@ -10,50 +10,55 @@ server = PyWebServer(('',3310))
 # Initializes the server without binding it
 
 def GetStyleSheet():return '''
-* {
-    font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-    font-size: 16px;
-}
+    * {
+        font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+        font-size: 16px;
+    }
 
-body {
-    margin: 1em;
-    background-color: #2d2d2d;
-}
+    body {
+        margin: 1em;
+        background-color: #2d2d2d;
+    }
 
-a,center,span {
-    color: #CCC;
-    text-decoration: none;
-    transition: all 0.1s linear;
-}
+    a,center,span {
+        color: #CCC;
+        text-decoration: none;
+        transition: all 0.1s linear;
+    }
 
-p {
-    color: #999;
-}
+    p {
+        color: #999;
+    }
 
-a:hover,span:hover {
-    color: #ffcc66;
-}
+    i {
+        color:#CCC;
+    }
 
-h1 {
-    color: #CCC;
-    font-size: 32px;
-}
+    a:hover,span:hover {
+        color: #ffcc66;
+    }
 
-h3 {
-    color: #AAA;
-    font-size: 24px;
-}
+    h1 {
+        color: #CCC;
+        font-size: 32px;
+    }
 
-h4 {
-    color: #CCC;
-    font-size: 18px;
-}
+    h3 {
+        color: #AAA;
+        font-size: 24px;
+    }
 
-pre {
-    overflow: auto;
-    margin: 1em;
-    line-height: 2em;
-}'''
+    h4 {
+        color: #CCC;
+        font-size: 18px;
+    }
+
+    pre {
+        overflow: auto;
+        margin: 1em;
+        line-height: 2em;
+    }
+'''
 # Stylesheet!
 
 @server.route(PathMakerModules.Absolute('/files'))
@@ -67,32 +72,41 @@ def subfolder(request : RequestHandler):
     # Indexes folders of local path and renders a webpage
     HTTPModules.IndexFolder(request,'./' + request.path[7:],GetStyleSheet())
 
-ws_list = []
+messages = '<i>Server started at %s</i>' % RequestHandler.time_string(None)
+class WSChat(Websocket):
+    # Using classes to do websocket jobs is recommended
+    def boardcast(self,message):
+        global messages
+        messages += f'<p>{message}<p>'
+        for ws in server.websockets:
+            if self != ws:ws.send(message)
+
+    def onReceive(self, frame):
+        global messages
+        def others():return ",".join([ws_.name if hasattr(ws_,"name") else "[PENDING]" for ws_ in server.websockets if ws_ != self])
+        if not hasattr(self,'name'):
+            # 1st message,aquire username
+            setattr(self,'name', frame.PAYLOAD.decode())
+            self.boardcast(f'<i>{self.name} Logged in</i>')
+            self.send(f'<b>Welcome,{self.name}</b>...<i>Other online users:{others()}</i>')
+            self.send('<b>Message Histroy</b><hr>')
+            self.send(messages)
+            self.send('<hr>')
+            return
+        message = f'{self.name} says: {frame.PAYLOAD.decode()}'
+        self.boardcast(message)
+        self.send('<i>[your message has been sent to %s other members (%s)]</i>' % (len(server.websockets) - 1,others()))
+
 @server.route(PathMakerModules.Absolute('/ws'))
 def websocket(request : RequestHandler):
     # A simple WebSocket echo server,which will boardcast
     # Message to all connected sessions
-    ws = Websocket(request)
-    ws_list.append(ws)
+    ws = WSChat(request)
     # Store the session
     ws.handshake()
-    ws.send_nowait('<b>Name yourself:</b>')
-    def others():return ",".join([ws_.name if hasattr(ws_,"name") else "[PENDING]" for ws_ in ws_list if ws_ != ws])
-    def callback(msg:WebsocketFrame):   
-        if msg.OPCODE == Websocket.PONG:return
-        if not hasattr(ws,'name'):
-            # 1st message,aquire username
-            setattr(ws,'name', msg.PAYLOAD.decode())
-            ws.send(f'<b>Welcome,{ws.name}</b>...<i>Other online users:{others()}</i>')
-            return
-        for ws_ in ws_list:
-            if ws != ws_:ws_.send(f'{ws.name} says: {msg[-1].decode()}')
-            # Avoid sending to ourselfS
-        ws.send('<i>[your message has been sent to %s other members (%s)]</i>' % (len(ws_list) - 1,others()))
-    ws.callback = callback
+    ws.send('<b>Name yourself:</b>')
     ws.serve()
-    ws_list.remove(ws)
-    # Removes session after it closes
+    # Starts serving until exceptions
 
 
 @server.route(PathMakerModules.Absolute('/'))
