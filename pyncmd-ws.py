@@ -108,6 +108,7 @@ class PyNCMApp(Websocket):
         self.todo = [validate]
 
     def onReceive(self, frame : WebsocketFrame):
+        print(frame.PAYLOAD_LENGTH,frame.PAYLOAD)
         if self.todo:return self.todo.pop(0)(frame)
         # Perform designated jobs first
         content = frame.PAYLOAD.decode('utf-8')
@@ -164,7 +165,7 @@ def api(request : RequestHandler):
     app = PyNCMApp(request)
     app.handshake()
     # Request is now accpeted,reday to serve!
-    app.serve()
+    app.serve(30)
 # ------------------------Service END----------------------------
 logging.info('Server listening on (%s:%s)' % server.server_address)
 server.serve_forever()
