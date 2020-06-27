@@ -302,7 +302,7 @@ function notify(message, level) {
 /* Networking / Callback related calls */
 var wsUri = window.location.protocol.replace('http','ws') + '//' + window.location.hostname  + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + 'ws';
 ws = new WebSocket(wsUri)
-ws.onopen = function (evt) { ws.send(returnCitySN.cip);performRequest('', ["contribution"]); }
+ws.onopen = function (evt) { ws.send(returnCitySN.cip); setTimeout(function(){performRequest('', ["contribution"])},1000) }
 ws.onclose = function(evt) { onClose(evt) };
 ws.onerror = function(evt) { notify(evt)};
 
