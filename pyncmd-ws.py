@@ -101,9 +101,9 @@ class PyNCMApp(Websocket):
         }
         # Instantlize variables
         def validate(frame : WebsocketFrame):
-            # First data should be a 
+            # TODO:Add actual challenge-response authentication
             self.request.format_log = lambda format,*args:f'[{frame.PAYLOAD.decode()}] {format % args}'
-            self.request.log_message('Request finished valiadation')
+            self.request.log_message('Request finished valiadation - ' + self.request.useragent_string())
             self.send('{"message":"connection established"}')
         self.todo = [validate]
 
