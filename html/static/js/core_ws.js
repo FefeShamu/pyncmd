@@ -431,7 +431,7 @@ callback_lyrics = _callback(callback_lyrics)
 function callback_contribution(info) {
     // callback to process requirements['contribution']
     contributioninfo = info.contribution
-    console.log({ 'Contribution callback': contributioninfo })
+    // console.log({ 'Contribution callback': contributioninfo })
     // compose infobox 2
     infocontext2.innerHTML = '<a style="color:#888;margin=top:30px">服务贡献者:<strong> '.concat(
         contributioninfo.contributer,
