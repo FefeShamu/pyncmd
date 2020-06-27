@@ -86,7 +86,7 @@ def IndexPage(request : RequestHandler):
 class PyNCMApp(Websocket):
 
     def onOpen(self):
-        self.count,self.requirement_mapping = 0,{
+        self.requirement_mapping = {
         'audio':NCM.GetSongInfo,
         'info':NCM.GetSongDetail,
         'lyrics':NCM.GetSongLyrics,
@@ -96,7 +96,7 @@ class PyNCMApp(Websocket):
         'contribution':lambda *args:{
                 "contributer": NCM.login_info['content']['profile']['nickname'] if NCM.GetUserAccountLevel() != 'NOLOGIN' else '未登录',
                 "contributer_message": ContributerMessage,
-                "count":self.count                   
+                "count":len(self.request.server.websockets)
             }
         }
         # Instantlize variables
@@ -131,7 +131,10 @@ class PyNCMApp(Websocket):
                 // sets audio quality
             }
             '''
-            self.request.log_message(f'ID:{id} Requirements:{requirements} Extras:{extras}')
+            if not requirements == ['contribution']:
+                # Do not log 'contribution' calls if it's the only one being required
+                # This is reserved for getting online user counts
+                self.request.log_message(f'ID:{id} Requirements:{requirements} Extras:{extras}')
             response = {}
             for requirement in requirements:
                 # composing response
@@ -156,8 +159,7 @@ class PyNCMApp(Websocket):
             self.send(response)
         except Exception as e:
             # failed!            
-            self.send('{"message":"unexcepted error:%s"}' % e)
-        self.count += 1       
+            self.send('{"message":"unexcepted error:%s"}' % e)   
  
 @server.route(PathMakerModules.Absolute('/ws'))
 def api(request : RequestHandler):
