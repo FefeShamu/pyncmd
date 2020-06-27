@@ -108,7 +108,6 @@ class PyNCMApp(Websocket):
         self.todo = [validate]
 
     def onReceive(self, frame : WebsocketFrame):
-        print(frame.PAYLOAD_LENGTH,frame.PAYLOAD)
         if self.todo:return self.todo.pop(0)(frame)
         # Perform designated jobs first
         content = frame.PAYLOAD.decode('utf-8')
