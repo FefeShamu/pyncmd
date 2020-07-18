@@ -86,7 +86,7 @@ def IndexPage(request : RequestHandler):
     # /
     # Index page
     request.send_response(200)
-    HTTPModules.WriteFileHTTP(request,'html/index.html')
+    HTTPModules.WriteStream(request,'html/index.html')
 
 count,requirement_mapping = 0,{
     'audio':NCM.GetSongInfo,
@@ -165,7 +165,7 @@ def API(request : RequestHandler):
 
 @server.route(PathMakerModules.DirectoryPath('/static/'))
 def html(request : RequestHandler):
-    HTTPModules.WriteFileHTTP(request,'./html' + request.path) # Adds '.',referncing local paths
+    HTTPModules.WriteStream(request,'./html' + request.path) # Adds '.',referncing local paths
 # Don't index folders
 
 logging.info('Listening:\n    http://{0}:{1}'.format(*server.server_address))

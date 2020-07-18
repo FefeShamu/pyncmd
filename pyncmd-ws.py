@@ -74,14 +74,14 @@ def favicon(request : RequestHandler):
 
 @server.route(PathMakerModules.DirectoryPath('/static/'))
 def html(request : RequestHandler):
-    HTTPModules.WriteFileHTTP(request,'./html' + request.path) # Adds '.',referncing local paths
+    HTTPModules.WriteStream(request,'./html' + request.path) # Adds '.',referncing local paths
 
 @server.route(PathMakerModules.Absolute('/'))
 def IndexPage(request : RequestHandler):
     # /
     # Index page
     request.send_response(200)
-    HTTPModules.WriteFileHTTP(request,'html/index_ws.html')
+    HTTPModules.WriteStream(request,'html/index_ws.html')
 
 class PyNCMApp(Websocket):
 
