@@ -46,7 +46,8 @@ function ffta_draw() {
     var x = 0;
 
     for (var i = 0; i < bufferLength; i++) {
-        var barHeight = HEIGHT * (dataArray[i] / 255) * _.ratio;
+        var barHeight = HEIGHT * (dataArray[i]**2 / 255**2) * _.ratio
+        // use squared values to `ampifiy` the delta in value
         if (!peak[i]) peak[i] = {
             'val': 0,
             'vel': 0,
@@ -54,7 +55,7 @@ function ffta_draw() {
         };
         peak[i].tick = !peak[i].tick ? tickdelta : peak[i].tick + tickdelta
         if (!peak[i].val || peak[i].val < barHeight && barHeight != 0) {
-            peak[i].vel = (barHeight - peak[i].val) * _.force;
+            peak[i].vel = (barHeight - peak[i].val) ** 2 * _.force;
             peak[i].val = barHeight;
 
         } // reset force once peak was reached    
@@ -62,7 +63,7 @@ function ffta_draw() {
         if (peak[i].tick > 16) {
             peak[i].vel = clamp(peak[i].vel, 2, -5); // linear accleation curve within range of (-5,2) with step of 0.1
             peak[i].vel -= _.g;
-            peak[i].val = peak[i].val + peak[i].vel
+            if (peak[i].vel < -2.4){peak[i].val = peak[i].val + peak[i].vel}
             peak[i].tick = 0
         }
         // apply velocity
