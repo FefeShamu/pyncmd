@@ -99,13 +99,14 @@ class PyNCMApp(Websocket):
                 "count":len(self.request.server.websockets)
             }
         }
-        # Instantlize variables
+        # Load pesudo-dynamic variables
         def validate(frame : WebsocketFrame):
-            # TODO:Add actual challenge-response authentication
+            # TODO:Add actual challenge-response authentication (bearer or some sort?)
             self.request.format_log = lambda format,*args:f'[{frame.PAYLOAD.decode()}] {format % args}'
             self.request.log_message('Request finished valiadation - ' + self.request.useragent_string())
             self.send('{"message":"connection established"}')
         self.todo = [validate]
+        # Try to validate the request first
 
     def onReceive(self, frame : WebsocketFrame):
         if self.todo:return self.todo.pop(0)(frame)
