@@ -292,6 +292,7 @@ function notify(message, level) {
         notice.style.padding = 0
         // to animate the leaving animation
     }
+    console.error(message)
     notice.innerHTML = message
     notifyfeed.appendChild(notice)
     scrollTo(0, 0)

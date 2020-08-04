@@ -102,7 +102,7 @@ class PyNCMApp(Websocket):
         # Load pesudo-dynamic variables
         def validate(frame : WebsocketFrame):
             # TODO:Add actual challenge-response authentication (bearer or some sort?)
-            self.request.format_log = lambda format,*args:f'[{frame.PAYLOAD.decode()}] {format % args}'
+            self.request.format_log = lambda format,*args:f'[{frame.decode()}] {format % args}'
             self.request.log_message('Request finished valiadation - ' + self.request.useragent_string())
             self.send('{"message":"connection established"}')
         self.todo = [validate]
@@ -111,7 +111,7 @@ class PyNCMApp(Websocket):
     def onReceive(self, frame : WebsocketFrame):
         if self.todo:return self.todo.pop(0)(frame)
         # Perform designated jobs first
-        content = frame.PAYLOAD.decode('utf-8')
+        content = frame.decode('utf-8')
         # load content inside request body
         try:
             content = json.loads(content)
