@@ -2,3 +2,5 @@ requests
 pycryptodome
 colorama
 coloredlogs
+pywebhost
+pyncm
