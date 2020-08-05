@@ -1,9 +1,9 @@
 import pyncm.ncm,argparse,os,coloredlogs,logging,json,base64
 from http import HTTPStatus
-from pywebserver.pywebserver import PyWebServer
-from pywebserver.pywebserver.handler import RequestHandler
-from pywebserver.pywebserver.adapter.websocket import Websocket,WebsocketFrame
-from pywebserver.pywebserver.modules import PathMakerModules,HTTPModules
+from pywebhost import PyWebHost
+from pywebhost.handler import RequestHandler
+from pywebhost.adapter.websocket import Websocket,WebsocketFrame
+from pywebhost.modules import PathMakerModules,HTTPModules
 from pyncm.ncm.ncm_core import NeteaseCloudMusic
 from pyncm.ncm import Depercated
 from datetime import timedelta
@@ -62,7 +62,7 @@ if phone and password:
     open('.user','w+',encoding='utf-8').write(json.dumps(NCM.login_info))
     logging.info('Saved user login info to `.user`')
 
-server = PyWebServer(('', port))
+server = PyWebHost(('', port))
 @server.route(PathMakerModules.AbsoluteWithoutCaps('/favicon.ico'))
 def favicon(request : RequestHandler):
     favicon_base64 = '''iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABXSURBVDhPpc1LDsBACALQuf+lrQ2EMpr059tMhNCu+OgcrB2Lhjk6HOkqLHR/B45FwxyPqChmgzwci4Y5nvfGf1BRzAZ5OBSFcg5w3KgDh6JQ/vztTcQBqP4l98/X4gAAAAAASUVORK5CYII=    
