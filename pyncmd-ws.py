@@ -85,12 +85,20 @@ def IndexPage(request : RequestHandler):
 
 class PyNCMApp(Websocket):
 
+    def GetFullPlaylistInfo(self,id):
+        # TODO:this is just a tempoary fix.this should be handled by front-end logic rather than us
+        info = NCM.GetPlaylistInfo(id)
+        trackIds = [tid['id'] for tid in info['playlist']['trackIds']]
+        tracks = NCM.GetTrackDetail(trackIds)['songs']
+        info['playlist']['tracks'] = tracks
+        return info
+
     def onOpen(self):
         self.requirement_mapping = {
-        'audio':NCM.GetSongInfo,
-        'info':NCM.GetSongDetail,
-        'lyrics':NCM.GetSongLyrics,
-        'playlist':NCM.GetPlaylistInfo,
+        'audio':NCM.GetTrackAudioInfo,
+        'info':NCM.GetTrackDetail,
+        'lyrics':NCM.GetTrackLyrics,
+        'playlist':self.GetFullPlaylistInfo,
         'album':NCM.GetAlbumInfo,
         'mv':NCM.GetMVInfo,
         'contribution':lambda *args:{
