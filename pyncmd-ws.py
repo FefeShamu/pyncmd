@@ -36,11 +36,12 @@ parser.add_argument('--phone',metavar='PHONE',help='Phone number to your account
 parser.add_argument('--password', metavar='PASSWORD',help='Password to your account')
 parser.add_argument('--port', metavar='PORT',help='Port to be listened on',default='3301')
 parser.add_argument('--message', metavar='MSG',help='Custom message to be displayed',default='')
+parser.add_argument('--host', metavar='HOST',help='Restrict request hosts for websockets',default='')
 
 args = parser.parse_args()
 args = args.__dict__
 
-port,phone,password,ContributerMessage = int(args['port']),args['phone'],args['password'],args['message']
+port,phone,password,ContributerMessage,host = int(args['port']),args['phone'],args['password'],args['message'],args['host']
 # Parsing argumnets
 NCM = NeteaseCloudMusic()
 
@@ -92,6 +93,14 @@ class PyNCMApp(Websocket):
         tracks = NCM.GetTrackDetail(trackIds)['songs']
         info['playlist']['tracks'] = tracks
         return info
+
+    def handshake(self):
+        if host:
+            r_host = self.request.headers.get('Host')
+            if not host in r_host:
+                self.request.send_error(403,f'Host {r_host} is not recongized')
+                return
+        return super().handshake()
 
     def onOpen(self):
         self.requirement_mapping = {
