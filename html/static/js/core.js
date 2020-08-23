@@ -92,10 +92,6 @@ function updateNodes() {
 
     qualitySelector = document.getElementById('quality-selector')
 
-    window.onload = function () {
-        performRequest("Connected from " + returnCitySN.cip, ["contribution"]);
-    };
-
     function initFFTWindow() {
         // initalizing visualizer
         peakmeter = document.getElementById('peak-meter')
@@ -263,7 +259,7 @@ function setDownload(src, saveAs) {
         // assuming it's a blob
         if (window.navigator.msSaveOrOpenBlob) {
             //ie11
-            window.navigator.msSaveOrOpenBlob(src,saveAs)
+            window.navigator.msSaveOrOpenBlob(src, saveAs)
         } else {
             download_placeholder.href = window.URL.createObjectURL(src)
             download_placeholder.setAttribute('download', saveAs)
@@ -296,6 +292,7 @@ function notify(message, level) {
         notice.style.padding = 0
         // to animate the leaving animation
     }
+    console.error(message)
     notice.innerHTML = message
     notifyfeed.appendChild(notice)
     scrollTo(0, 0)
@@ -304,10 +301,12 @@ function notify(message, level) {
 /***************************/
 
 /* Networking / Callback related calls */
-function getAPI(api) {
-    // removes anomalous chars,then concat the api
-    return "".concat(location.origin).concat(location.pathname).concat('api');
-}
+var wsUri = window.location.protocol.replace('http', 'ws') + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + 'ws';
+ws = new WebSocket(wsUri)
+ws.onopen = function (evt) { ws.send(returnCitySN.cip); setInterval(function () { performRequest('', ["contribution"]) }, 1000) }
+// From now on,we will pull `contribution` message every 1s
+ws.onclose = function (evt) { onClose(evt) };
+ws.onerror = function (evt) { notify(evt) };
 
 function performRequest() {
     var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
@@ -316,32 +315,25 @@ function performRequest() {
     var extra = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
     var msg = JSON.stringify({ "id": id, "requirements": requirements, "extras": extra })
-    var r = new XMLHttpRequest();
-    var api = getAPI()
-    r.open("POST", api, true);
-    r.onreadystatechange = function () {
-        if (r.readyState == XMLHttpRequest.DONE) {
-            try {
-                var info = JSON.parse(r.responseText)
-                for (i in info.requirements) {
-                    requirement = info.requirements[i]
-                    eval('callback_' + requirement + '(info=info,r,override=override)');
-                }
-                // reflect the callback using eval
-            } catch (error) {
-                notify(error, 'danger')
-            }
 
+    ws.onmessage = function (evt) {
+        try {
+            var info = JSON.parse(evt.data)
+            for (var i in info.requirements) {
+                requirement = info.requirements[i]
+                eval('callback_' + requirement + '(info=info,override=override)');
+            }
+            // reflect the callback using eval
+        } catch (error) {
+            notify(error, 'danger')
         }
     }
-    r.send(msg);
+    ws.send(msg);
 }
 
 function _callback(target) {
     // callback funtion wrapper
-    return function (info, r, override) {
-        if (r.status != 200) { notify(info.message, 'danger'); return }
-        // server-side error message,notabliy dangerous and should be alerted to the user
+    return function (info, override) {
         if (!!override) { override(info) } else { target(info) }
         // execute function to be wrapped if message is valid
 
@@ -371,6 +363,40 @@ function callback_audio(info) {
 }
 callback_audio = _callback(callback_audio)
 
+function picUrl(musicinfo) {
+    if (musicinfo.al.id) {
+        return musicinfo.al.picUrl
+    } else {
+        if (!!musicinfo.pc) { // it's for the colud-drive's music library
+            return 'http://music.163.com/api/img/blur/' + musicinfo.pc.cid
+        }
+    }
+}
+
+function albumName(musicinfo) {
+    if (musicinfo.al.id) {
+        return musicinfo.al.name
+    } else {
+        if (!!musicinfo.pc) {
+            return musicinfo.pc.alb
+        } else {
+            return 'Unknown'
+        }
+    }
+}
+
+function artists(musicinfo) {
+    if (musicinfo.ar[0].id) {
+        return musicinfo.ar
+    } else {        
+        if (!!musicinfo.pc) {
+            return [{ id: 0, name: musicinfo.pc.ar }]
+        } else {
+            return 'Unknown'
+        }
+    }
+}
+
 function callback_info(info) {
     // callback to process requirements['info']
     musicinfo = info.info.songs[0]
@@ -380,32 +406,29 @@ function callback_info(info) {
             "解析 (ID:".concat(info.required_id, ") 失败"),
             "warning"
         );
-
         return
     }
-    // extra error checks
-    if (info.cover != []) cover.src = musicinfo.al.picUrl
+
+    cover.src = picUrl(musicinfo)
 
     title.innerHTML = '<a href="https://music.163.com/#/song?id='
         .concat(musicinfo.id, '">')
         .concat(musicinfo.name, "</a>");
     album.innerHTML = '<a href="https://music.163.com/#/album?id='
         .concat(musicinfo.al.id, '" style="color:gray">')
-        .concat(musicinfo.al.name, "</a>");
+        .concat(albumName(musicinfo), "</a>");
     // compose info box 1
 
     infocontext1.innerHTML = '音乐家：'
     function addArtist(ar) {
-        var head = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "<a> / </a>";
         infocontext1.innerHTML += ""
-            .concat(head, '<a href="https://music.163.com/#/artist?id=')
+            .concat('<a class="artist" href="https://music.163.com/#/artist?id=')
             .concat(ar.id, '" style="color:gray">')
             .concat(ar.name, "</a>");
     }
-    addArtist(musicinfo.ar[0], head = '')
-    for (index in musicinfo.ar.slice(1)) {
-        ar = musicinfo.ar.slice(1)[index]
-        addArtist(ar)
+    var ars = artists(musicinfo)
+    for (index in ars) {
+        addArtist(ars[index])
     }
     if (!!audioinfo.data) {
         // these will only be added if audioinfo is available
@@ -440,7 +463,7 @@ callback_lyrics = _callback(callback_lyrics)
 function callback_contribution(info) {
     // callback to process requirements['contribution']
     contributioninfo = info.contribution
-    console.log({ 'Contribution callback': contributioninfo })
+    // console.log({ 'Contribution callback': contributioninfo })
     // compose infobox 2
     infocontext2.innerHTML = '<a style="color:#888;margin=top:30px">服务贡献者:<strong> '.concat(
         contributioninfo.contributer,
@@ -450,9 +473,9 @@ function callback_contribution(info) {
         contributioninfo.contributer_message,
         " </i></a></br>"
     );
-    infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 服务已使用  <strong> '.concat(
+    infocontext2.innerHTML += '<i style="color:#AAA;font-size:small;"> 现有  <strong> '.concat(
         contributioninfo.count,
-        " </strong> 次 </i>"
+        " </strong> 人正在同时使用 </i>"
     );
 
 }
@@ -615,7 +638,7 @@ function nodes_append(song) {
     /* CREATE MEDIABOX */
     var covernode = document.createElement('img')
     covernode.className = 'd-flex mr-3 rounded covernode'
-    covernode.src = song.al.picUrl
+    covernode.src = picUrl(song)
     /* CREATE COVER */
     var mediabody = document.createElement('div')
     mediabody.className = 'media-body'
@@ -628,7 +651,7 @@ function nodes_append(song) {
     mediatitle.onclick = playqueue_item_onclick
     /* CREATE TITLE */
     var meidainfo = document.createElement('p')
-    meidainfo.innerHTML = song.al.name + ' - ' + concatDictsByKey(song.ar, 'name', ' / ') + (!!song.mv ? '  <i class="fas fa-film" style="float:right;"></i><a>     </a>' : '')
+    meidainfo.innerHTML = albumName(song) + ' - ' + concatDictsByKey(artists(song), 'name', ' / ') + (!!song.mv ? '  <i class="fas fa-film" style="float:right;"></i><a>     </a>' : '')
     var closebutton = document.createElement('a')
     closebutton.className = 'close'
     closebutton.onclick = playqueue_item_remove_onclick
