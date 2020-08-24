@@ -499,15 +499,8 @@ function callback_album(info) {
     albuminfo = info.album
     console.log({ 'Albuminfo callback': albuminfo })
     // once album is loaded,appends them to the end of the list
-    for (index in albuminfo.songlist) {
-        item = albuminfo.songlist[index]
-        playqueue.push({
-            'id': item.id,
-            'name': item.name,
-            'al': item.album,
-            'ar': item.artists,
-            'mv': item.mvid
-        })
+    for (index in albuminfo.songs) {
+        playqueue.push(albuminfo.songs[index])
     }
     playqueue_update()
 }
@@ -763,6 +756,6 @@ function load_ids(playids) {
 if (!!params['?']) {
     // Action was specified
     shareinput.value = params['?']
-    setTimeout(action_onclick, 1000)
+    setTimeout(action_onclick, 10000)
 }
 /***************************/

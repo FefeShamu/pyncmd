@@ -4,8 +4,7 @@ from pywebhost import PyWebHost
 from pywebhost.handler import RequestHandler
 from pywebhost.adapter.websocket import Websocket,WebsocketFrame
 from pywebhost.modules import PathMakerModules,HTTPModules
-from pyncm.ncm.ncm_core import NeteaseCloudMusic
-from pyncm.ncm import Depercated
+from pyncm import apis as neapi,GetCurrentSession
 from datetime import timedelta
 
 coloredlogs.install(0)
@@ -43,12 +42,11 @@ args = args.__dict__
 
 port,phone,password,ContributerMessage,host = int(args['port']),args['phone'],args['password'],args['message'],args['host']
 # Parsing argumnets
-NCM = NeteaseCloudMusic()
-
+NCM = GetCurrentSession()
 if os.path.exists('.cookies'):
     # If cookies,userinfo are stored,load them in
     try:
-        pyncm.ncm.session.cookies.update(json.loads(open('.cookies',encoding='utf-8').read()))
+        NCM.cookies.update(json.loads(open('.cookies',encoding='utf-8').read()))
         logging.info('Loaded stored cookies,continue...')
         NCM.login_info = json.loads(open('.user',encoding='utf-8').read())
         logging.info('Loaded stored user info!')        
@@ -57,8 +55,8 @@ if os.path.exists('.cookies'):
 
 if phone and password:
     # Provided.login and save the info
-    NCM.UpdateLoginInfo(phone,password)
-    open('.cookies','w+',encoding='utf-8').write(json.dumps(pyncm.ncm.session.cookies.get_dict()))
+    neapi.login.CellphoneLogin(phone,password)
+    open('.cookies','w+',encoding='utf-8').write(json.dumps(NCM.cookies.get_dict()))
     logging.info('Saved cookies to `.cookies`')
     open('.user','w+',encoding='utf-8').write(json.dumps(NCM.login_info))
     logging.info('Saved user login info to `.user`')
@@ -88,9 +86,9 @@ class PyNCMApp(Websocket):
 
     def GetFullPlaylistInfo(self,id):
         # TODO:this is just a tempoary fix.this should be handled by front-end logic rather than us
-        info = NCM.GetPlaylistInfo(id)
+        info = neapi.playlist.GetPlaylistInfo(id)
         trackIds = [tid['id'] for tid in info['playlist']['trackIds']]
-        tracks = NCM.GetTrackDetail(trackIds)['songs']
+        tracks = neapi.track.GetTrackDetail(trackIds)['songs']
         info['playlist']['tracks'] = tracks
         return info
 
@@ -104,14 +102,14 @@ class PyNCMApp(Websocket):
 
     def onOpen(self):
         self.requirement_mapping = {
-        'audio':NCM.GetTrackAudioInfo,
-        'info':NCM.GetTrackDetail,
-        'lyrics':NCM.GetTrackLyrics,
+        'audio':neapi.track.GetTrackAudio,
+        'info':neapi.track.GetTrackDetail,
+        'lyrics':neapi.track.GetTrackLyrics,
         'playlist':self.GetFullPlaylistInfo,
-        'album':NCM.GetAlbumInfo,
-        'mv':NCM.GetMVInfo,
+        'album':neapi.album.GetAlbumInfo,
+        'mv':neapi.mv.GetMVInfo,
         'contribution':lambda *args:{
-                "contributer": NCM.login_info['content']['profile']['nickname'] if NCM.GetUserAccountLevel() != 'NOLOGIN' else '未登录',
+                "contributer": NCM.login_info['content']['profile']['nickname'] if NCM.login_info['success'] else '未登录',
                 "contributer_message": ContributerMessage,
                 "count":len(self.request.server.websockets)
             }
@@ -182,10 +180,11 @@ class PyNCMApp(Websocket):
 @server.route(PathMakerModules.Absolute('/ws'))
 def api(request : RequestHandler):
     app = PyNCMApp(request)
+    print('ready to handshake')
     app.handshake()
     # Request is now accpeted,reday to serve!
     app.serve(30)
 # ------------------------Service END----------------------------
-logging.info('Server listening on (%s:%s)' % server.server_address)
+logging.info('Server listening on http://%s:%s' % server.server_address)
 server.serve_forever()
 # ------------------------Program END----------------------------
