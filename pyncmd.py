@@ -1,4 +1,4 @@
-import pyncm.ncm,argparse,os,coloredlogs,logging,json,base64
+import argparse,os,coloredlogs,logging,json,base64
 from http import HTTPStatus
 from pywebhost import PyWebHost
 from pywebhost.handler import RequestHandler
@@ -107,7 +107,7 @@ class PyNCMApp(Websocket):
         'lyrics':neapi.track.GetTrackLyrics,
         'playlist':self.GetFullPlaylistInfo,
         'album':neapi.album.GetAlbumInfo,
-        'mv':neapi.mv.GetMVInfo,
+        'mv':neapi.video.GetMVResource,
         'contribution':lambda *args:{
                 "contributer": NCM.login_info['content']['profile']['nickname'] if NCM.login_info['success'] else '未登录',
                 "contributer_message": ContributerMessage,
@@ -180,7 +180,6 @@ class PyNCMApp(Websocket):
 @server.route(PathMakerModules.Absolute('/ws'))
 def api(request : RequestHandler):
     app = PyNCMApp(request)
-    print('ready to handshake')
     app.handshake()
     # Request is now accpeted,reday to serve!
     app.serve(30)
