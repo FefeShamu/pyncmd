@@ -1,5 +1,5 @@
 import argparse,os,coloredlogs,logging,json,base64
-from pywebhost import PyWebHost,WebsocketSessionWrapper, WriteStaticContent, writestream , Request , Websocket,WebsocketFrame
+from pywebhost import PyWebHost,WebsocketSessionWrapper, WriteContentToRequest, writestream , Request , Websocket,WebsocketFrame
 from pyncm import apis as neapi,GetCurrentSession
 
 coloredlogs.install(0)
@@ -68,13 +68,13 @@ def favicon(request : Request,content):
 @server.route('/static/.*')
 def html(request : Request,content):
     path = './html' + request.path
-    WriteStaticContent(request,path,mime_type='') # Adds '.',referncing local paths
+    WriteContentToRequest(request,path,mime_type='') # Adds '.',referncing local paths
 
 @server.route('/')
 def IndexPage(request : Request,content):
     # /
     # Index page
-    WriteStaticContent(request,'html/index.html',mime_type='text/html')
+    WriteContentToRequest(request,'html/index.html',mime_type='text/html')
 
 class PyNCMApp(Websocket):
 
