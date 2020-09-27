@@ -1,11 +1,6 @@
 import argparse,os,coloredlogs,logging,json,base64
-from http import HTTPStatus
-from pywebhost import PyWebHost
-from pywebhost.handler import RequestHandler
-from pywebhost.adapter.websocket import Websocket,WebsocketFrame
-from pywebhost.modules import PathMakerModules,HTTPModules
+from pywebhost import PyWebHost,WebsocketSessionWrapper, WriteStaticContent, writestream , Request , Websocket,WebsocketFrame
 from pyncm import apis as neapi,GetCurrentSession
-from datetime import timedelta
 
 coloredlogs.install(0)
 # ------------------------Imports END----------------------------
@@ -62,25 +57,24 @@ if phone and password:
     logging.info('Saved user login info to `.user`')
 
 server = PyWebHost(('', port))
-@server.route(PathMakerModules.AbsoluteWithoutCaps('/favicon.ico'))
-def favicon(request : RequestHandler):
+@server.route('/favicon.ico')
+def favicon(request : Request,content):
     favicon_base64 = '''iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABXSURBVDhPpc1LDsBACALQuf+lrQ2EMpr059tMhNCu+OgcrB2Lhjk6HOkqLHR/B45FwxyPqChmgzwci4Y5nvfGf1BRzAZ5OBSFcg5w3KgDh6JQ/vztTcQBqP4l98/X4gAAAAAASUVORK5CYII=    
     '''
     request.send_response(200)
     request.send_header('Content-Type','image/x-icon')
-    request.end_headers()
-    HTTPModules.WriteString(request,base64.b64decode(favicon_base64))
+    writestream(request,base64.b64decode(favicon_base64))
 
-@server.route(PathMakerModules.DirectoryPath('/static/'))
-def html(request : RequestHandler):
-    HTTPModules.WriteStream(request,'./html' + request.path) # Adds '.',referncing local paths
+@server.route('/static/.*')
+def html(request : Request,content):
+    path = './html' + request.path
+    WriteStaticContent(request,path,mime_type='') # Adds '.',referncing local paths
 
-@server.route(PathMakerModules.Absolute('/'))
-def IndexPage(request : RequestHandler):
+@server.route('/')
+def IndexPage(request : Request,content):
     # /
     # Index page
-    request.send_response(200)
-    HTTPModules.WriteStream(request,'html/index.html')
+    WriteStaticContent(request,'html/index.html',mime_type='text/html')
 
 class PyNCMApp(Websocket):
 
@@ -177,12 +171,10 @@ class PyNCMApp(Websocket):
             # failed!            
             self.send('{"message":"unexcepted error:%s"}' % e)   
  
-@server.route(PathMakerModules.Absolute('/ws'))
-def api(request : RequestHandler):
-    app = PyNCMApp(request)
-    app.handshake()
-    # Request is now accpeted,reday to serve!
-    app.serve(30)
+@server.route('/ws')
+@WebsocketSessionWrapper()
+def api(request : Request,content):
+    return PyNCMApp
 # ------------------------Service END----------------------------
 logging.info('Server listening on http://%s:%s' % server.server_address)
 server.serve_forever()
