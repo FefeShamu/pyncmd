@@ -1,5 +1,6 @@
 import argparse,os,coloredlogs,logging,json,base64
-from pywebhost import PyWebHost,WebsocketSessionWrapper, WriteContentToRequest, writestream , Request , Websocket,WebsocketFrame
+from pywebhost import PyWebHost, WriteContentToRequest, writestream , Request
+from pywebhost.modules.websocket import WebsocketSession,WebsocketSessionWrapper,WebsocketFrame
 from pyncm import apis as neapi,GetCurrentSession
 
 coloredlogs.install(0)
@@ -76,7 +77,7 @@ def IndexPage(request : Request,content):
     # Index page
     WriteContentToRequest(request,'html/index.html',mime_type='text/html')
 
-class PyNCMApp(Websocket):
+class PyNCMApp(WebsocketSession):
 
     def GetFullPlaylistInfo(self,id):
         # TODO:this is just a tempoary fix.this should be handled by front-end logic rather than us
@@ -111,7 +112,8 @@ class PyNCMApp(Websocket):
         # Load pesudo-dynamic variables
         def validate(frame : WebsocketFrame):
             # TODO:Add actual challenge-response authentication (bearer or some sort?)
-            self.request.format_log = lambda format,*args:f'[{frame.decode()}] {format % args}'
+            self.chlo = frame.decode() # client-hello
+            self.request.format_log = lambda format,*args:f'[{self.chlo}] {format % args}'
             self.request.log_message('Request finished valiadation - ' + self.request.useragent_string())
             self.send('{"message":"connection established"}')
         self.todo = [validate]
@@ -172,7 +174,7 @@ class PyNCMApp(Websocket):
             self.send('{"message":"unexcepted error:%s"}' % e)   
  
 @server.route('/ws')
-@WebsocketSessionWrapper()
+@WebsocketSessionWrapper(use_session_id=False)
 def api(request : Request,content):
     return PyNCMApp
 # ------------------------Service END----------------------------
