@@ -6,8 +6,7 @@ from pyncm import apis as neapi,GetCurrentSession
 coloredlogs.install(0)
 # ------------------------Imports END----------------------------
 coloredlogs.install(level=logging.INFO)
-splash = '''
-\033[35m
+splash = r'''
          p0000,
    _p00 ]0#^~M!       ___           __  ___            _
   p00M~  00          / _ \_   _  /\ \ \/ __\ /\/\   __| |
@@ -22,7 +21,6 @@ splash = '''
   `000pg,pp+------|
     ~M00000| | | ||
            +-+-+--+
-\033[0m
 '''
 print(splash)
 # ascii splash!
@@ -51,7 +49,7 @@ if os.path.exists('.cookies'):
 
 if phone and password:
     # Provided.login and save the info
-    neapi.login.CellphoneLogin(phone,password)
+    neapi.login.LoginViaCellphone(phone,password)
     open('.cookies','w+',encoding='utf-8').write(json.dumps(NCM.cookies.get_dict()))
     logging.info('Saved cookies to `.cookies`')
     open('.user','w+',encoding='utf-8').write(json.dumps(NCM.login_info))
@@ -59,7 +57,7 @@ if phone and password:
 
 server = PyWebHost(('', port))
 @server.route('/favicon.ico')
-def favicon(request : Request,content):
+def favicon(server : PyWebHost,request : Request,content):
     favicon_base64 = '''iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAABXSURBVDhPpc1LDsBACALQuf+lrQ2EMpr059tMhNCu+OgcrB2Lhjk6HOkqLHR/B45FwxyPqChmgzwci4Y5nvfGf1BRzAZ5OBSFcg5w3KgDh6JQ/vztTcQBqP4l98/X4gAAAAAASUVORK5CYII=    
     '''
     request.send_response(200)
@@ -67,12 +65,12 @@ def favicon(request : Request,content):
     writestream(request,base64.b64decode(favicon_base64))
 
 @server.route('/static/.*')
-def html(request : Request,content):
+def html(server : PyWebHost,request : Request,content):
     path = './html' + request.path
     WriteContentToRequest(request,path,mime_type='') # Adds '.',referncing local paths
 
 @server.route('/')
-def IndexPage(request : Request,content):
+def IndexPage(server : PyWebHost,request : Request,content):
     # /
     # Index page
     WriteContentToRequest(request,'html/index.html',mime_type='text/html')
@@ -175,7 +173,7 @@ class PyNCMApp(WebsocketSession):
  
 @server.route('/ws')
 @WebsocketSessionWrapper(use_session_id=False)
-def api(request : Request,content):
+def api(server : PyWebHost,request : Request,content):
     return PyNCMApp
 # ------------------------Service END----------------------------
 logging.info('Server listening on http://%s:%s' % server.server_address)

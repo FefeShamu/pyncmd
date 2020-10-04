@@ -303,8 +303,12 @@ function notify(message, level) {
 /* Networking / Callback related calls */
 var wsUri = window.location.protocol.replace('http', 'ws') + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + 'ws';
 ws = new WebSocket(wsUri)
-ws.onopen = function (evt) { ws.send(returnCitySN.cip); setInterval(function () { performRequest('', ["contribution"]) }, 1000) }
-// From now on,we will pull `contribution` message every 1s
+ws.onopen = function (evt) { 
+    ws.send(returnCitySN.cip); 
+    var f = () => { performRequest('', ["contribution"]) };
+    f();setInterval(f, 1000);
+}
+// From now on,we will pull `contribution` message every 10s as our hearbeat
 ws.onclose = function (evt) { onClose(evt) };
 ws.onerror = function (evt) { notify(evt) };
 
@@ -756,6 +760,6 @@ function load_ids(playids) {
 if (!!params['?']) {
     // Action was specified
     shareinput.value = params['?']
-    setTimeout(action_onclick, 10000)
+    setTimeout(action_onclick, 1000)
 }
 /***************************/
