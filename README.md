@@ -23,7 +23,7 @@
 |保存登录信息|✔|
 # DEMO
 使用:
-[PyNCMd](https://mos9527.tooo.top/ncm/) *使用 '..../ncm/?[链接]' URL参数自动填入*
+[PyNCMd](https://www.mos9527.top/ncm/) *使用 '..../ncm/?[链接]' URL参数自动填入*
 
 # 截图
 ![image](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.gif)
@@ -38,8 +38,8 @@
 
 # 感谢
 
-[The Bootstrap Team](https://getbootstrap.com/)
+[Bootstrap](https://getbootstrap.com/)
 
 [BootCSS](https://bootcss.com)
 
-And you✨
+And you
