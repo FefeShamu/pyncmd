@@ -5,6 +5,31 @@
 /* Initalizing */
 params = urlParams()
 
+function initFFTWindow() {
+    // initalizing visualizer
+    peakmeter = document.getElementById('peak-meter')        
+    audioCtx = new window.AudioContext()        
+    // connecting the analyzer    
+    var source = audioCtx.createMediaElementSource(player)
+    source.connect(audioCtx.destination)
+    var analyzer = audioCtx.createAnalyser()
+    source.connect(analyzer)
+    // in case audioCtx don't get actived if user dind't interact
+    // with the page
+    player.addEventListener('play', function () {
+        audioCtx.resume();
+    });
+
+    ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, {
+        'fillstyle': ['rgb(0, 123, 255)', 'rgb(172,211,255)'],
+        'spacing': 2,
+        'ratio': 1,
+        'force': 0.02,
+        'fftSize': 2048,
+        'g': 0.3
+    })
+}
+
 function updateNodes() {
     notifyfeed = document.getElementById("notifyfeed")
     cover = document.getElementById("cover")
@@ -89,41 +114,9 @@ function updateNodes() {
     next_song = document.getElementById('next-song')
     next_song.onclick = function () { playqueue_playhead += 1; playqueue_playhead_onchage() }
 
-
+    initFFTWindow()
     qualitySelector = document.getElementById('quality-selector')
-
-    function initFFTWindow() {
-        // initalizing visualizer
-        peakmeter = document.getElementById('peak-meter')
-        audioCtx = new window.AudioContext()
-        // connecting the analyzer
-        var source = audioCtx.createMediaElementSource(player)
-        source.connect(audioCtx.destination)
-        var analyzer = audioCtx.createAnalyser()
-        source.connect(analyzer)
-        // in case audioCtx don't get actived if user dind't interact
-        // with the page
-        player.addEventListener('play', function () {
-            audioCtx.resume();
-        });
-
-        ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, {
-            'fillstyle': ['rgb(0, 123, 255)', 'rgb(172,211,255)'],
-            'spacing': 2,
-            'ratio': 1,
-            'force': 0.02,
-            'fftSize': 256,
-            'g': 0.3
-        })
-    }
-
-    try {
-        initFFTWindow()
-    } catch (error) {
-        console.error(error)
-    }
-
-    player.crossOrigin = "anonymous";
+    player.crossOrigin = "anonymous";  
 
 } updateNodes()
 /***************************/
@@ -172,8 +165,8 @@ function player_setPlay(t) {
     setTimeout(function () {
         var p = player.play()
         if (!!p) {
-            p.then(function () {
-                console.log('Playback inialized')
+            p.then(function () {                
+                console.log('Playback inialized')                
             }).catch(function (e) {
                 console.log(e + '...Retrying playback in ' + t + 'ms')
                 player_setPlay(t)
@@ -212,7 +205,7 @@ function lyricsbox_update(lyrics_timestamp) {
 }
 
 function player_update() {
-    // player update event,used to update lyrics
+    // player update event,used to update lyrics and some other things
     if (typeof lyrics == "undefined") { return }
     if (!lyrics) { lyricsbox.innerHTML = '纯音乐 / 无歌词'; return }
     var lyrics_timestamp = findClosestLesserMatch(Object.keys(lyrics), player.currentTime)
