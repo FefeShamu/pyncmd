@@ -42,7 +42,7 @@ function draw_specturm(dataArray){
         var style = 'rgb(' + v + ',' + v + ',' +v + ')'
         var y=HEIGHT * (1 - vi / bufferLength)
         canvasCtx.fillStyle = style
-        canvasCtx.fillRect(xpos,y, 1, 1);
+        canvasCtx.fillRect(xpos,y, xdelta, 1);
     }    
 
 }
