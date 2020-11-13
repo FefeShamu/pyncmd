@@ -19,10 +19,23 @@ function ffta_init(analyserNode, canvasElement, w, h, settings) {
     canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
     requestAnimationFrame(ffta_draw);
 }
+function run_sequence(){
+    _.sequence()
+}
+function text(s){
+    canvasCtx.font = "30px Consolas"
+    canvasCtx.fillStyle = 'rgb(0,0,0)'
+    canvasCtx.fillRect(20,20,30 * 10,30)
+    canvasCtx.fillStyle = 'rgb(0,255,0)'
+    canvasCtx.fillText(
+        s, 20, 50
+    )
+}
 tickdelta = Date.now();
 bufferLength = 0;
-function draw_bars(dataArray){
-    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+function draw_bars(){
+    // classic flashy bars
+    analyser.getByteFrequencyData(dataArray);    
     var barWidth = WIDTH / bufferLength * 2.5 - _.spacing; // subtract SPACING to compansate the spacing error
     var barHeight;
     var x = 0;
@@ -34,17 +47,47 @@ function draw_bars(dataArray){
     }
 }
 xpos=0;xdelta=-1;seq_time=10 * 1000;
-function draw_specturm(dataArray){
+function draw_specturm(){
+    // fft specturm view
+    analyser.getByteFrequencyData(dataArray);
     xpos += xdelta; xpos = xpos % WIDTH;    
     for (var i = 0; i < bufferLength; i++) {        
         var vi= i;
-        var v = 255 * (Math.pow(dataArray[vi],3) / Math.pow(255,3))
+        var v = 255 * (Math.pow(dataArray[vi],2) / Math.pow(255,2))
         var style = 'rgb(' + v + ',' + v + ',' +v + ')'
         var y=HEIGHT * (1 - vi / bufferLength)
         canvasCtx.fillStyle = style
         canvasCtx.fillRect(xpos,y, xdelta, 1);
     }    
 
+}
+let threshold=3
+let range_l=0,range_r=0.3
+let accel=0.95
+let apush=15
+lastv=0,db_v=0;
+function draw_bass_response(){    
+    // flashy background
+    analyser.getByteFrequencyData(dataArray);
+    var avg=0;
+    var l=Math.floor(range_l * bufferLength)
+    var r=Math.floor(range_r * bufferLength - 1)
+    for (var i = l; i < r; i++) {avg += dataArray[i];}
+    avg = avg / (r - l + 1)
+    if ( avg - lastv > threshold) db_v += apush;
+    db_v *= accel;
+    var v = Math.sqrt(db_v) / Math.sqrt(255) * 255;
+    var h = HEIGHT >> 1;
+    for (var i=0;i < h;i++){
+        v1 = v * (h - i) / h
+        var style = 'rgb(' + v1 + ',' + v1 + ',' +v1 + ')';
+        canvasCtx.fillStyle = style
+        canvasCtx.fillRect(0,i,WIDTH,1)    
+        canvasCtx.fillRect(0,HEIGHT - i,WIDTH,1)    
+    }
+    
+    
+    lastv = avg;    
 }
 function ffta_draw() {
     if (typeof canvasCtx == 'undefined')return
@@ -54,17 +97,9 @@ function ffta_draw() {
         return
     }
     dataArray = new Uint8Array(bufferLength);
-    analyser.getByteFrequencyData(dataArray);
-    draw_specturm(dataArray);
-    if (_.showFPS) {
-        
-        canvasCtx.font = "30px Consolas"
-        canvasCtx.fillStyle = 'rgb(0,0,0)'
-        canvasCtx.fillRect(20,20,30 * 10,30)
-        canvasCtx.fillStyle = 'rgb(0,255,0)'
-        canvasCtx.fillText(
-            (1000 / (Date.now() - tickdelta)).toFixed(0).toString() + ' FPS    ', 20, 50
-        )
+    run_sequence();
+    if (_.showFPS) {        
+        text((1000 / (Date.now() - tickdelta)).toFixed(0).toString() + ' FPS    ')
     }
     xdelta = WIDTH * ((Date.now() - tickdelta) / seq_time)
     tickdelta = Date.now()

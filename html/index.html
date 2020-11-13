@@ -35,13 +35,22 @@
     }
 
     #lyricsbox,
-    #info2,
-    .lyrics {
+    #info2 {
       height: 50px;
       width: auto;
       animation: animate 2s linear 1;
-      white-space: pre-wrap;
+      white-space: pre-wrap;      
+      margin-bottom: 1em;
+    }
+
+    .lyric {      
+      font-weight: 500;
+    }
+
+    .sub-lyric-1,.sub-lyric-2{
       font-weight: 400;
+      font-style: italic;
+      font-family: monospace;
     }
 
     #cover {
@@ -128,6 +137,7 @@
           <h4 class="card-title" id="title">PYNCMD</h4>
           <h6 class="card-subtitle mb-2 text-muted" id="album" style="width: auto">by greats3an</h6>
           <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a>
+            <p class="card-text" style="font-size:small" id="info1"><a href="dramatic.html">DRAMATIC Ver.</a>
           </p>
           <h6 id="lyricsbox" >支持 歌曲、歌单、专辑分享链接解析</h6>
           <p class="card-text" id="info2">连接中...</p>
@@ -189,10 +199,14 @@
     </div>
 
   </div>
-  <!-- IP Tracking -->
-  <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
   <!-- FFT peak meter-->
   <script src="static/js/fftanalyzer.js"></script>
+  <script>
+    var wsUri = window.location.protocol.replace('http', 'ws') + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + 'ws';
+    sequence = draw_specturm
+  </script>
+  <!-- IP Tracking -->
+  <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
   <!-- Core.js core logic -->
   <script src="static/js/core.js"></script>
   <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

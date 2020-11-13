@@ -1,5 +1,9 @@
 /*
     Core.js：Front-End Interface logic
+    pieced this crap together while I was still new to both python & js,didn't even know what Promise is...
+    A lot of callbacks are involved,performance will be sucky for sure...
+
+    XXX : Rewrite & cleanup
 */
 
 /* Initalizing */
@@ -7,8 +11,8 @@ params = urlParams()
 
 function initFFTWindow() {
     // initalizing visualizer
-    peakmeter = document.getElementById('peak-meter')        
-    audioCtx = new window.AudioContext()        
+    peakmeter = document.getElementById('peak-meter')
+    audioCtx = new window.AudioContext()
     // connecting the analyzer    
     var source = audioCtx.createMediaElementSource(player)
     source.connect(audioCtx.destination)
@@ -25,8 +29,9 @@ function initFFTWindow() {
         'spacing': 2,
         'ratio': 1,
         'force': 0.02,
-        'fftSize': 2048,
-        'g': 0.3
+        'fftSize': 512,
+        'g': 0.3,
+        'sequence': sequence
     })
 }
 
@@ -116,7 +121,7 @@ function updateNodes() {
 
     initFFTWindow()
     qualitySelector = document.getElementById('quality-selector')
-    player.crossOrigin = "anonymous";  
+    player.crossOrigin = "anonymous";
 
 } updateNodes()
 /***************************/
@@ -165,8 +170,8 @@ function player_setPlay(t) {
     setTimeout(function () {
         var p = player.play()
         if (!!p) {
-            p.then(function () {                
-                console.log('Playback inialized')                
+            p.then(function () {
+                console.log('Playback inialized')
             }).catch(function (e) {
                 console.log(e + '...Retrying playback in ' + t + 'ms')
                 player_setPlay(t)
@@ -179,25 +184,16 @@ function lyricsbox_update(lyrics_timestamp) {
     // updates lyrics via timestamp
     var matched = lyrics[lyrics_timestamp]
     if (!!matched) {
-        var lyrics_html = '<a class="lyrics">' + matched.join('\n') + '</a>'
+        var lyrics_html = ''
+        for (match in matched) {
+            lyrics_html += '<a class="lyric sub-lyric-' + match + '"/>'
+            lyrics_html += matched[match] + '</a>\n'
+        }
         // find closest matched lyrics via timestamp
         if (lyricsbox.innerHTML == lyrics_html) return
         // lyrics not chaged,return
         lyricsbox.innerHTML = lyrics_html
         // updates lyrics
-        var lyrics_duration = (Object.keys(lyrics)[Object.keys(lyrics).indexOf(lyrics_timestamp.toString()) + 1] - lyrics_timestamp).toFixed(3)
-        // caculates duration for the animation in seconds
-        try {
-            lyricsbox.animate(
-                [
-                    { transform: 'translateY(-20%)', 'opacity': 0.2, 'offset': 0 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 0.6 },
-                    { transform: 'translateY(0%)', 'opacity': 1, 'offset': 1 }
-                ], {
-                easing: 'ease-out',
-                duration: lyrics_duration * 1000
-            }).play()
-        } catch (e) { }
         lyricsbox.updated_timestamp = lyrics_timestamp
     } else {
         lyricsbox.innerHTML = ''
@@ -222,9 +218,6 @@ setInterval(player_update, 500)
 
 function setDownload(src, saveAs) {
     function getBlob(url, notifier) {
-        // why Promise?well,if a webbrowser does not support that
-        // then it will likely not support Blobs either
-        // and it's way much prettier to use it instead of ugly callbacks
         return new Promise(function (resolve, reject) {
             const xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);
@@ -294,12 +287,22 @@ function notify(message, level) {
 /***************************/
 
 /* Networking / Callback related calls */
-var wsUri = window.location.protocol.replace('http', 'ws') + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + 'ws';
 ws = new WebSocket(wsUri)
-ws.onopen = function (evt) { 
-    ws.send(returnCitySN.cip); 
+ws.onopen = function (evt) {
+    ws.send(returnCitySN.cip);
     var f = () => { performRequest('', ["contribution"]) };
-    f();setInterval(f, 1000);
+    f(); setInterval(f, 1000);
+    if (!!params['?']) {
+        /* Parsing url params */
+        shareinput.value = params['?']
+        setTimeout(action_onclick, 1000)
+    }
+    if (!!params['notlrc'] && params['notlrc']  == 1) {
+        parse_tlryics = false
+    }
+    if (!!params['quality']) {
+        playback_quality = params['quality']
+    }
 }
 // From now on,we will pull `contribution` message every 10s as our hearbeat
 ws.onclose = function (evt) { onClose(evt) };
@@ -385,7 +388,7 @@ function albumName(musicinfo) {
 function artists(musicinfo) {
     if (musicinfo.ar[0].id) {
         return musicinfo.ar
-    } else {        
+    } else {
         if (!!musicinfo.pc) {
             return [{ id: 0, name: musicinfo.pc.ar }]
         } else {
@@ -395,8 +398,9 @@ function artists(musicinfo) {
 }
 
 function callback_info(info) {
-    // callback to process requirements['info']
-    musicinfo = info.info.songs[0]
+    // callback to process requirements['info']    
+    musicinfo = info.info
+    if (musicinfo) musicinfo = musicinfo.songs[0]; else return
     console.log({ 'Info callback': musicinfo })
     if (!musicinfo) {
         notify(
@@ -445,15 +449,16 @@ function callback_info(info) {
     }
 }
 callback_info = _callback(callback_info)
-
+parse_tlryics = true
 function callback_lyrics(info) {
     // callback to process requirements['lyrics']	
     lyricsinfo = info.lyrics
     console.log({ 'Lyrics callback': lyricsinfo })
     if (!!lyricsinfo.nolyric || !!lyricsinfo.uncollected)
-        lyrics = { '0': ['<i>纯音乐 / 无歌词</i>'] }
+        parseLryics()
     else
-        parseLryics(lyricsinfo.lrc.lyric, lyricsinfo.tlyric.lyric)
+        if (parse_tlryics) parseLryics(lyricsinfo.lrc.lyric, lyricsinfo.romalrc.lyric, lyricsinfo.tlyric.lyric)
+        else parseLryics(lyricsinfo.lrc.lyric, lyricsinfo.romalrc.lyric)
 }
 callback_lyrics = _callback(callback_lyrics)
 
@@ -525,7 +530,7 @@ function urlParams() {
         param = params[index]
         dict_params[param.split('=')[0]] = param.split('=')[1]
     }
-
+    console.log('Decoded URL params', dict_params)
     return dict_params
 }
 
@@ -541,9 +546,13 @@ function concatDictsByKey(dicts, key, split) {
 function convertFromTimestamp(timestamp) {
     // this will covert LRC timestamp to seconds
     try {
-        var m = (t = timestamp.split(':'))[0] * 1; s = (u = t[1]).split('.')[0] * 1; ms = u.split('.')[1] * 1
-        return (m * 60) + s + (ms / 1000)
+        var mm = timestamp.split(':')[0]
+        var ss = timestamp.split(':')[1]
+        var xx = ss.split('.')[1]
+        ss = ss.split('.')[0]
+        return (mm * 60) + ss * 1 + (xx * Math.pow(0.1, xx.length))
     } catch (error) {
+        console.error(error)
         return 0
     }
 }
@@ -559,10 +568,7 @@ function parseLryics(lrc, tlrc) {
     // lrc:original lyrics
     // tlrc:translation
     const lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-    if (!lrc) return
-    // Clear old lyrics
-    lyrics = {}
-    // not a local variable
+    lyrics = { '0': ['<i>' + "".concat(musicinfo.name, " - ").concat(concatDictsByKey(musicinfo.ar, "name", " / "))] }
     function addMatches(lrc_string) {
         while ((match = lrc_regex.exec(lrc_string)) !== null) {
             if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++
@@ -580,9 +586,7 @@ function parseLryics(lrc, tlrc) {
             // Where match[2] contains the second capture group
         }
     }
-    if (!!lrc) addMatches(lrc)
-    if (!!tlrc) addMatches(tlrc)
-
+    for (arg of arguments) addMatches(arg)
     console.log({ 'Translated Lyrics': lyrics })
     return lyrics
 }
@@ -736,8 +740,9 @@ function load_ids(playids) {
     for (index in playids) {
         id = playids[index]
         musicinfo_override = function (info) {
-            // once loaded,push to the playqueue
-            musicinfo = info.info.songs[0]
+            // once loaded,push to the playqueue            
+            musicinfo = info.info
+            if (musicinfo) musicinfo = musicinfo.songs[0]; else return
             if (!!musicinfo) {
                 playqueue.push(musicinfo)
                 console.log({ 'Info Override': musicinfo })
@@ -747,12 +752,3 @@ function load_ids(playids) {
         performRequest(id, ['info'], musicinfo_override)
     }
 }
-/***************************/
-
-/* Automated actions by params */
-if (!!params['?']) {
-    // Action was specified
-    shareinput.value = params['?']
-    setTimeout(action_onclick, 1000)
-}
-/***************************/

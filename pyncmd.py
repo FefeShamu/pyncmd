@@ -64,6 +64,11 @@ def favicon(server : PyWebHost,request : Request,content):
     request.send_header('Content-Type','image/x-icon')
     writestream(request,base64.b64decode(favicon_base64))
 
+@server.route('/.*')
+def html(server : PyWebHost,request : Request,content):
+    path = './html' + request.path
+    WriteContentToRequest(request,path,mime_type='') # Adds '.',referncing local paths
+
 @server.route('/static/.*')
 def html(server : PyWebHost,request : Request,content):
     path = './html' + request.path
