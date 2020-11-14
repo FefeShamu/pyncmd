@@ -41,7 +41,7 @@ function draw_bars(){
     var x = 0;
     for (var i = 0; i < bufferLength; i++) {        
         var barHeight = HEIGHT * (dataArray[i]**2 / 255**2) * _.ratio            
-        canvasCtx.fillStyle = _.fillstyle[1];
+        canvasCtx.fillStyle = _.barStyle;
         canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
         x += barWidth + _.spacing; // drawing the bars
     }
@@ -57,25 +57,21 @@ function draw_specturm(){
         var style = 'rgb(' + v + ',' + v + ',' +v + ')'
         var y=HEIGHT * (1 - vi / bufferLength)
         canvasCtx.fillStyle = style
-        canvasCtx.fillRect(xpos,y, xdelta, 1);
+        canvasCtx.fillRect(xpos,y, xdelta + 1, HEIGHT / bufferLength + 1);
     }    
 
 }
-let threshold=3
-let range_l=0,range_r=0.3
-let accel=0.95
-let apush=15
 lastv=0,db_v=0;
 function draw_bass_response(){    
     // flashy background
     analyser.getByteFrequencyData(dataArray);
     var avg=0;
-    var l=Math.floor(range_l * bufferLength)
-    var r=Math.floor(range_r * bufferLength - 1)
+    var l=Math.floor(_.range_l * bufferLength)
+    var r=Math.floor(_.range_r * bufferLength - 1)
     for (var i = l; i < r; i++) {avg += dataArray[i];}
     avg = avg / (r - l + 1)
-    if ( avg - lastv > threshold) db_v += apush;
-    db_v *= accel;
+    if ( avg - lastv > _.threshold) db_v += _.apush;
+    db_v *= _.accel;
     var v = Math.sqrt(db_v) / Math.sqrt(255) * 255;
     var h = HEIGHT >> 1;
     for (var i=0;i < h;i++){

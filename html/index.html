@@ -27,7 +27,7 @@
 
     body {
       overflow-x: hidden;
-      background-color  :black;
+      background-color: black;
     }
 
     .covernode {
@@ -39,15 +39,16 @@
       height: 50px;
       width: auto;
       animation: animate 2s linear 1;
-      white-space: pre-wrap;      
+      white-space: pre-wrap;
       margin-bottom: 1em;
     }
 
-    .lyric {      
+    .lyric {
       font-weight: 500;
     }
 
-    .sub-lyric-1,.sub-lyric-2{
+    .sub-lyric-1,
+    .sub-lyric-2 {
       font-weight: 400;
       font-style: italic;
       font-family: monospace;
@@ -93,9 +94,9 @@
     .notice:hover {
       background-color: white;
     }
-    
-    .download-progress{
-      float:right;
+
+    .download-progress {
+      float: right;
       transform: translateY(25%);
       width: 30%;
     }
@@ -106,12 +107,11 @@
       background-color: #efefef;
       text-align: center;
     }
-
   </style>
 </head>
 
 <body class="center-block" style="padding-bottom: 70px">
-  <canvas id="peak-meter" ></canvas>
+  <canvas id="peak-meter"></canvas>
   <div class="modal fade" id="mv-modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
       <div class="modal-content">
@@ -137,14 +137,14 @@
           <h4 class="card-title" id="title">PYNCMD</h4>
           <h6 class="card-subtitle mb-2 text-muted" id="album" style="width: auto">by greats3an</h6>
           <p class="card-text" style="font-size:small" id="info1"><a href="https://github.com/greats3an/pyncmd">项目主页</a>
-            <p class="card-text" style="font-size:small" id="info1"><a href="dramatic.html">DRAMATIC Ver.</a>
+          <p class="card-text" style="font-size:small" id="info1"><a href="#" onclick="document.location.href='dramatic.html?' + shareinput.value">DRAMATIC Ver.</a>
           </p>
-          <h6 id="lyricsbox" >支持 歌曲、歌单、专辑分享链接解析</h6>
+          <h6 id="lyricsbox">支持 歌曲、歌单、专辑分享链接解析</h6>
           <p class="card-text" id="info2">连接中...</p>
           <audio id="player" src="" style="width:100%" controls></audio>
 
-          <img id="cover" width="80vh" src="static/images/ImgResponsive_Placeholder.png"
-            class="rounded img-fluid" alt="专辑图像加载失败">
+          <img id="cover" width="80vh" src="static/images/ImgResponsive_Placeholder.png" class="rounded img-fluid"
+            alt="专辑图像加载失败">
 
           <div class="dropdown" style="text-overflow: clip">
             <a class="card-link" style="display: none" id="download-placeholder" download></a>
@@ -153,11 +153,12 @@
                 class="fas fa-cloud-download-alt"></i></a>
             <a class="card-link" id="download-lrc" data-toggle="tooltip" title="下载歌词"><i
                 class="fas fa-file-download"></i></a>
-            <a class="card-link" id="download-mv" title="下载 MV" data-toggle="modal"
-              data-target="#mv-modal"><i class="fas fa-file-video"></i></a>
+            <a class="card-link" id="download-mv" title="下载 MV" data-toggle="modal" data-target="#mv-modal"><i
+                class="fas fa-file-video"></i></a>
             <a class="card-link" id="prev-song" data-toggle="tooltip" title="上一首"><i class="fas fa-backward"></i></a>
             <a class="card-link" id="next-song" data-toggle="tooltip" title="下一首"><i class="fas fa-forward"></i></a>
-            <a class="card-link" title="设置" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fas fa-cog"></i></a>
+            <a class="card-link" title="设置" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i
+                class="fas fa-cog"></i></a>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuHeader">
               <h6 class="dropdown-header">歌曲品质</h6>
               <a class="dropdown-item" onClick="playback_quality='standard'">标准</a>
@@ -203,7 +204,10 @@
   <script src="static/js/fftanalyzer.js"></script>
   <script>
     var wsUri = window.location.protocol.replace('http', 'ws') + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname + 'ws';
-    sequence = draw_specturm
+    var ffta_settings = {
+      'fftSize': 4096,
+      'sequence': draw_specturm
+    }
   </script>
   <!-- IP Tracking -->
   <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>

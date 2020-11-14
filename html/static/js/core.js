@@ -24,15 +24,7 @@ function initFFTWindow() {
         audioCtx.resume();
     });
 
-    ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, {
-        'fillstyle': ['rgb(0, 123, 255)', 'rgb(172,211,255)'],
-        'spacing': 2,
-        'ratio': 1,
-        'force': 0.02,
-        'fftSize': 512,
-        'g': 0.3,
-        'sequence': sequence
-    })
+    ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, ffta_settings)
 }
 
 function updateNodes() {
@@ -292,16 +284,16 @@ ws.onopen = function (evt) {
     ws.send(returnCitySN.cip);
     var f = () => { performRequest('', ["contribution"]) };
     f(); setInterval(f, 1000);
-    if (!!params['?']) {
-        /* Parsing url params */
-        shareinput.value = params['?']
-        setTimeout(action_onclick, 1000)
-    }
-    if (!!params['notlrc'] && params['notlrc']  == 1) {
+    if (!!params['notlrc'] && params['notlrc'] == 1) {
         parse_tlryics = false
     }
     if (!!params['quality']) {
         playback_quality = params['quality']
+    }
+    if (!!params['?']) {
+        /* Parsing url params */
+        shareinput.value = params['?']
+        setTimeout(action_onclick(),100)
     }
 }
 // From now on,we will pull `contribution` message every 10s as our hearbeat

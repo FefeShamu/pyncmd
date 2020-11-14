@@ -38,6 +38,7 @@
     #info2 {
       position: fixed;
       white-space: pre-line;
+      width: fit-content;
       max-width: 60%;
       right: 10%;
       top: 10vh;
@@ -45,16 +46,20 @@
 
     .lyric {
       font-weight: 400;
-      font-size: 4em;
+      font-size: 3vw;
       color: white !important;
       font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     }
 
     .sub-lyric-1,
     .sub-lyric-2 {
-      font-size: 3em;
+      font-size: 2vw;
       font-style: italic;
       font-family: monospace;
+    }
+
+    .sub-lyric-2 {
+      opacity: 0.8;
     }
 
     #cover {
@@ -120,7 +125,7 @@
 <body class="center-block" style="padding-bottom: 70px" ondblclick="
 if ( $('.controls').hasClass('invisible')) $('.controls').removeClass('invisible'); else  $('.controls').addClass('invisible')
 ">
-  <canvas id="peak-meter" ></canvas>
+  <canvas id="peak-meter"></canvas>
   <div class="modal fade" id="mv-modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-xl" role="document">
       <div class="modal-content">
@@ -226,10 +231,21 @@ if ( $('.controls').hasClass('invisible')) $('.controls').removeClass('invisible
   </div>
   <script>
     var wsUri = window.location.protocol.replace('http', 'ws') + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '') + window.location.pathname.replace(window.location.pathname.split('/').pop(), '') + 'ws';
-    sequence = () => {
-      canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-      draw_bass_response()
-      draw_bars();
+    var ffta_settings = {
+      'barStyle': 'rgb(172,211,255)',
+      'spacing': 2,
+      'ratio': 1,
+      'fftSize': 512,
+      'threshold': 3,
+      'range_l': 0,
+      'range_r': 0.3,
+      'accel': 0.95,
+      'apush': 30,
+      'sequence': () => {
+        canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+        draw_bass_response()
+        draw_bars();
+      }
     }
   </script>
   <!-- IP Tracking -->
