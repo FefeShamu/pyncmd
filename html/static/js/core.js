@@ -11,6 +11,7 @@ params = urlParams()
 
 function initFFTWindow() {
     // initalizing visualizer
+    if (!window.AudioContext) return
     peakmeter = document.getElementById('peak-meter')
     audioCtx = new window.AudioContext()
     // connecting the analyzer    
