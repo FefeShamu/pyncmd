@@ -41,7 +41,7 @@ function draw_bars(){
     var x = 0;
     for (var i = 0; i < bufferLength; i++) {        
         var barHeight = HEIGHT * (dataArray[i]**2 / 255**2) * _.ratio            
-        canvasCtx.fillStyle = _.barStyle;
+        canvasCtx.fillStyle = _.barStyle[i % _.barStyle.length];
         canvasCtx.fillRect(x, HEIGHT - barHeight, barWidth, barHeight);
         x += barWidth + _.spacing; // drawing the bars
     }
@@ -54,7 +54,7 @@ function draw_specturm(){
     for (var i = 0; i < bufferLength; i++) {        
         var vi= i;
         var v = 255 * (Math.pow(dataArray[vi],2) / Math.pow(255,2))
-        var style = 'rgb(' + v + ',' + v + ',' +v + ')'
+        var style = 'rgb(' + v + ',' + v + ',' +v + ')';
         var y=HEIGHT * (1 - vi / bufferLength)
         canvasCtx.fillStyle = style
         canvasCtx.fillRect(xpos,y, xdelta + 1, HEIGHT / bufferLength + 1);
@@ -72,17 +72,15 @@ function draw_bass_response(){
     avg = avg / (r - l + 1)
     if ( avg - lastv > _.threshold) db_v += _.apush;
     db_v *= _.accel;
-    var v = Math.sqrt(db_v) / Math.sqrt(255) * 255;
+    var v = Math.sqrt(db_v) / Math.sqrt(255) * 144;
     var h = HEIGHT >> 1;
-    for (var i=0;i < h;i++){
+    for (var i=0;i <= h;i++){
         v1 = v * (h - i) / h
         var style = 'rgb(' + v1 + ',' + v1 + ',' +v1 + ')';
         canvasCtx.fillStyle = style
         canvasCtx.fillRect(0,i,WIDTH,1)    
         canvasCtx.fillRect(0,HEIGHT - i,WIDTH,1)    
-    }
-    
-    
+    }    
     lastv = avg;    
 }
 function ffta_draw() {
