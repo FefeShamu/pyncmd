@@ -28,7 +28,7 @@ def login(session_file=SESSION_FILE,phone='',password=''):
     if not (phone and password) and load():
         return logging.debug('[-] Recovered session data of [ %s ]' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname']) or True
     pyncm.login.LoginViaCellphone(phone,password)
-    logging.info('[+]',pyncm.GetCurrentSession().login_info['content']['profile']['nickname'],'has logged in')
+    logging.info('[+] %s' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname'],'has logged in')
     return save()
 server = None
 def route():    
