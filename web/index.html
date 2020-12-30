@@ -240,8 +240,7 @@
             draw_bass_response()
             draw_bars();
         }
-    }
-    const SEARCH_DEBOUNCE = 1000;
+    }   
 </script>
 <script>
     function check_arg() {
@@ -345,7 +344,8 @@
             parsedLyrics: null,
 
             searchResults: null,
-            queryString: null
+            queryString: null,
+            debounce:5000
         }),
         watch: {
             currentLyrics: (new_, old_) => {
@@ -372,7 +372,7 @@
                         }).catch(err => {
                         vue.loading = false
                     })
-                }, SEARCH_DEBOUNCE)
+                }, vue.debounce)
             }
         },
         methods: {
