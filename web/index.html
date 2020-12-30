@@ -13,8 +13,8 @@
     <script src="js/bootstrap-4.3.1.js" type="text/javascript"></script>
     <script src="js/vue.js"></script>
     <script src="js/vuetify.js"></script>
-    <script src="js/Sortable.min.js"></script>
-    <script src="js/vuedraggable.umd.min.js"></script>
+    <!-- <script src="js/Sortable.min.js"></script>
+    <script src="js/vuedraggable.umd.min.js"></script> -->
     <script src="js/fftanalyzer.js"></script>
     <title>Le player - now revised</title>
     <style>
@@ -27,8 +27,9 @@
             width: auto;
             position: fixed;
             margin-top: 0%;
-            right: 10%;
+            width: 100%;
             top: 10%;
+            padding: 10%;
         }
 
         .lyric-0,
@@ -48,8 +49,13 @@
             font-size: 2em;
         }
 
+        .lyrics-a {
+            float: left;
+        }
         .lyrics-b {
             opacity: 50%;
+            float: right;
+            margin-top: 1em;
         }
     </style>
 
@@ -64,23 +70,23 @@
                 <div class="lyrics-a">
                     <p v-for="(lyric,index) in this.lyricsAt(this.matchedIndex - 1)" :class="'lyric-'+index">{{lyric}}
                     </p>
-                </div>
+                </div></br>
                 <div class="lyrics-b">
                     <p v-for="(lyric,index) in this.lyricsAt(this.matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
                 </div>
             </div>
-            <v-dialog max-width="50%" v-model="error">
+            <v-dialog max-width="80%" v-model="error">
                 <v-card>
                     <v-card-title>
                         <span class="headline">Track Fetch Error</span>
                     </v-card-title>
                     <v-card-text>
-                        <div class="text-h2 pa-12">{{ lastError }}</div>
+                        <div class="text-h6 pa-12">{{ lastError }}</div>
                     </v-card-text>
                 </v-card>
             </v-dialog>
 
-            <v-dialog style="background: white;" max-width="50%" v-model="trackConflictDialog">
+            <v-dialog style="background: white;" max-width="80%" v-model="trackConflictDialog">
                 <v-card>
                     <v-card-title>
                         <span class="headline">Track Conflict</span>
@@ -111,7 +117,7 @@
                     <v-spacer></v-spacer>
                     <v-card style="background: white;" class="text-h5 pa-12">WIP - yet to be implemented</v-card>
                 </v-dialog>
-                <v-card v-if="currentTrack" tile grow width="100%">
+                <v-card v-if="currentTrack" tile grow width="80%">
                     <v-slider class="large-slider" style="height: 1em;" :value="currentTime" :max="duration" absolute
                         class="my-0 py-0" @change="seekTrack">
                     </v-slider>
@@ -214,14 +220,14 @@
                         </v-menu>
                     </v-toolbar>
                     <v-card v-if="!playlist.length" style="background: white;" class="text-h5 pa-12">
-                        * Items to be added
+                        No tracks available
                     </v-card>
-                    <draggable v-if="playlist.length" class="v-list" style="background: white;" ghost-class="ghost"
-                        @start="drag=true" @end="drag=false">
-                        <v-list-item v-for="track in playlist" :key="track.id" @click="setPlay(track)">
-                            <v-list-item-content>{{track.name}} - {{track.ar.map(f=>f.name).join('-')}}
-                            </v-list-item-content>
-                        </v-list-item>
+                    <v-list style="background: white;" ghost-class="ghost">
+                        <v-list-item v-for="track in playlist" :key="track.id" @click="setPlay(track)" >
+                            <v-list-item-title>{{track.name}}</v-list-item-title>
+                            <v-list-item-subtitle>{{track.al.name}} - {{track.ar.map(f=>f.name).join('-')}}</v-list-item-subtitle>
+                            
+                        </v-list>
                     </draggable>
                 </v-dialog>
             </v-bottom-navigation>
@@ -353,8 +359,14 @@
         watch: {
             currentLyrics: (new_, old_) => {
                 if (!new_) return
-                vue.parsedLyrics = parseLryics(new_.lrc.lyric, new_.romalrc.lyric, new_.tlyric.lyric)
-                console.log('Parsed', vue.parsedLyrics)
+                try{
+                    vue.parsedLyrics = parseLryics(new_.lrc.lyric, new_.romalrc.lyric, new_.tlyric.lyric)
+                    console.log('[lyrics] parsed', vue.parsedLyrics)
+                } catch {
+                    vue.parsedLyrics = null
+                    vue.matchedIndex = 0
+                }
+                
             },
             queryString: (new_, old_) => {
                 if (this.queryTimeout)
@@ -491,7 +503,7 @@
     vue.player.ontimeupdate = () => {
         vue.duration = vue.player.duration
         vue.currentTime = vue.player.currentTime
-        vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
+        if(vue.parsedLyrics)vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
     }
     vue.player.crossOrigin = "anonymous"
 </script>
