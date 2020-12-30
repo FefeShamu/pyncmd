@@ -77,7 +77,7 @@ def route():
         return NCMdAPISession
     return True
 def serve():
-    logging.debug('[-] Now serving http://127.0.0.1:%s' % server.server_address[1])
+    logging.info('[-] Now serving http://127.0.0.1:%s' % server.server_address[1])
     return server.serve_forever()
 if __name__ == "__main__":    
     import coloredlogs
