@@ -174,8 +174,11 @@
                                         </v-list-item>
                                     </template>
                                     <v-card v-if="!loading">
+                                        <v-card-title>
+                                            <span class="headline">Search</span>
+                                        </v-card-title>
                                         <v-spacer></v-spacer>
-                                        <v-text-field label="Search" @input="queryString=$event" class="mx-4">
+                                        <v-text-field label="Search tracks" @input="queryString=$event" class="mx-4">
                                         </v-text-field>
                                         <v-list>
                                             <v-list-item v-if="searchResults" v-for="track in searchResults"
@@ -345,7 +348,7 @@
 
             searchResults: null,
             queryString: null,
-            debounce:5000
+            debounce:2000
         }),
         watch: {
             currentLyrics: (new_, old_) => {
