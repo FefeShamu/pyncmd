@@ -166,14 +166,14 @@
                                 <v-app-bar-nav-icon v-on="on"></v-app-bar-nav-icon>
                             </template>
                             <v-list>
-                                <v-dialog max-width="80%">
+                                <v-dialog max-width="50%">
                                     <template v-slot:activator="{ on }">
                                         <v-list-item v-on="on">
                                             <v-icon>mdi-cloud-search</v-icon>
                                             <v-list-item-title>Add via Search</v-list-item-title>
                                         </v-list-item>
                                     </template>
-                                    <v-card v-if="!loading">
+                                    <v-card>
                                         <v-card-title>
                                             <span class="headline">Search</span>
                                         </v-card-title>
@@ -348,7 +348,7 @@
 
             searchResults: null,
             queryString: null,
-            debounce:2000
+            debounce:1000
         }),
         watch: {
             currentLyrics: (new_, old_) => {
