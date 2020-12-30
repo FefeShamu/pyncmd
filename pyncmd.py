@@ -81,7 +81,7 @@ def serve():
     return server.serve_forever()
 if __name__ == "__main__":    
     import coloredlogs
-    coloredlogs.install(0)
+    coloredlogs.install(logging.INFO)
     args = parse()    
     server = PyWebHost(('',args['port']))
     login(SESSION_FILE,args['phone'],args['password']) and route() and serve()
