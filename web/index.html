@@ -97,7 +97,10 @@
                     <v-spacer></v-spacer>
                     <v-list>
                         <v-list-item v-for="track in existTracks" :key="track.id">
-                            {{track.name}} - {{track.ar.map(f=>f.name).join('-')}} - {{track.al.name}}
+                            <v-list-item-title>{{ track.name }}</v-list-item-title>
+                            <v-list-item-subtitle>
+                                {{track.ar.map(f=>f.name).join('-')}} - {{track.al.name}}
+                            </v-list-item-subtitle>
                         </v-list-item>
                     </v-list>
                 </v-card>
@@ -189,9 +192,9 @@
                                         <v-list>
                                             <v-list-item v-if="searchResults" v-for="track in searchResults"
                                                 :key="track.id" @click="addTrack(track.id.toString())">
-                                                <v-list-item-title>{{ currentTrack.name }}</v-list-item-title>
+                                                <v-list-item-title>{{ track.name }}</v-list-item-title>
                                                 <v-list-item-subtitle>
-                                                    {{currentTrack.ar.map(f=>f.name).join('-')}} - {{currentTrack.al.name}}
+                                                    {{track.ar.map(f=>f.name).join('-')}} - {{track.al.name}}
                                                 </v-list-item-subtitle>
                                             </v-list-item>
                                         </v-list>
