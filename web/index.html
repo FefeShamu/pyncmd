@@ -189,8 +189,10 @@
                                         <v-list>
                                             <v-list-item v-if="searchResults" v-for="track in searchResults"
                                                 :key="track.id" @click="addTrack(track.id.toString())">
-                                                <v-list-item-content>
-                                                    {{track.name}} - {{track.ar.map(f=>f.name).join('-')}} - {{track.al.name}}</v-list-item-content>
+                                                <v-list-item-title>{{ currentTrack.name }}</v-list-item-title>
+                                                <v-list-item-subtitle>
+                                                    {{currentTrack.ar.map(f=>f.name).join('-')}} - {{currentTrack.al.name}}
+                                                </v-list-item-subtitle>
                                             </v-list-item>
                                         </v-list>
                                     </v-card>
