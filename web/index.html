@@ -16,7 +16,7 @@
     <!-- <script src="js/Sortable.min.js"></script>
     <script src="js/vuedraggable.umd.min.js"></script> -->
     <script src="js/fftanalyzer.js"></script>
-    <title>Le player - now revised</title>
+    <title>ho ho ho</title>
     <style>
         #visualizer {
             z-index: 0;
@@ -52,6 +52,7 @@
         .lyrics-a {
             float: left;
         }
+
         .lyrics-b {
             opacity: 50%;
             float: right;
@@ -129,7 +130,7 @@
                             <v-list-item-content>
                                 <v-list-item-title>{{ currentTrack.name }}</v-list-item-title>
                                 <v-list-item-subtitle>
-                                     {{currentTrack.ar.map(f=>f.name).join('-')}} - {{currentTrack.al.name}}
+                                    {{currentTrack.ar.map(f=>f.name).join('-')}} - {{currentTrack.al.name}}
                                 </v-list-item-subtitle>
                             </v-list-item-content>
                             <v-spacer></v-spacer>
@@ -189,6 +190,7 @@
                                         <v-spacer></v-spacer>
                                         <v-text-field label="Search tracks" @input="queryString=$event" class="mx-4">
                                         </v-text-field>
+                                        <v-progress-linear absolute bottom v-if="loadingRecessive" indeterminate></v-progress-linear>
                                         <v-list>
                                             <v-list-item v-if="searchResults" v-for="track in searchResults"
                                                 :key="track.id" @click="addTrack(track.id.toString())">
@@ -228,11 +230,12 @@
                         No tracks available
                     </v-card>
                     <v-list style="background: white;" ghost-class="ghost">
-                        <v-list-item v-for="track in playlist" :key="track.id" @click="setPlay(track)" >
+                        <v-list-item v-for="track in playlist" :key="track.id" @click="setPlay(track)">
                             <v-list-item-title>{{track.name}}</v-list-item-title>
-                            <v-list-item-subtitle>{{track.al.name}} - {{track.ar.map(f=>f.name).join('-')}}</v-list-item-subtitle>
-                            
-                        </v-list>
+                            <v-list-item-subtitle>{{track.al.name}} - {{track.ar.map(f=>f.name).join('-')}}
+                            </v-list-item-subtitle>
+
+                    </v-list>
                     </draggable>
                 </v-dialog>
             </v-bottom-navigation>
@@ -254,7 +257,7 @@
             draw_bass_response()
             draw_bars();
         }
-    }   
+    }
 </script>
 <script>
     function check_arg() {
@@ -336,6 +339,7 @@
             playlist: [],
 
             loading: false,
+            loadingRecessive: false,
             loadInfo: 'Please stand by',
 
             existTracks: [],
@@ -359,38 +363,38 @@
 
             searchResults: null,
             queryString: null,
-            debounce:1000
+            debounce: 500
         }),
-        watch: {
+        watch: {            
             currentLyrics: (new_, old_) => {
                 if (!new_) return
-                try{
+                try {
                     vue.parsedLyrics = parseLryics(new_.lrc.lyric, new_.romalrc.lyric, new_.tlyric.lyric)
                     console.log('[lyrics] parsed', vue.parsedLyrics)
                 } catch {
                     vue.parsedLyrics = null
                     vue.matchedIndex = 0
                 }
-                
+
             },
             queryString: (new_, old_) => {
                 if (this.queryTimeout)
                     clearTimeout(this.queryTimeout)
                 this.queryTimeout = setTimeout(() => {
-                    // querying the result
-                    vue.loadInfo = 'Searching'
-                    vue.loading = true
+                    // querying the result                    
+                    if (!vue.queryString) return
+                    vue.loadingRecessive = true
                     console.log('[search] searching', vue.queryString)
                     fetch('pyncm/cloudsearch/GetSearchResult?' + new URLSearchParams(Object.assign({
                         keyword: vue.queryString
                     }))).then(response => response.json()).then(
                         data => {
-                            vue.loading = false
+                            vue.loadingRecessive = false
                             if (!data.result || !data.result.songs) return
                             console.log('[search] results', data.result.songs)
                             vue.searchResults = data.result.songs
                         }).catch(err => {
-                        vue.loading = false
+                        vue.loadingRecessive = false
                     })
                 }, vue.debounce)
             }
@@ -435,10 +439,13 @@
                 var operation = {
                     forward: () => index++,
                     pause: () => {
-                        return vue.player.pause()
+                        if (vue.player.paused) vue.player.play()
+                        else vue.player.pause()
+                        return true
                     },
                     rewind: () => index--,
                 } [dir]()
+                if (operation) return
                 index = index % vue.playlist.length
                 vue.currentTrack = vue.playlist[index]
                 vue.setPlay(vue.currentTrack)
@@ -446,7 +453,7 @@
             addTrack: (url) => {
                 console.log(url)
                 var route, params
-                ids=[]
+                ids = []
                 while ((m = id_regex.exec(url)) !== null) {
                     // This is necessary to avoid infinite loops with zero-width matches
                     if (m.index === id_regex.lastIndex) id_regex.lastIndex++
@@ -508,7 +515,7 @@
     vue.player.ontimeupdate = () => {
         vue.duration = vue.player.duration
         vue.currentTime = vue.player.currentTime
-        if(vue.parsedLyrics)vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
+        if (vue.parsedLyrics) vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
     }
     vue.player.crossOrigin = "anonymous"
 </script>
