@@ -281,12 +281,11 @@
 <script src="js/dist/utils.dev.js"></script>
 <script>
     // loading scripts
-
     if (typeof check_arg == 'undefined') {
         // load fallback scripts
         console.warn('[script] loading fallback scripts [non-dev]')
         var scripts = [
-            'js/dist/utils.dev.js', 'js/utils.js', 'js/core.js', 'js/fftanalyzer.js', 'js/fftinit.js'
+            'js/utils.js', 'js/core.js', 'js/fftanalyzer.js', 'js/fftinit.js'
         ]
     } else {
         console.log('[script] loading scripts [dev]')
