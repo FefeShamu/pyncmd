@@ -132,7 +132,7 @@ var vue = new Vue({
                 },
                 rewind: () => index--,
             } [dir]()
-            if (operation) return
+            if (operation===true) return
             index = index % vue.playlist.length
             vue.currentTrack = vue.playlist[index]
             vue.setPlay(vue.currentTrack)
