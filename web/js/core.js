@@ -184,20 +184,29 @@ var vue = new Vue({
             console.log(`[multi] adding ${match} ${route}`)
             vue.loadInfo = 'Fetching tracks'
             vue.loading = true;
+            var trackCallback = data => {
+                var newTracks, existTracks;
+                newTracks = data.songs.filter(track => !vue.playlist.map(track => track.id)
+                    .includes(track.id))
+                if (newTracks.length != data.songs.length)
+                    existTracks = data.songs.filter(track => vue.playlist.map(track => track.id)
+                        .includes(track.id))
+                vue.existTracks = existTracks
+                if (existTracks) vue.trackConflictDialog = true
+                vue.playlist.push(...newTracks)
+                if (!vue.currentTrack) vue.setPlay(vue.playlist[0])
+                vue.loading = false
+            }
             fetch(`pyncm/${route}?` + new URLSearchParams(params)).then(response => response.json())
                 .then(data => {
-                    var newTracks, existTracks;
-                    if (data.playlist) data.songs = data.playlist.tracks
-                    newTracks = data.songs.filter(track => !vue.playlist.map(track => track.id)
-                        .includes(track.id))
-                    if (newTracks.length != data.songs.length)
-                        existTracks = data.songs.filter(track => vue.playlist.map(track => track.id)
-                            .includes(track.id))
-                    vue.existTracks = existTracks
-                    if (existTracks) vue.trackConflictDialog = true
-                    vue.playlist.push(...newTracks)
-                    if (!vue.currentTrack) vue.setPlay(vue.playlist[0])
-                    vue.loading = false
+                    if (data.playlist) { // workaround for incomplete playlists
+                        var song_ids = data.playlist.trackIds.map(track => track.id);
+                        song_ids = 'song_ids=' + song_ids.join('&song_ids=')                        
+                        console.log('[multi] multi-track fetching track/GetTrackDetail?' + song_ids)
+                        fetch('pyncm/track/GetTrackDetail?' + song_ids).then(response => response.json()).then(trackCallback)
+                    } else {
+                        trackCallback(data)
+                    }
                 }).catch(error => {
                     vue.lastError = error
                     vue.loading = false

@@ -198,13 +198,11 @@ var vue = new Vue({
       console.log("[multi] adding ".concat(match, " ").concat(route));
       vue.loadInfo = 'Fetching tracks';
       vue.loading = true;
-      fetch("pyncm/".concat(route, "?") + new URLSearchParams(params)).then(function (response) {
-        return response.json();
-      }).then(function (data) {
+
+      var trackCallback = function trackCallback(data) {
         var _vue$playlist;
 
         var newTracks, existTracks;
-        if (data.playlist) data.songs = data.playlist.tracks;
         newTracks = data.songs.filter(function (track) {
           return !vue.playlist.map(function (track) {
             return track.id;
@@ -222,6 +220,24 @@ var vue = new Vue({
 
         if (!vue.currentTrack) vue.setPlay(vue.playlist[0]);
         vue.loading = false;
+      };
+
+      fetch("pyncm/".concat(route, "?") + new URLSearchParams(params)).then(function (response) {
+        return response.json();
+      }).then(function (data) {
+        if (data.playlist) {
+          // workaround for incomplete playlists
+          var song_ids = data.playlist.trackIds.map(function (track) {
+            return track.id;
+          });
+          song_ids = 'song_ids=' + song_ids.join('&song_ids=');
+          console.log('[multi] multi-track fetching track/GetTrackDetail?' + song_ids);
+          fetch('pyncm/track/GetTrackDetail?' + song_ids).then(function (response) {
+            return response.json();
+          }).then(trackCallback);
+        } else {
+          trackCallback(data);
+        }
       })["catch"](function (error) {
         vue.lastError = error;
         vue.loading = false;
