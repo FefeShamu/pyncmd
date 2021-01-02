@@ -34,11 +34,14 @@ var vue = new Vue({
         config: {
             bitrate: 320000,
             debounce: 500,
-            showLyrics : true
+            showLyrics: true
         },
 
     }),
-    watch: {            
+    watch: {
+        currentTrack: (track, old_) => {
+            document.title = `${track.name} - ${track.ar.map(f=>f.name).join(' / ')}`
+        },
         currentLyrics: (new_, old_) => {
             if (!new_) return
             try {
@@ -79,32 +82,32 @@ var vue = new Vue({
             vue.loadInfo = 'Fetching track audio'
             vue.loading = true
             fetch('pyncm/track/GetTrackAudio?' + new URLSearchParams({
-                song_ids: evt.id,
-                bitrate: vue.config.bitrate
-            }))
-            .then(response => response.json()).then(data => {
-                var track = data.data[0]
-                console.log(`[track] audio fetched. bitrate is ${track.br}`, track)
-                vue.currentLyrics = null
-                vue.currentAudio = track
-                // setup the player
-                vue.player.src = track.url
-                vue.player.play()
-                vue.loading = false
-            }).catch(err => {
-                vue.loading = false
-                vue.lastError = err
-                vue.error = true
-            }).then(data => {
-                fetch('pyncm/track/GetTrackLyrics?' + new URLSearchParams(Object.assign({
-                    song_id: evt.id
-                }))).then(response => response.json()).then(
-                    data => {
-                        console.log(`[lyrics] lyrics fetched for ${evt.id}`, data)
-                        vue.currentLyrics = data
-                    }
-                )
-            })
+                    song_ids: evt.id,
+                    bitrate: vue.config.bitrate
+                }))
+                .then(response => response.json()).then(data => {
+                    var track = data.data[0]
+                    console.log(`[track] audio fetched. bitrate is ${track.br}`, track)
+                    vue.currentLyrics = null
+                    vue.currentAudio = track
+                    // setup the player
+                    vue.player.src = track.url
+                    vue.player.play()
+                    vue.loading = false
+                }).catch(err => {
+                    vue.loading = false
+                    vue.lastError = err
+                    vue.error = true
+                }).then(data => {
+                    fetch('pyncm/track/GetTrackLyrics?' + new URLSearchParams(Object.assign({
+                        song_id: evt.id
+                    }))).then(response => response.json()).then(
+                        data => {
+                            console.log(`[lyrics] lyrics fetched for ${evt.id}`, data)
+                            vue.currentLyrics = data
+                        }
+                    )
+                })
         },
         seekTrack: (pos) => {
             vue.player.currentTime = pos
@@ -125,8 +128,8 @@ var vue = new Vue({
             vue.currentTrack = vue.playlist[index]
             vue.setPlay(vue.currentTrack)
         },
-        addTrack: (url) => {            
-            var route, params , m
+        addTrack: (url) => {
+            var route, params, m
             var ids = []
             while ((m = id_regex.exec(url)) !== null) {
                 // This is necessary to avoid infinite loops with zero-width matches

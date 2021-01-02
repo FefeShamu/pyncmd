@@ -41,6 +41,11 @@ var vue = new Vue({
     };
   },
   watch: {
+    currentTrack: function currentTrack(track, old_) {
+      document.title = "".concat(track.name, " - ").concat(track.ar.map(function (f) {
+        return f.name;
+      }).join(' / '));
+    },
     currentLyrics: function currentLyrics(new_, old_) {
       if (!new_) return;
 

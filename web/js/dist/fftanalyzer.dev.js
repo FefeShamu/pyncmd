@@ -6,7 +6,7 @@ var bufferLength, canvasCtx, dataArray, analyser, _;
 
 var WIDTH, HEIGHT;
 
-function ffta_init(analyserNode, canvasElement, w, h, settings) {
+function setup(analyserNode, canvasElement, w, h, settings) {
   _ = settings;
   WIDTH = w;
   HEIGHT = h;

@@ -5,16 +5,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    <link href="css/bootstrap-4.3.1.css" rel="stylesheet" type="text/css">
+
     <link href="css/vuetify.min.css" rel="stylesheet">
     <link href="css/materialdesignicons.min.css" rel="stylesheet">
-    <script src="js/framework/jquery-3.5.1.slim.min.js"></script>
-    <script src="js/framework/popper.min.js"></script>
-    <script src="js/framework/bootstrap-4.3.1.js" type="text/javascript"></script>
     <script src="js/framework/vue.js"></script>
     <script src="js/framework/vuetify.js"></script>
 
-    <title>ho ho ho</title>
+    <title>le advanced player has arrived yet again</title>
     <style>
         #visualizer {
             z-index: 0;
@@ -138,7 +135,7 @@
                             <v-list-item-content>
                                 <v-list-item-title>{{ currentTrack.name }}</v-list-item-title>
                                 <v-list-item-subtitle>
-                                    {{currentTrack.ar.map(f=>f.name).join('-')}} - {{currentTrack.al.name}}
+                                    {{currentTrack.ar.map(f=>f.name).join('/')}} - {{currentTrack.al.name}}
                                 </v-list-item-subtitle>
                             </v-list-item-content>
                             <v-spacer></v-spacer>
@@ -285,12 +282,12 @@
         // load fallback scripts
         console.warn('[script] loading fallback scripts [non-dev]')
         var scripts = [
-            'js/utils.js', 'js/core.js', 'js/fftanalyzer.js', 'js/fftinit.js'
+            'js/utils.js', 'js/fftanalyzer.js', 'js/fftinit.js', 'js/core.js'
         ]
     } else {
         console.log('[script] loading scripts [dev]')
         var scripts = [
-            'js/dist/core.dev.js', 'js/dist/fftanalyzer.dev.js', 'js/dist/fftinit.dev.js'
+             'js/dist/fftanalyzer.dev.js', 'js/dist/fftinit.dev.js','js/dist/core.dev.js'
         ]
     }
     for (var i in scripts) {

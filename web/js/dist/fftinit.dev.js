@@ -15,15 +15,23 @@ var ffta_settings = {
     draw_bars();
   }
 };
-var peakmeter = document.getElementById('visualizer');
-var audioCtx = new window.AudioContext(); // connecting the analyzer    
 
-var source = audioCtx.createMediaElementSource(vue.player);
-source.connect(audioCtx.destination);
-var analyzer = audioCtx.createAnalyser();
-source.connect(analyzer);
-vue.player.addEventListener('play', function () {
-  audioCtx.resume();
+function fftInit() {
+  var peakmeter = document.getElementById('visualizer');
+  var audioCtx = new window.AudioContext(); // connecting the analyzer    
+
+  var source = audioCtx.createMediaElementSource(vue.player);
+  source.connect(audioCtx.destination);
+  var analyzer = audioCtx.createAnalyser();
+  source.connect(analyzer);
+  vue.player.addEventListener('play', function () {
+    audioCtx.resume();
+  });
+  setup(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, ffta_settings);
+  requestAnimationFrame(ffta_draw);
+  console.log('[fft] initialized with settings ', ffta_settings);
+}
+
+window.addEventListener('load', function () {
+  fftInit();
 });
-ffta_init(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, ffta_settings);
-requestAnimationFrame(ffta_draw);
