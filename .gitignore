@@ -6,3 +6,4 @@ log.txt
 pyncmd.exe
 .user
 .cookies
+dist*
