@@ -19,10 +19,6 @@ var vue = new Vue({
         lastError: null,
         error: false,
 
-        audioConfig: {
-            bitrate: 320000
-        },
-
         currentTime: 0,
         duration: 0,
 
@@ -34,7 +30,13 @@ var vue = new Vue({
 
         searchResults: null,
         queryString: null,
-        debounce: 500
+
+        config: {
+            bitrate: 320000,
+            debounce: 500,
+            showLyrics : true
+        },
+
     }),
     watch: {            
         currentLyrics: (new_, old_) => {
@@ -67,7 +69,7 @@ var vue = new Vue({
                     }).catch(err => {
                     vue.loadingRecessive = false
                 })
-            }, vue.debounce)
+            }, vue.config.debounce)
         }
     },
     methods: {
@@ -76,9 +78,11 @@ var vue = new Vue({
             vue.currentTrack = evt
             vue.loadInfo = 'Fetching track audio'
             vue.loading = true
-            fetch('pyncm/track/GetTrackAudio?' + new URLSearchParams(Object.assign({
-                song_ids: evt.id
-            }, vue.audioConfig))).then(response => response.json()).then(data => {
+            fetch('pyncm/track/GetTrackAudio?' + new URLSearchParams({
+                song_ids: evt.id,
+                bitrate: vue.config.bitrate
+            }))
+            .then(response => response.json()).then(data => {
                 var track = data.data[0]
                 console.log(`[track] audio fetched. bitrate is ${track.br}`, track)
                 vue.currentLyrics = null
@@ -177,6 +181,10 @@ var vue = new Vue({
                 })
         },
         lyricsAt: index => vue.parsedLyrics[Object.keys(vue.parsedLyrics)[index]],
+        downloadTrack: track => {
+            console.log(`[download] ${track.url}`)
+            window.open(track.url)
+        }
     }
 })
 vue.player.onended = () => {

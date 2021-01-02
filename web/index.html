@@ -65,7 +65,7 @@
     <div id="app">
         <v-app>
             <canvas id="visualizer"></canvas>
-            <div class="lyrics-holder" v-if="parsedLyrics">
+            <div class="lyrics-holder" v-if="parsedLyrics && config.showLyrics">
                 <div class="lyrics-a">
                     <p v-for="(lyric,index) in this.lyricsAt(this.matchedIndex - 1)" :class="'lyric-'+index">{{lyric}}
                     </p>
@@ -117,7 +117,17 @@
                         <v-toolbar-title>Settings</v-toolbar-title>
                     </v-toolbar>
                     <v-spacer></v-spacer>
-                    <v-card style="background: white;" class="text-h5 pa-12">WIP - yet to be implemented</v-card>
+                    <v-card v-if="config">
+                        <v-list v-for="(value, name) in config" v-bind:key="name">
+                            <v-list-item>
+                                <v-list-item-title>{{name}}</v-list-item-title>
+                                <v-text-field v-if="typeof value == 'string'" v-model="config[name]" single-line>
+                                </v-text-field>
+                                <v-checkbox v-else-if="typeof value == 'boolean'" v-model="config[name]"></v-checkbox>
+                                <v-text-field v-else type="number" v-model="config[name]" single-line></v-text-field>
+                            </v-list-item>
+                        </v-list>
+                    </v-card>
                 </v-dialog>
                 <v-card v-if="currentTrack" tile grow width="80%">
                     <v-slider class="large-slider" style="height: 1em;" :value="currentTime" :max="duration" absolute
@@ -139,7 +149,8 @@
                             </v-list-item-icon>
                             <v-list-item-icon :class="{ 'mx-5': $vuetify.breakpoint.mdAndUp }">
                                 <v-btn icon @click="opearteTrack('pause')">
-                                    <v-icon>mdi-pause</v-icon>
+                                    <v-icon v-if="!player.paused">mdi-pause</v-icon>
+                                    <v-icon v-else>mdi-play</v-icon>
                                 </v-btn>
                             </v-list-item-icon>
                             <v-list-item-icon class="ml-0" :class="{ 'mr-3': $vuetify.breakpoint.mdAndUp }">
@@ -147,6 +158,22 @@
                                     <v-icon>mdi-fast-forward</v-icon>
                                 </v-btn>
                             </v-list-item-icon>
+                            <v-menu>
+                                <template v-slot:activator="{ on }">
+                                    <v-list-item-icon class="ml-0">
+                                        <v-btn icon v-on="on">
+                                            <v-icon>mdi-dots-vertical</v-icon>
+                                        </v-btn>
+                                    </v-list-item-icon>
+                                </template>
+                                <v-list>
+                                    <v-list-item v-if="currentAudio" @click="downloadTrack(currentAudio)">
+                                        <v-list-item-title>
+                                            <v-icon>mdi-download</v-icon> Download
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                </v-list>
+                            </v-menu>
                         </v-list-item>
                     </v-list>
 
@@ -225,15 +252,25 @@
                             </v-list>
                         </v-menu>
                     </v-toolbar>
-                    <v-card v-if="!playlist.length" style="background: white;" class="text-h5 pa-12">
-                        No tracks available
+                    <v-card v-if="!playlist.length" style="background: white;" class="text-h6 pa-12">
+                        No tracks available - use <v-btn>
+                            <v-icon>mdi-menu</v-icon>
+                        </v-btn> on the top right corner to add tracks
                     </v-card>
-                    <v-list style="background: white;" ghost-class="ghost">
-                        <v-list-item v-for="track in playlist" :key="track.id" @click="setPlay(track)">
+                    <v-list v-if="playlist.length" style="background: white;" ghost-class="ghost">
+                        <v-list-item v-for="(track,index) in playlist" :key="track.id" @click="setPlay(track)">
                             <v-list-item-title>{{track.name}}</v-list-item-title>
                             <v-list-item-subtitle>{{track.al.name}} - {{track.ar.map(f=>f.name).join('-')}}
                             </v-list-item-subtitle>
-
+                            <v-spacer></v-spacer>
+                            <v-list-item-icon class="ml-0">
+                                <v-btn icon v-if="track.id != currentTrack.id" @click="playlist.splice(index,1)">
+                                    <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                                <v-btn icon v-else @click="downloadTrack(track)">
+                                    <v-icon>mdi-download</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
                     </v-list>
                     </draggable>
                 </v-dialog>
@@ -266,4 +303,5 @@
         document.body.appendChild(tag)
     }
 </script>
+
 </html>
