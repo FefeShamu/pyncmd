@@ -39,6 +39,12 @@ var vue = new Vue({
             showFFTFps: false
         },
 
+        snackBar: false,
+        snackMessage: null,
+        snackTimeout: 1500,
+
+        server: null,
+        requestCount: 0
     }),
     watch: {
         config: {
@@ -85,6 +91,12 @@ var vue = new Vue({
         }
     },
     methods: {
+        updateStats: () => {
+            fetch('stats/requests').then(response => response.json())
+                .then(data => {
+                    vue.requestCount = data
+                })
+        },
         setPlay: (evt) => {
             if (!evt) return
             vue.currentTrack = evt
@@ -132,7 +144,7 @@ var vue = new Vue({
                 },
                 rewind: () => index--,
             } [dir]()
-            if (operation===true) return
+            if (operation === true) return
             index = index % vue.playlist.length
             vue.currentTrack = vue.playlist[index]
             vue.setPlay(vue.currentTrack)
@@ -208,3 +220,7 @@ vue.player.ontimeupdate = () => {
     if (vue.parsedLyrics) vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
 }
 vue.player.crossOrigin = "anonymous"
+fetch('stats/server').then(response => response.json())
+    .then(data => {
+        vue.server = data
+    })

@@ -39,7 +39,12 @@ var vue = new Vue({
         showLyrics: true,
         disableFFT: false,
         showFFTFps: false
-      }
+      },
+      snackBar: false,
+      snackMessage: null,
+      snackTimeout: 1500,
+      server: null,
+      requestCount: 0
     };
   },
   watch: {
@@ -89,6 +94,13 @@ var vue = new Vue({
     }
   },
   methods: {
+    updateStats: function updateStats() {
+      fetch('stats/requests').then(function (response) {
+        return response.json();
+      }).then(function (data) {
+        vue.requestCount = data;
+      });
+    },
     setPlay: function setPlay(evt) {
       if (!evt) return;
       vue.currentTrack = evt;
@@ -237,3 +249,8 @@ vue.player.ontimeupdate = function () {
 };
 
 vue.player.crossOrigin = "anonymous";
+fetch('stats/server').then(function (response) {
+  return response.json();
+}).then(function (data) {
+  vue.server = data;
+});

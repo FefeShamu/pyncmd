@@ -48,10 +48,19 @@ def route():
 
     class NCMdAPISession(Session):           
         @BinaryMessageWrapper()
-        def _stats_requests(self,request: Request,content):
-            self['requests'] += 1
+        def _stats_requests(self,request: Request,content):      
+            '''accumulates total requests'''      
             request.send_response(200)
             return str(self['requests'])
+        @JSONMessageWrapper(read=False)
+        def _stats_server(self,request: Request,content):      
+            '''server hoster nickname'''      
+            if GetCurrentSession().login_info['success']:
+                request.send_response(200)
+                return GetCurrentSession().login_info['content']['profile']
+            else:
+                request.send_response(404)
+                return {}
         @JSONMessageWrapper(read=False)
         def routeCloudmusicApis(self,request: Request, content):        
             path = list(filter(lambda x:x and x != 'pyncm',request.path.split('/')))
@@ -64,10 +73,12 @@ def route():
             query = {k:v if not len(v) == 1 else v[0] for k,v in request.query.items()}
             response = getattr(base,target)(**query)
             logging.info('[+] Processed NCM request - %s - %s'%(target,query))
+            self['requests'] += 1
             request.send_response(200)
             return response
         def onCreate(self, request: Request, content):
             if not 'requests' in self:self['requests'] = 0 
+            if not self.session_id: self.set_session_id(path='/')
             self.paths['/pyncm.*'] = self.routeCloudmusicApis
             return super().onCreate(request=request, content=content)
     @server.route('/pyncm.*')
