@@ -121,8 +121,7 @@ var vue = new Vue({
             vue.currentTrack = vue.playlist[index]
             vue.setPlay(vue.currentTrack)
         },
-        addTrack: (url) => {
-            console.log(url)
+        addTrack: (url) => {            
             var route, params , m
             var ids = []
             while ((m = id_regex.exec(url)) !== null) {
