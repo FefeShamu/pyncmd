@@ -34,11 +34,20 @@ var vue = new Vue({
         config: {
             bitrate: 320000,
             debounce: 500,
-            showLyrics: true
+            showLyrics: true,
+            disableFFT: false,
+            showFFTFps: false
         },
 
     }),
     watch: {
+        config: {
+            deep: true,
+            handler(config) {
+                _.showFPS = config.showFFTFps
+                _.disable = config.disableFFT
+            }
+        },
         currentTrack: (track, old_) => {
             document.title = `${track.name} - ${track.ar.map(f=>f.name).join(' / ')}`
         },

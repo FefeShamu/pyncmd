@@ -1,6 +1,5 @@
-var tickdelta = Date.now();
-var bufferLength, canvasCtx, dataArray,analyser,_;
-var WIDTH,HEIGHT;
+var bufferLength, canvasCtx, dataArray, analyser, _;
+var WIDTH, HEIGHT;
 
 function setup(analyserNode, canvasElement, w, h, settings) {
   _ = settings;
@@ -14,7 +13,6 @@ function setup(analyserNode, canvasElement, w, h, settings) {
   bufferLength = analyser.frequencyBinCount;
   canvasCtx.fillStyle = 'rgb(0,0,0)';
   canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-  requestAnimationFrame(ffta_draw);
 }
 
 function run_sequence() {
@@ -96,24 +94,25 @@ function draw_bass_response() {
 
   lastv = avg;
 }
+var tickdelta = Date.now();
 
 function ffta_draw() {
 
-  if (typeof canvasCtx == 'undefined')return
+  if (typeof canvasCtx == 'undefined') return
 
-  if (!bufferLength || !!_.disable) {
-    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
-    return;
+  if (!bufferLength || _.disable) {
+    canvasCtx.fillStyle = 'rgb(0,0,0)'
+    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+  } else {
+    dataArray = new Uint8Array(bufferLength);
+    run_sequence();
+
+    if (_.showFPS) {
+      text((1000 / (Date.now() - tickdelta)).toFixed(0).toString() + ' FPS    ');
+    }
+
+    xdelta = WIDTH * ((Date.now() - tickdelta) / seq_time);
+    tickdelta = Date.now();
   }
-
-  dataArray = new Uint8Array(bufferLength);
-  run_sequence();
-
-  if (_.showFPS) {
-    text((1000 / (Date.now() - tickdelta)).toFixed(0).toString() + ' FPS    ');
-  }
-
-  xdelta = WIDTH * ((Date.now() - tickdelta) / seq_time);
-  tickdelta = Date.now();
   requestAnimationFrame(ffta_draw);
 }

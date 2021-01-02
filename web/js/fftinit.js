@@ -11,7 +11,9 @@ var ffta_settings = {
     'sequence': () => {
         draw_bass_response()
         draw_bars();
-    }
+    },
+    'disable':false,
+    'showFPS':false
 }
 
 function fftInit() {
@@ -26,7 +28,7 @@ function fftInit() {
         audioCtx.resume();
     });
     setup(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, ffta_settings)
-    requestAnimationFrame(ffta_draw);
+    ffta_draw()
     console.log('[fft] initialized with settings ', ffta_settings)
 }
 
