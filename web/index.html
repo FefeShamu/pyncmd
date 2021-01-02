@@ -144,7 +144,9 @@
                     <v-list>
                         <v-list-item>
                             <v-list-item-content>
-                                <v-list-item-title>{{ currentTrack.name }}</v-list-item-title>
+                                <v-list-item-title><a target="_blank" :href="'https://music.163.com/#/song?id=' + currentTrack.id">
+                                    <strong>{{ currentTrack.name }}</strong>
+                                </a></v-list-item-title>
                                 <v-list-item-subtitle>
                                     {{currentTrack.ar.map(function(f){return f.name}).join('/')}} -
                                     {{currentTrack.al.name}}
