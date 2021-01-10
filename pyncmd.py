@@ -26,9 +26,9 @@ def login(session_file=SESSION_FILE,phone='',password=''):
             pyncm.SetCurrentSession(LoadSessionFromString(f.read()))
         return pyncm.GetCurrentSession().login_info['success']    
     if not (phone and password) and load():
-        return logging.debug('[-] Recovered session data of [ %s ]' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname']) or True
+        return logging.info('Serving as %s' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname']) or True
     pyncm.login.LoginViaCellphone(phone,password)
-    logging.info('[+] %s' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname'],'has logged in')
+    logging.info('%s' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname'],'has logged in')
     return save()
 server = None
 def route():    
@@ -46,7 +46,8 @@ def route():
     def IndexPage(server : PyWebHost,request : Request,content):
         WriteContentToRequest(request,'web/index.html',mime_type='text/html')
 
-    class NCMdAPISession(Session):           
+    class NCMdAPISession(Session):        
+        logger = logging.getLogger('NCMdAPI')   
         @BinaryMessageWrapper()
         def _stats_requests(self,request: Request,content):      
             '''accumulates total requests'''      
@@ -60,19 +61,23 @@ def route():
                 return GetCurrentSession().login_info['content']['profile']
             else:
                 request.send_response(404)
-                return {}
+                return {}                        
         @JSONMessageWrapper(read=False)
         def routeCloudmusicApis(self,request: Request, content):        
             path = list(filter(lambda x:x and x != 'pyncm',request.path.split('/')))
             base,target = path
             if not base in filter(lambda x:x.islower() and not '_' in x,dir(pyncm.apis)):
-                return request.send_error(404,explain='base method not found')   
+                return request.send_error(404,'base method %s not found' % base)   
+            if base in {'user','login'}:
+                return request.send_error(403,'base method %s not allowed' % base)   
             base = getattr(pyncm.apis,base)         
             if not target in filter(lambda x:'Get' in x or 'Set' in x,dir(base)):
-                return request.send_error(404,explain='target method not found')               
+                return request.send_error(404,'target method %s not found' % target)       
+            if 'Set' in target:
+                return request.send_error(403,'you have no rights to perfrom "Set" calls')
             query = {k:v if not len(v) == 1 else v[0] for k,v in request.query.items()}
             response = getattr(base,target)(**query)
-            logging.info('[+] Processed NCM request - %s - %s'%(target,query))
+            self.logger.info('[%s] %s - %s'%(request.address_string,target,query))
             self['requests'] += 1
             request.send_response(200)
             return response
@@ -88,7 +93,7 @@ def route():
         return NCMdAPISession
     return True
 def serve():
-    logging.info('[-] Now serving http://127.0.0.1:%s' % server.server_address[1])
+    logging.warning('Now serving http://127.0.0.1:%s' % server.server_address[1])
     return server.serve_forever()
 if __name__ == "__main__":    
     import coloredlogs
