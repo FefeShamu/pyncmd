@@ -4,5 +4,4 @@
 log.txt
 *.db
 pyncmd.exe
-.user
-.cookies
+*.ncm
