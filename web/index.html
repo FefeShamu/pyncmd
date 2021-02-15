@@ -275,6 +275,7 @@
                                                         songs1[song['id']]['id']=song['id']
                                                     }
                                                     userPlaylist.splice(0)
+                                                    globalPlaylist.splice(0)
                                                     for (var id of requests) userPlaylist.push(songs1[id])                   
                                                     for (var id of globalRequests) globalPlaylist.push(songs1[id])                   
                                                 })
