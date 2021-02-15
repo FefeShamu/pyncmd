@@ -44,7 +44,10 @@ var vue = new Vue({
       snackMessage: null,
       snackTimeout: 1500,
       server: null,
-      requestCount: 0
+      requests: [],
+      globalRequests: [],
+      bufferedPlaylist: [],
+      userPlaylist: []
     };
   },
   watch: {
@@ -94,11 +97,25 @@ var vue = new Vue({
     }
   },
   methods: {
-    updateStats: function updateStats() {
-      fetch('stats/requests').then(function (response) {
+    set: function set() {
+      return vue.$set.apply(vue, arguments);
+    },
+    bufferTrackDetails: function bufferTrackDetails(trackIds) {
+      console.log("[track] Fetching info for id ".concat(trackIds));
+      var song_ids = 'song_ids=' + trackIds.join('&song_ids=');
+      return fetch('pyncm/track/GetTrackDetail?' + song_ids).then(function (response) {
         return response.json();
       }).then(function (data) {
-        vue.requestCount = data;
+        console.log("[track] Fetched info for id ".concat(trackIds));
+        vue.bufferedPlaylist = data;
+      });
+    },
+    updateStats: function updateStats() {
+      return fetch('stats/requests').then(function (response) {
+        return response.json();
+      }).then(function (data) {
+        vue.requests = data['self'];
+        vue.globalRequests = data['global'];
       });
     },
     setPlay: function setPlay(evt) {
@@ -154,6 +171,13 @@ var vue = new Vue({
       }[dir]();
       if (operation === true) return;
       index = index % vue.playlist.length;
+
+      if (vue.currentTrack.id == vue.playlist[index].id) {
+        // not changing,replay current track
+        vue.player.currentTime = 0;
+        return vue.player.play();
+      }
+
       vue.currentTrack = vue.playlist[index];
       vue.setPlay(vue.currentTrack);
     },

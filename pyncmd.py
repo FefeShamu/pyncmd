@@ -1,4 +1,6 @@
+import re
 import pyncm,getpass,os,argparse,logging
+from pyncm.apis import track
 from pywebhost import PyWebHost,Request
 from pywebhost.modules import Redirect, WriteContentToRequest,JSONMessageWrapper,BinaryMessageWrapper
 from pywebhost.modules.session import SessionWrapper
@@ -38,7 +40,6 @@ def route():
     def html(server : PyWebHost,request : Request,content):
         path = './web' + request.path
         WriteContentToRequest(request,path,mime_type='')
-
     @server.route('/static/.*')
     def html(server : PyWebHost,request : Request,content):
         path = './web' + request.path
@@ -50,11 +51,20 @@ def route():
 
     class NCMdAPISession(Session):        
         logger = logging.getLogger('NCMdAPI')   
-        @BinaryMessageWrapper()
+        @property
+        def local_request_stack(self):
+            if not 'requests' in self:self['requests'] = []
+            return self['requests']
+        @property
+        def global_request_stack(self):
+            if not hasattr(self.request.server,'requests_stack'):
+                self.request.server.requests_stack = []
+            return self.request.server.requests_stack        
+        @JSONMessageWrapper(read=False)        
         def _stats_requests(self,request: Request,content):      
             '''accumulates total requests'''      
-            request.send_response(200)
-            return str(self['requests'])
+            request.send_response(200)            
+            return {'self':self.local_request_stack,'global':self.global_request_stack}
         @JSONMessageWrapper(read=False)
         def _stats_server(self,request: Request,content):      
             '''server hoster nickname'''      
@@ -76,23 +86,25 @@ def route():
             if not target in filter(lambda x:'Get' in x or 'Set' in x,dir(base)):
                 return request.send_error(404,'target method %s not found' % target)       
             if 'Set' in target:
-                return request.send_error(403,'you have no rights to perfrom "Set" calls')
+                return request.send_error(403,'cannot perfrom "Set" calls')
             query = {k:v if not len(v) == 1 else v[0] for k,v in request.query.items()}
             response = getattr(base,target)(**query)
-            self.logger.info('[%s] %s - %s'%(request.address_string,target,query))
-            self['requests'] += 1
+            self.logger.info('[%s] %s - %s'%(request.address_string,target,query))                        
+            if target in {'GetTrackAudio'} and response['code'] == 200:     
+                ids = [e['id'] for e in response['data']]
+                self.local_request_stack.extend(ids)
+                self.global_request_stack.extend(ids)
             request.send_response(200)
             return response
-        def onCreate(self, request: Request, content):
-            if not 'requests' in self:self['requests'] = 0 
+        def onCreate(self, request: Request, content):            
             if not self.session_id: self.set_session_id(path='/')
-            self.paths['/pyncm.*'] = self.routeCloudmusicApis
-            return super().onCreate(request=request, content=content)
+            self.paths['/pyncm.*'] = self.routeCloudmusicApis            
+            return super().onCreate(request=request, content=content)                
     @server.route('/pyncm.*')
     @server.route('/stats.*')
     @SessionWrapper()
     def APIs(server : PyWebHost,request : Request,content):
-        return NCMdAPISession
+        return NCMdAPISession            
     return True
 def serve():
     logging.warning('Now serving http://127.0.0.1:%s' % server.server_address[1])

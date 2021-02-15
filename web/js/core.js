@@ -44,7 +44,11 @@ var vue = new Vue({
         snackTimeout: 1500,
 
         server: null,
-        requestCount: 0
+        requests: [],
+        globalRequests: [],
+
+        bufferedPlaylist: [],
+        userPlaylist:[]
     }),
     watch: {
         config: {
@@ -90,12 +94,24 @@ var vue = new Vue({
             }, vue.config.debounce)
         }
     },
-    methods: {
+    methods: {   
+        set:(...args)=>{
+            return vue.$set(...args)
+        }, 
+        bufferTrackDetails: (trackIds) => {
+            console.log(`[track] Fetching info for id ${trackIds}`)
+            var song_ids = 'song_ids=' + trackIds.join('&song_ids=')
+            return fetch('pyncm/track/GetTrackDetail?'+song_ids).then(response => response.json()).then(data => {
+                console.log(`[track] Fetched info for id ${trackIds}`)        
+                vue.bufferedPlaylist = data        
+            })
+        },
         updateStats: () => {
-            fetch('stats/requests').then(response => response.json())
-                .then(data => {
-                    vue.requestCount = data
-                })
+            return fetch('stats/requests').then(response => response.json())
+            .then(data => {
+                vue.requests = data['self']
+                vue.globalRequests = data['global']
+            })
         },
         setPlay: (evt) => {
             if (!evt) return
@@ -145,7 +161,12 @@ var vue = new Vue({
                 rewind: () => index--,
             } [dir]()
             if (operation === true) return
-            index = index % vue.playlist.length
+            index = index % vue.playlist.length            
+            if (vue.currentTrack.id == vue.playlist[index].id){
+                // not changing,replay current track
+                vue.player.currentTime = 0
+                return vue.player.play()
+            }
             vue.currentTrack = vue.playlist[index]
             vue.setPlay(vue.currentTrack)
         },

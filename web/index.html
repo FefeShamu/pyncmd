@@ -132,8 +132,8 @@
                         </v-list>
                     </v-card>
                     <v-footer padless>
-                        <v-col class="text-center" cols="12">
-                            You have made <strong>{{ requestCount }}</strong> API calls so far
+                        <v-col v-if="requests" class="text-center" cols="12">
+                            You have listented to <strong>{{ requests.length }}</strong> songs
                         </v-col>
                     </v-footer>
                 </v-dialog>
@@ -144,9 +144,10 @@
                     <v-list>
                         <v-list-item>
                             <v-list-item-content>
-                                <v-list-item-title><a target="_blank" :href="'https://music.163.com/#/song?id=' + currentTrack.id">
-                                    <strong>{{ currentTrack.name }}</strong>
-                                </a></v-list-item-title>
+                                <v-list-item-title><a target="_blank"
+                                        :href="'https://music.163.com/#/song?id=' + currentTrack.id">
+                                        <strong>{{ currentTrack.name }}</strong>
+                                    </a></v-list-item-title>
                                 <v-list-item-subtitle>
                                     {{currentTrack.ar.map(function(f){return f.name}).join('/')}} -
                                     {{currentTrack.al.name}}
@@ -261,6 +262,51 @@
                                         </v-card-actions>
                                     </v-card>
                                 </v-dialog>
+
+                                <v-dialog>
+                                    <template v-slot:activator="{ on }">
+                                        <v-list-item v-on="on" @click="                                            
+                                            updateStats().then(()=>{if(globalRequests.length > 0){
+                                                bufferTrackDetails(globalRequests).then(()=>{
+                                                    var songs1 = {}
+                                                    // spearting songs via id hash-table
+                                                    for (var song of bufferedPlaylist.songs){
+                                                        songs1[song['id']]=song
+                                                        songs1[song['id']]['id']=song['id']
+                                                    }
+                                                    userPlaylist.splice(0)
+                                                    for (var id of requests) userPlaylist.push(songs1[id])                                                    
+                                                })
+                                            }})
+                                        ">
+                                            <v-icon>mdi-account</v-icon>
+                                            <v-list-item-title>Others' interests</v-list-item-title>
+                                        </v-list-item>
+                                    </template>
+                                    <v-card>
+                                        <v-subheader>YOUR HISTORY:</v-subheader>
+                                        <v-list>
+                                            <v-list-item v-for="track of userPlaylist"
+                                                @click="addTrack(track.id.toString())">
+                                                <v-list-item-title>{{ track.name }}</v-list-item-title>
+                                                <v-list-item-subtitle>
+                                                    {{track.ar.map(function(f){return f.name}).join('-')}} -
+                                                    {{track.al.name}}
+                                                </v-list-item-subtitle>
+                                            </v-list-item>
+                                        </v-list>
+                                        <v-subheader>ALL LISTENERS':</v-subheader>
+                                        <v-list>
+                                            <v-list-item v-for="track of bufferedPlaylist.songs" :key="track.id">
+                                                <v-list-item-title>{{ track.name }}</v-list-item-title>
+                                                <v-list-item-subtitle>
+                                                    {{track.ar.map(function(f){return f.name}).join('-')}} -
+                                                    {{track.al.name}}
+                                                </v-list-item-subtitle>
+                                            </v-list-item>
+                                        </v-list>
+                                </v-dialog>
+                                </v-card>
                             </v-list>
                         </v-menu>
                     </v-toolbar>
