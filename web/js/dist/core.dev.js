@@ -47,7 +47,8 @@ var vue = new Vue({
       requests: [],
       globalRequests: [],
       bufferedPlaylist: [],
-      userPlaylist: []
+      userPlaylist: [],
+      globalPlaylist: []
     };
   },
   watch: {

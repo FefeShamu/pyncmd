@@ -44,11 +44,14 @@ var vue = new Vue({
         snackTimeout: 1500,
 
         server: null,
+        
         requests: [],
         globalRequests: [],
 
         bufferedPlaylist: [],
-        userPlaylist:[]
+
+        userPlaylist:[],
+        globalPlaylist:[]
     }),
     watch: {
         config: {

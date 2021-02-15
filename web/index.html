@@ -275,7 +275,8 @@
                                                         songs1[song['id']]['id']=song['id']
                                                     }
                                                     userPlaylist.splice(0)
-                                                    for (var id of requests) userPlaylist.push(songs1[id])                                                    
+                                                    for (var id of requests) userPlaylist.push(songs1[id])                   
+                                                    for (var id of globalRequests) globalPlaylist.push(songs1[id])                   
                                                 })
                                             }})
                                         ">
@@ -297,7 +298,8 @@
                                         </v-list>
                                         <v-subheader>ALL LISTENERS'</v-subheader>
                                         <v-list>
-                                            <v-list-item v-for="track of bufferedPlaylist.songs" @click="addTrack(track.id.toString())">
+                                            <v-list-item v-for="track of globalPlaylist"
+                                                @click="addTrack(track.id.toString())">
                                                 <v-list-item-title>{{ track.name }}</v-list-item-title>
                                                 <v-list-item-subtitle>
                                                     {{track.ar.map(function(f){return f.name}).join('-')}} -
