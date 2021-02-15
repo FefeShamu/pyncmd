@@ -297,7 +297,7 @@
                                         </v-list>
                                         <v-subheader>ALL LISTENERS'</v-subheader>
                                         <v-list>
-                                            <v-list-item v-for="track of bufferedPlaylist.songs" :key="track.id" @click="addTrack(track.id.toString())">
+                                            <v-list-item v-for="track of bufferedPlaylist.songs" @click="addTrack(track.id.toString())">
                                                 <v-list-item-title>{{ track.name }}</v-list-item-title>
                                                 <v-list-item-subtitle>
                                                     {{track.ar.map(function(f){return f.name}).join('-')}} -
