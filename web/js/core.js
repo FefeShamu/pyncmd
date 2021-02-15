@@ -51,7 +51,10 @@ var vue = new Vue({
         bufferedPlaylist: [],
 
         userPlaylist:[],
-        globalPlaylist:[]
+        globalPlaylist:[],
+
+        shuffleMode:'repeat',
+        shuffleModes:['repeat','repeat-once']
     }),
     watch: {
         config: {
@@ -154,16 +157,19 @@ var vue = new Vue({
         },
         opearteTrack: (dir) => {
             var index = vue.playlist.indexOf(vue.currentTrack)
+            var delta = 0
             var operation = {
-                forward: () => index++,
+                forward: () => delta = 1,
                 pause: () => {
                     if (vue.player.paused) vue.player.play()
                     else vue.player.pause()
                     return true
                 },
-                rewind: () => index--,
+                rewind: () => delta = -1,
             } [dir]()
             if (operation === true) return
+            if (vue.shuffleMode == 'repeat') index += delta
+            if (vue.shuffleMode == 'repeat-once') index = index            
             index = index % vue.playlist.length            
             if (vue.currentTrack.id == vue.playlist[index].id){
                 // not changing,replay current track

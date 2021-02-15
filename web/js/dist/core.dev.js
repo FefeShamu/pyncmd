@@ -48,7 +48,9 @@ var vue = new Vue({
       globalRequests: [],
       bufferedPlaylist: [],
       userPlaylist: [],
-      globalPlaylist: []
+      globalPlaylist: [],
+      shuffleMode: 'repeat',
+      shuffleModes: ['repeat', 'repeat-once']
     };
   },
   watch: {
@@ -158,19 +160,22 @@ var vue = new Vue({
     },
     opearteTrack: function opearteTrack(dir) {
       var index = vue.playlist.indexOf(vue.currentTrack);
+      var delta = 0;
       var operation = {
         forward: function forward() {
-          return index++;
+          return delta = 1;
         },
         pause: function pause() {
           if (vue.player.paused) vue.player.play();else vue.player.pause();
           return true;
         },
         rewind: function rewind() {
-          return index--;
+          return delta = -1;
         }
       }[dir]();
       if (operation === true) return;
+      if (vue.shuffleMode == 'repeat') index += delta;
+      if (vue.shuffleMode == 'repeat-once') index = index;
       index = index % vue.playlist.length;
 
       if (vue.currentTrack.id == vue.playlist[index].id) {

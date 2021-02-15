@@ -155,6 +155,13 @@
                             </v-list-item-content>
                             <v-spacer></v-spacer>
                             <v-list-item-icon>
+                                <v-btn icon @click="
+                                    shuffleMode = shuffleModes[(shuffleModes.indexOf(shuffleMode) + 1) % shuffleModes.length]
+                                ">
+                                    <v-icon>mdi-{{ shuffleMode }}</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
+                            <v-list-item-icon>
                                 <v-btn icon @click="opearteTrack('rewind')">
                                     <v-icon>mdi-rewind</v-icon>
                                 </v-btn>
