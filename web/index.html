@@ -295,7 +295,7 @@
                                     <v-card>
                                         <v-subheader>YOUR HISTORY</v-subheader>
                                         <v-list>
-                                            <v-list-item v-for="track of userPlaylist"
+                                            <v-list-item v-for="track of userPlaylist" v-if="track"
                                                 @click="addTrack(track.id.toString())">
                                                 <v-list-item-title>{{ track.name }}</v-list-item-title>
                                                 <v-list-item-subtitle>
@@ -306,7 +306,7 @@
                                         </v-list>
                                         <v-subheader>ALL LISTENERS'</v-subheader>
                                         <v-list>
-                                            <v-list-item v-for="track of globalPlaylist"
+                                            <v-list-item v-for="track of globalPlaylist" v-if="track"
                                                 @click="addTrack(track.id.toString())">
                                                 <v-list-item-title>{{ track.name }}</v-list-item-title>
                                                 <v-list-item-subtitle>
