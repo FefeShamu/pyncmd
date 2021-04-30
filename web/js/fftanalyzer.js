@@ -94,7 +94,6 @@ function draw_bass_response() {
 
   lastv = avg;
 }
-var tickdelta = Date.now();
 
 function ffta_draw() {
 
@@ -106,13 +105,21 @@ function ffta_draw() {
   } else {
     dataArray = new Uint8Array(bufferLength);
     run_sequence();
-
     if (_.showFPS) {
-      text((1000 / (Date.now() - tickdelta)).toFixed(0).toString() + ' FPS    ');
+      text((1000 / updateFrameTime).toFixed(0).toString() + ' FPS    ');
     }
-
-    xdelta = WIDTH * ((Date.now() - tickdelta) / seq_time);
-    tickdelta = Date.now();
+    xdelta = WIDTH * (updateFrameTime / seq_time);
   }
-  requestAnimationFrame(ffta_draw);
+
+}
+var updateFrameTick = Date.now();
+var updateFrameTime = 0;
+
+function update() {
+  updateFrameTime = Date.now() - updateFrameTick;
+  if (updateFrameTime >= _.minFrameTime) {
+    ffta_draw();
+    updateFrameTick = Date.now();
+  }
+  requestAnimationFrame(update);
 }

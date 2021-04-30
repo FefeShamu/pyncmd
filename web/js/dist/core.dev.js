@@ -38,7 +38,8 @@ var vue = new Vue({
         debounce: 500,
         showLyrics: true,
         disableFFT: false,
-        showFFTFps: false
+        showFFTFps: false,
+        fftFPS: 25
       },
       snackBar: false,
       snackMessage: null,
@@ -57,6 +58,7 @@ var vue = new Vue({
     config: {
       deep: true,
       handler: function handler(config) {
+        _.minFrameTime = config.fftFPS <= 0 ? 0 : 1000 / config.fftFPS;
         _.showFPS = config.showFFTFps;
         _.disable = config.disableFFT;
       }

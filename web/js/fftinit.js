@@ -13,7 +13,8 @@ var ffta_settings = {
         draw_bars();
     },
     'disable':false,
-    'showFPS':false
+    'showFPS':false,
+    'minFrameTime':0,
 }
 
 function fftInit() {
@@ -28,7 +29,7 @@ function fftInit() {
         audioCtx.resume();
     });
     setup(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, ffta_settings)
-    ffta_draw()
+    update()
     console.log('[fft] initialized with settings ', ffta_settings)
 }
 
