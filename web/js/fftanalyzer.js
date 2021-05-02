@@ -94,9 +94,9 @@ function draw_bass_response() {
 
   lastv = avg;
 }
-
+var updateFrameTick = window.performance.now();
 function ffta_draw() {
-
+  var updateFrameTime = window.performance.now() - updateFrameTick
   if (typeof canvasCtx == 'undefined') return
 
   if (!bufferLength || _.disable) {
@@ -110,16 +110,13 @@ function ffta_draw() {
     }
     xdelta = WIDTH * (updateFrameTime / seq_time);
   }
-
+  updateFrameTick = window.performance.now()
 }
-var updateFrameTick = Date.now();
-var updateFrameTime = 0;
 
-function update() {
-  updateFrameTime = Date.now() - updateFrameTick;
-  if (updateFrameTime >= _.minFrameTime) {
-    ffta_draw();
-    updateFrameTick = Date.now();
-  }
-  requestAnimationFrame(update);
+
+function update() {  
+  ffta_draw()
+  setTimeout(function(){
+    requestAnimationFrame(update);
+  },_.minFrameTime);  
 }

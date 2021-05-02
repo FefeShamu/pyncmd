@@ -37,7 +37,7 @@ var vue = new Vue({
             showLyrics: true,
             disableFFT: false,
             showFFTFps: false,
-            fftFPS: 25,
+            fftFPS: 30,
         },
 
         snackBar: false,
