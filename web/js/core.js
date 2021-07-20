@@ -37,7 +37,7 @@ var vue = new Vue({
             showLyrics: true,
             disableFFT: false,
             showFFTFps: false,
-            fftFPS: 30,
+            fftFPS: 60,
         },
 
         snackBar: false,
@@ -102,7 +102,8 @@ var vue = new Vue({
             }, vue.config.debounce)
         }
     },
-    methods: {   
+    methods: {          
+        toTimestamp:convertToTimestamp, 
         set:(...args)=>{
             return vue.$set(...args)
         }, 

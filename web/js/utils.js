@@ -31,11 +31,19 @@ function convertFromTimestamp(timestamp) {
         var ss = timestamp.split(':')[1];
         var xx = ss.split('.')[1];
         ss = ss.split('.')[0];
-        return mm * 60 + ss * 1 + xx * Math.pow(0.1, xx.length);
-    } catch (error) {
-        console.error(error);
+        return (mm * 60 + ss * 1 + xx * Math.pow(0.1, xx.length)).toFixed(2); // ignore higher percision
+    } catch (error) {    
         return 0;
     }
+}
+
+function convertToTimestamp(timecode) {
+    var mm = Math.floor(timecode / 60).toString().padStart(2,'0')
+    var ss = Math.floor(timecode - mm * 60).toString().padStart(2,'0')
+    var xx = Math.floor((timecode - mm * 60 - ss) * 100).toString().padStart(2,'0')
+    // preserve 2 digits for hundredth-of-a-second
+    
+    return `${mm}:${ss}.${xx}`
 }
 
 function parseLryics(lrcs) {

@@ -1,11 +1,13 @@
-import re
-import pyncm,getpass,os,argparse,logging
-from pyncm.apis import track
+import pyncm,os,argparse,logging
+from collections import deque
+
 from pywebhost import PyWebHost,Request
-from pywebhost.modules import Redirect, WriteContentToRequest,JSONMessageWrapper,BinaryMessageWrapper
+from pywebhost.modules import WriteContentToRequest,JSONMessageWrapper
 from pywebhost.modules.session import SessionWrapper
-from pyncm import GetCurrentSession,SetCurrentSession,LoadSessionFromString
 from pywebhost.modules.session import Session
+
+from pyncm import GetCurrentSession,LoadSessionFromString
+
 SESSION_FILE = 'session.ncm'
 def parse():
     parser = argparse.ArgumentParser(description='PyNCM Web Server')
@@ -34,6 +36,12 @@ def login(session_file=SESSION_FILE,phone='',password=''):
     pyncm.login.LoginViaCellphone(phone,password)
     logging.info('%s has logged in' % pyncm.GetCurrentSession().login_info['content']['profile']['nickname'])
     return save()
+
+class RingBuffer(deque):    
+    def __init__(self,maxlen=64) -> None:
+        super().__init__(iterable=[], maxlen=maxlen)
+    def to_list(self):
+        return list(self)
 server = None
 def route():    
     @server.route('/.*')
@@ -49,22 +57,22 @@ def route():
     def IndexPage(server : PyWebHost,request : Request,content):
         WriteContentToRequest(request,'web/index.html',mime_type='text/html')
 
-    class NCMdAPISession(Session):        
+    class NCMdAPISession(Session):                
         logger = logging.getLogger('NCMdAPI')   
         @property
         def local_request_stack(self):
-            if not 'requests' in self:self['requests'] = []
+            if not 'requests' in self:self['requests'] = RingBuffer()            
             return self['requests']
         @property
         def global_request_stack(self):
             if not hasattr(self.request.server,'requests_stack'):
-                self.request.server.requests_stack = []
+                self.request.server.requests_stack = RingBuffer()                       
             return self.request.server.requests_stack        
         @JSONMessageWrapper(read=False)        
         def _stats_requests(self,request: Request,content):      
             '''accumulates total requests'''      
             request.send_response(200)            
-            return {'self':self.local_request_stack,'global':self.global_request_stack}
+            return {'self':self.local_request_stack.to_list(),'global':self.global_request_stack.to_list()}
         @JSONMessageWrapper(read=False)
         def _stats_server(self,request: Request,content):      
             '''server hoster nickname'''      

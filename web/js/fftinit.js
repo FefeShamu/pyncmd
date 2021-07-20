@@ -14,7 +14,7 @@ var ffta_settings = {
     },
     'disable':false,
     'showFPS':false,
-    'minFrameTime':1000/30,
+    'minFrameTime':1000/60,
 }
 
 function fftInit() {

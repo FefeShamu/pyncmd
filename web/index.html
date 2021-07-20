@@ -138,9 +138,16 @@
                     </v-footer>
                 </v-dialog>
                 <v-card v-if="currentTrack" tile grow width="80%">
-                    <v-slider class="large-slider" style="height: 1em;" :value="currentTime" :max="duration" absolute
-                        class="my-0 py-0" @change="seekTrack">
-                    </v-slider>
+                    <v-container style="height: 1em;padding-top:0; ">
+                        <v-row>
+                            <v-col cols="auto">{{toTimestamp(player.currentTime).substr(0,5)}}</v-col>
+                            <v-col cols="16">
+                                <v-slider class="large-slider"  :value="currentTime" :max="duration" style="margin-top: -0.25em;"
+                                    absolute class="my-0 py-0" @change="seekTrack">
+                                </v-slider>
+                            </v-col>
+                        </v-row>
+                    </v-container>
                     <v-list>
                         <v-list-item>
                             <v-list-item-content>
@@ -191,6 +198,34 @@
                                             <v-icon>mdi-download</v-icon> Download
                                         </v-list-item-title>
                                     </v-list-item>
+                                    <v-dialog>
+                                        <template v-slot:activator="{ on }">
+                                            <v-list-item v-if="parsedLyrics" @click="">
+                                                <v-list-item-title v-on="on">
+                                                    <v-icon>mdi-script-text</v-icon> Lyrics
+                                                </v-list-item-title>
+                                            </v-list-item>
+                                        </template>
+                                        <v-card>
+                                            <v-card-title>
+                                                <span class="headline">View Lyrics</span>
+                                            </v-card-title>
+                                            <v-simple-table>
+                                                <template v-slot:default>
+                                                    <tbody>
+                                                        <tr v-for="[key, value] of Object.entries(parsedLyrics)"
+                                                            v-if="value[0]" :key="key">
+                                                            <td>{{toTimestamp(key)}}</td>
+                                                            <td v-for="sub in value">{{sub}}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </template>
+                                            </v-simple-table>
+                                            <v-card-actions class="justify-end">
+                                                <v-btn text @click="addTrack(newURL)" :disabled="loading">OK</v-btn>
+                                            </v-card-actions>
+                                        </v-card>
+                                    </v-dialog>
                                 </v-list>
                             </v-menu>
                         </v-list-item>
@@ -349,6 +384,7 @@
                     </draggable>
                 </v-dialog>
             </v-bottom-navigation>
+
             <v-snackbar top multi-line v-model="snackBar" :timeout="snackTimeout">
                 {{ snackMessage }}
                 <template v-slot:action="{ attrs }">
