@@ -200,7 +200,7 @@
                                     </v-list-item>
                                     <v-dialog>
                                         <template v-slot:activator="{ on }">
-                                            <v-list-item v-if="parsedLyrics" @click="">
+                                            <v-list-item @click="">
                                                 <v-list-item-title v-on="on">
                                                     <v-icon>mdi-script-text</v-icon> Lyrics
                                                 </v-list-item-title>
@@ -210,7 +210,7 @@
                                             <v-card-title>
                                                 <span class="headline">View Lyrics</span>
                                             </v-card-title>
-                                            <v-simple-table>
+                                            <v-simple-table v-if="parsedLyrics">
                                                 <template v-slot:default>
                                                     <tbody>
                                                         <tr v-for="[key, value] of Object.entries(parsedLyrics)"
