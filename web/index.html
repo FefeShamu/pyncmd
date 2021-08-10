@@ -34,26 +34,27 @@
 
         .lyric-0,
         .lyric-1,
-        .lyric-2 {
-            font-size: 4em;
+        .lyric-2 {            
+            margin-bottom: 0 !important;
             font-weight: 400;
-            color: white !important;            
+            color: white !important;     
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .lyric-0 {
             font-weight: bolder;            
+            font-size: 5vw;
             width: 100%;
         }
 
         .lyric-1 {
-            margin-top: -1em;
-            font-size: 2em;
+            font-size: 2.5vw;
             width: 100%;
         }
 
         .lyric-2 {
-            margin-top: -1em;
-            font-size: 1.5em;            
+            font-size: 2vw;           
         }
 
         .lyrics-a {
@@ -115,7 +116,7 @@
                     v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.12,1))*100 + '% 100%'}"
                     v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"
                     > <!-- allowing lyric progress to overshoot a bit-->                    
-                    <p v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" :class="'lyric-'+index">{{lyric}}</p>
+                    <p v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" :class="'lyric-'+index">{{lyric ? lyric : '⬤ ⬤ ⬤'}}</p>
                 </div></br>
                 <div class="lyrics-b">
                     <p v-for="(lyric,index) in lyricsAt(matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
@@ -182,7 +183,7 @@
                         </v-col>
                     </v-footer>
                 </v-dialog>
-                <v-card v-if="currentTrack" tile grow width="80%">
+                <v-card v-if="currentTrack" tile grow width="70%">
                     <v-container style="height: 1em;padding-top:0; ">
                         <v-row>
                             <v-col cols="auto">{{toTimestamp(player.currentTime).substr(0,5)}}</v-col>
@@ -253,7 +254,7 @@
                                         </template>
                                         <v-card>
                                             <v-card-title>
-                                                <span class="headline">View Lyrics</span>
+                                                <a class="headline" v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{ currentTrack.name }} - {{currentTrack.ar.map(function(f){return f.name}).join('/')}} - {{currentTrack.al.name}}</a>
                                             </v-card-title>
                                             <v-simple-table v-if="parsedLyrics">
                                                 <template v-slot:default>

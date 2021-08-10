@@ -259,6 +259,12 @@ var vue = new Vue({
             var val = vue.matchedIndex >= 1 ? (getDelta ? precentage - lastPrecentage : precentage) : 0
             lastPrecentage = precentage
             return val
+        },
+        redirectTo : (url) => {
+            window.location.href = url
+        },
+        openWindow : (url) => {
+            window.open(url)
         }
     }
 })
@@ -283,8 +289,13 @@ vue.player.ontimeupdate = () => {
         }
     }
 }
+
+window.addEventListener('load', (event) => {
+    var query = document.location.href.indexOf('?')
+    if (query > 0) vue.addTrack(document.location.href.substr(query))
+},false);
+
 vue.player.crossOrigin = "anonymous"
-fetch('stats/server').then(response => response.json())
-    .then(data => {
+fetch('stats/server').then(response => response.json()).then(data => {
         vue.server = data
-    })
+})
