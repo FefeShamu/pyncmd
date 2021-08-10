@@ -69,6 +69,7 @@ var vue = new Vue({
         },
         currentTrack: (track, old_) => {
             document.title = `${track.name} - ${track.ar.map(f=>f.name).join(' / ')}`
+            window.history.pushState("", document.title, `?trackId=${track.id}`)
         },
         currentLyrics: (new_, old_) => {
             if (!new_) return
@@ -134,8 +135,7 @@ var vue = new Vue({
                 }))
                 .then(response => response.json()).then(data => {
                     var track = data.data[0]
-                    console.log(`[track] audio fetched. bitrate is ${track.br}`, track)
-                    window.history.pushState("", "", `?trackId=${track.id}`)
+                    console.log(`[track] audio fetched. bitrate is ${track.br}`, track)                    
                     vue.currentLyrics = null
                     vue.currentAudio = track
                     // setup the player
