@@ -446,29 +446,8 @@
         </v-app>
     </div>
 </body>
-<script src="js/dist/utils.dev.js"></script>
-<script>
-    // loading scripts
-    if (typeof check_arg == 'undefined') {
-        // load fallback scripts
-        console.warn('[script] loading fallback scripts [non-dev]')
-        var scripts = [
-            'js/utils.js', 'js/fftanalyzer.js', 'js/fftinit.js', 'js/core.js'
-        ]
-    } else {
-        console.log('[script] loading scripts [dev]')
-        var scripts = [
-            'js/dist/fftanalyzer.dev.js', 'js/dist/fftinit.dev.js', 'js/dist/core.dev.js'
-        ]
-    }
-    for (var i in scripts) {
-        var script = scripts[i]
-        var tag = document.createElement('script')
-        tag.type = 'text/javascript'
-        tag.src = script
-        console.log('[script] loading ' + script)
-        document.body.appendChild(tag)
-    }
-</script>
-
+<script src="js/utils.js"></script>
+<script src="js/fftanalyzer.js"></script>
+<script src="js/fftinit.js"></script>
+<script src="js/core.js"></script>
 </html>
