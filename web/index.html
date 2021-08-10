@@ -19,14 +19,17 @@
             height: 100vh;
         }
 
+        .progressing {
+            transition: all 0.25s linear;            
+        }
+
         .lyrics-holder {
-            width: auto;
             position: fixed;
             width: 100%;
-            top: 20%;
-            bottom: 20%;
+            top: 10%;
+            bottom: 10%;
             padding: 10%;
-            background-color: rgba(0, 0, 0, 0.5)
+            background-color: rgba(0, 0, 0, 0);            
         }
 
         .lyric-0,
@@ -34,31 +37,70 @@
         .lyric-2 {
             font-size: 4em;
             font-weight: 400;
-            color: white !important;
+            color: white !important;            
         }
 
         .lyric-0 {
-            font-weight: bolder;
+            font-weight: bolder;            
+            width: 100%;
         }
 
         .lyric-1 {
+            margin-top: -1em;
             font-size: 2em;
+            width: 100%;
         }
 
         .lyric-2 {
-            font-size: 1em;
-            font-weight: lighter;
+            margin-top: -1em;
+            font-size: 1.5em;            
         }
 
         .lyrics-a {
-            float: left;
+            z-index: 1;
+            float: left;      
+            background-size: 200% 200%;
+            background-image:  linear-gradient(to right, blue 50%,white 50%);            
+            background-clip: content-box;                 
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;            
+        }
+
+        .lyrics-a > .lyric-0 {
+            -webkit-text-stroke:0.03em white;
+        }
+
+        .lyrics-a > .lyric-1 {
+            -webkit-text-stroke:0.01em white;
+        }
+
+        .lyrics-a > .lyric-2 {
+            -webkit-text-stroke:0.01em black;
+            -webkit-text-fill-color: white;
         }
 
         .lyrics-b {
-            opacity: 50%;
-            float: right;
-            margin-top: 0.5em
+            z-index: 0;
+            position: absolute;
+            opacity: 10%;            
+            margin-top: 1.5em;
+            -webkit-text-stroke:0.05em black;
         }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px)  }
+            20% { transform: translate(-3px, 0px) }            
+            40% { transform: translate(1px, -1px) }
+            60% { transform: translate(-3px, 1px) }            
+            80% { transform: translate(-1px, -1px) }            
+            100% { transform: translate(1px, -2px) }
+        }
+
+        .lyrics-active {
+            background-color:lightskyblue;
+            animation: shake 0.1s;            
+        }
+
     </style>
 
 </head>
@@ -69,13 +111,16 @@
         <v-app>
             <canvas id="visualizer"></canvas>
             <div class="lyrics-holder" v-if="parsedLyrics && config.showLyrics">
-                <div class="lyrics-a">
-                    <p v-for="(lyric,index) in this.lyricsAt(this.matchedIndex - 1)" :class="'lyric-'+index">{{lyric}}
-                    </p>
+                <div class="lyrics-a" 
+                    v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.12,1))*100 + '% 100%'}"
+                    v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"
+                    > <!-- allowing lyric progress to overshoot a bit-->                    
+                    <p v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" :class="'lyric-'+index">{{lyric}}</p>
                 </div></br>
                 <div class="lyrics-b">
-                    <p v-for="(lyric,index) in this.lyricsAt(this.matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
+                    <p v-for="(lyric,index) in lyricsAt(matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
                 </div>
+                
             </div>
             <v-dialog max-width="80%" v-model="error">
                 <v-card>
@@ -200,8 +245,8 @@
                                     </v-list-item>
                                     <v-dialog>
                                         <template v-slot:activator="{ on }">
-                                            <v-list-item @click="">
-                                                <v-list-item-title v-on="on">
+                                            <v-list-item>
+                                                <v-list-item-title v-on="on" style="cursor:default;">
                                                     <v-icon>mdi-script-text</v-icon> Lyrics
                                                 </v-list-item-title>
                                             </v-list-item>
@@ -213,17 +258,16 @@
                                             <v-simple-table v-if="parsedLyrics">
                                                 <template v-slot:default>
                                                     <tbody>
-                                                        <tr v-for="[key, value] of Object.entries(parsedLyrics)"
-                                                            v-if="value[0]" :key="key">
-                                                            <td>{{toTimestamp(key)}}</td>
-                                                            <td v-for="sub in value">{{sub}}</td>
+                                                        <tr v-bind:class="{ 'lyrics-active' : timestampAt(matchedIndex - 1)==key }"                                                            
+                                                            v-for="[key, value] of Object.entries(parsedLyrics)"
+                                                            v-if="value[0]" :key="key" :id="'lyric-view-'+key"
+                                                            @click="player.currentTime=key">
+                                                                <td>{{toTimestamp(key)}}</td>
+                                                                <td v-for="sub in value">{{sub}}</td>                                                                
                                                         </tr>
                                                     </tbody>
                                                 </template>
                                             </v-simple-table>
-                                            <v-card-actions class="justify-end">
-                                                <v-btn text @click="addTrack(newURL)" :disabled="loading">OK</v-btn>
-                                            </v-card-actions>
                                         </v-card>
                                     </v-dialog>
                                 </v-list>

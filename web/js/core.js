@@ -55,7 +55,7 @@ var vue = new Vue({
         globalPlaylist:[],
 
         shuffleMode:'repeat',
-        shuffleModes:['repeat','repeat-once']
+        shuffleModes:['repeat','repeat-once'],
     }),
     watch: {
         config: {
@@ -246,20 +246,42 @@ var vue = new Vue({
                     vue.error = true
                 })
         },
-        lyricsAt: index => vue.parsedLyrics[Object.keys(vue.parsedLyrics)[index]],
+        timestampAt: index => Object.keys(vue.parsedLyrics)[index],
+        lyricsAt: index => vue.parsedLyrics[vue.timestampAt(index)],
         downloadTrack: track => {
             console.log(`[download] ${track.url}`)
             window.open(track.url)
+        },
+        getLyricsPrecentage : (getDelta) => {
+            var played = vue.currentTime-vue.timestampAt(vue.matchedIndex - 1)
+            var total  = vue.timestampAt(vue.matchedIndex) - vue.timestampAt(vue.matchedIndex - 1)
+            var precentage = (played/total)
+            var val = vue.matchedIndex >= 1 ? (getDelta ? precentage - lastPrecentage : precentage) : 0
+            lastPrecentage = precentage
+            return val
         }
     }
 })
+var lastPrecentage = 0;
+
 vue.player.onended = () => {
     vue.opearteTrack('forward')
 }
+var lastScrolled = 0;
 vue.player.ontimeupdate = () => {
     vue.duration = vue.player.duration
     vue.currentTime = vue.player.currentTime
-    if (vue.parsedLyrics) vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
+    if (vue.parsedLyrics) {
+        vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
+        if (lastScrolled != vue.matchedIndex) {
+            var el = document.getElementById('lyric-view-' + vue.timestampAt(vue.matchedIndex - 1))
+            if (el) el.scrollIntoView({
+                block: 'center',
+                behavior:'smooth'
+            })
+            lastScrolled = vue.matchedIndex;
+        }
+    }
 }
 vue.player.crossOrigin = "anonymous"
 fetch('stats/server').then(response => response.json())
