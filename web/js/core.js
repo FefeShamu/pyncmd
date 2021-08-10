@@ -134,6 +134,7 @@ var vue = new Vue({
                 .then(response => response.json()).then(data => {
                     var track = data.data[0]
                     console.log(`[track] audio fetched. bitrate is ${track.br}`, track)
+                    window.history.pushState("", "", `?trackId=${track.id}`)
                     vue.currentLyrics = null
                     vue.currentAudio = track
                     // setup the player
@@ -213,7 +214,7 @@ var vue = new Vue({
                 params = {
                     album_id: match
                 }
-            }
+            }            
             console.log(`[multi] adding ${match} ${route}`)
             vue.loadInfo = 'Fetching tracks'
             vue.loading = true;
