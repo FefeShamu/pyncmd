@@ -7,6 +7,7 @@ var vue = new Vue({
 
         currentAudio: null,
         currentTrack: null,
+        currentMV   : null,
         playlist: [],
 
         loading: false,
@@ -154,6 +155,15 @@ var vue = new Vue({
                             vue.currentLyrics = data
                         }
                     )
+                }).then(data => {
+                    fetch('pyncm/video/GetMVResource?' + new URLSearchParams(Object.assign({
+                        mv_id : evt.mv
+                    }))).then(response => response.json()).then(
+                        data => {
+                            console.log(`[mv] mv fetched for ${evt.id}`, data)
+                            vue.currentMV = data
+                        }
+                    )
                 })
         },
         seekTrack: (pos) => {
@@ -251,7 +261,7 @@ var vue = new Vue({
         lyricsAt: index => vue.parsedLyrics[vue.timestampAt(index)],
         downloadTrack: track => {
             console.log(`[download] ${track.url}`)
-            window.open(track.url)
+            vue.openWindow(track.url)
         },
         getLyricsPrecentage : (getDelta) => {
             var played = vue.currentTime-vue.timestampAt(vue.matchedIndex - 1)
