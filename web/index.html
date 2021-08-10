@@ -271,8 +271,8 @@
                                             </v-simple-table>
                                         </v-card>
                                     </v-dialog>                                    
-                                    <v-list-item>
-                                        <v-list-item-title v-if="currentMV" @click="downloadTrack(currentMV.data)">
+                                    <v-list-item v-if="currentMV && currentMV.data.url" >
+                                        <v-list-item-title @click="downloadTrack(currentMV.data)">
                                             <v-icon>mdi-file-video-outline</v-icon> MV
                                         </v-list-item-title>
                                     </v-list-item>                                                              
