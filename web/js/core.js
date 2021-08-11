@@ -156,6 +156,7 @@ var vue = new Vue({
                         }
                     )
                 }).then(data => {
+                    if (!!!evt.mv) return
                     fetch('pyncm/video/GetMVResource?' + new URLSearchParams(Object.assign({
                         mv_id : evt.mv
                     }))).then(response => response.json()).then(
