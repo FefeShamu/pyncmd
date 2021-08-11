@@ -19,7 +19,7 @@
             height: 100vh;
         }
 
-        .progressing {
+        .progressing > *{
             transition: all 0.25s linear;            
         }
 
@@ -37,20 +37,18 @@
         .lyric-2 {            
             margin-bottom: 0 !important;
             font-weight: 400;
-            color: white !important;     
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: white !important;                  
         }
 
         .lyric-0 {
             font-weight: bolder;            
             font-size: 5vw;
-            width: 100%;
+            width: fit-content;            
         }
 
         .lyric-1 {
             font-size: 2.5vw;
-            width: 100%;
+            width: fit-content;            
         }
 
         .lyric-2 {
@@ -59,12 +57,16 @@
 
         .lyrics-a {
             z-index: 1;
-            float: left;      
+            float: left;                
+        }
+
+        .lyrics-a > .lyric-0,
+        .lyrics-a > .lyric-1 {
             background-size: 200% 200%;
             background-image:  linear-gradient(to right, blue 50%,white 50%);            
             background-clip: content-box;                 
             -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;            
+            -webkit-text-fill-color: transparent; 
         }
 
         .lyrics-a > .lyric-0 {
@@ -75,7 +77,7 @@
             -webkit-text-stroke:0.01em white;
         }
 
-        .lyrics-a > .lyric-2 {
+        .lyric-2 {
             -webkit-text-stroke:0.01em black;
             -webkit-text-fill-color: white;
         }
@@ -112,11 +114,12 @@
         <v-app>
             <canvas id="visualizer"></canvas>
             <div class="lyrics-holder" v-if="parsedLyrics && config.showLyrics">
-                <div class="lyrics-a" 
-                    v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.12,1))*100 + '% 100%'}"
-                    v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"
-                    > <!-- allowing lyric progress to overshoot a bit-->                    
-                    <p v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" :class="'lyric-'+index">{{lyric ? lyric : '⬤ ⬤ ⬤'}}</p>
+                <div class="lyrics-a"                     
+                    v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"> <!-- allowing lyric progress to overshoot a bit-->                    
+                    <p 
+                    v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" 
+                    v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.1,1))*100 + '% 100%'}"
+                    :class="'lyric-'+index">{{lyric ? lyric : '⬤ ⬤ ⬤'}}</p>
                 </div></br>
                 <div class="lyrics-b">
                     <p v-for="(lyric,index) in lyricsAt(matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
