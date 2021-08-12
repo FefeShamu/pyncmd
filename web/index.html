@@ -110,7 +110,7 @@
     <audio id="player"></audio>
     <div id="app">
         <v-app>
-            <canvas id="visualizer"></canvas>
+            <canvas onclick="document.body.requestFullscreen()" id="visualizer"></canvas>
             <div class="lyrics-holder" v-if="parsedLyrics && config.showLyrics">
                 <div class="lyrics-a"                     
                     v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"> <!-- allowing lyric progress to overshoot a bit-->                    
