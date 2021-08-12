@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 
 <head>
@@ -33,13 +34,10 @@
             top: 10%;
             bottom: 10%;
             padding: 10%;
-            background-color: rgba(0, 0, 0, 0);        
-            transform: scaleY(1.1);    
+            background-color: rgba(0, 0, 0, 0);                      
         }
 
-        .lyric-0,
-        .lyric-1,
-        .lyric-2 {            
+        [class^='lyric-'] {            
             margin-bottom: 0 !important;
             font-weight: 400;
             color: white !important;                  
@@ -49,6 +47,7 @@
             font-weight: bolder;            
             font-size: 5vw;
             width: fit-content;            
+            transform: scaleY(1.2);  
         }
 
         .lyric-1 {
@@ -105,7 +104,7 @@
             background-color:lightskyblue;
             animation: shake 0.18s;            
         }
-
+        
     </style>
 
 </head>
@@ -410,12 +409,12 @@
                             </v-list>
                         </v-menu>
                     </v-toolbar>
-                    <v-card v-if="!playlist.length" style="background: white;" class="text-h6 pa-12">
+                    <v-card v-if="!playlist.length" class="text-h6 pa-12">
                         No tracks available - use <v-btn>
                             <v-icon>mdi-menu</v-icon>
                         </v-btn> on the top right corner to add tracks
                     </v-card>
-                    <v-list v-if="playlist.length" style="background: white;" ghost-class="ghost">
+                    <v-list v-if="playlist.length" ghost-class="ghost">
                         <v-list-item v-for="(track,index) in playlist" :key="track.id" @click="setPlay(track)">
                             <v-list-item-title>{{track.name}}</v-list-item-title>
                             <v-list-item-subtitle>{{track.al.name}} -

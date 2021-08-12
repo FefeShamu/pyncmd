@@ -1,7 +1,11 @@
 const id_regex = /\d{5,}/gm;
 var vue = new Vue({
     el: '#app',
-    vuetify: new Vuetify(),
+    vuetify: new Vuetify(
+        {
+            theme : { dark : true }
+        }
+    ),
     data: () => ({
         newURL: '',
 
