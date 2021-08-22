@@ -28,7 +28,7 @@ function fftInit() {
     vue.player.addEventListener('play', function () {
         audioCtx.resume();
     });
-    setup(analyzer, peakmeter, peakmeter.offsetWidth, peakmeter.offsetHeight, ffta_settings)
+    setup(analyzer, peakmeter, 320, 180, ffta_settings)
     update()
     console.log('[fft] initialized with settings ', ffta_settings)
 }
