@@ -17,7 +17,8 @@
   - 触发方式 : **API 网关触发**
   - 请求方法 ：**GET**
   - 集成响应 ：**不启用**
-- 测试 **API网关触发** - **访问路径**
+- 点击 **API 服务名**，进入相应配置页面 - **编辑** - **启用 CORS** - **启用**
+- 回到之前的页面，找到 **API网关触发** - **访问路径**
   - 形式如 `https://service-########-#########.##.apigw.tencentcs.com/release/pyncmd`（ 后文将以 `[...]` 代替  ）
   - 浏览器中打开 `[...]/track/GetTrackDetail?song_ids=17455854`，应有形式如下的报文
   
@@ -39,6 +40,8 @@
   
 至此 API 配置介绍部分完毕
 
+## 配置 Github Pages
+Fork 此项目
 ## 附：定价
 *来自 [产品概述](https://cloud.tencent.com/document/product/583/9199)*
 ### 免费额度
