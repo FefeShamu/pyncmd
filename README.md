@@ -63,7 +63,7 @@
   
       bitrate (int*, *optional) – 比特率 (96k SQ 320k HQ 320k+ Lossless/SQ). Defaults to 320000  
 
-请求 URL 即 `[...]/*track*/*GetTrackAudio*?song_ids=[歌曲 ID]&bitrate=[Bitrate]`
+请求 URL 即 `[...]/track/GetTrackAudio?song_ids=[歌曲 ID]&bitrate=[Bitrate]`
 
 ### 相关链接
 [Home · greats3an/pyncm Wiki](https://github.com/greats3an/pyncm/wiki)
