@@ -152,16 +152,13 @@ function draw_bass_response() {
   avg = avg / (r - l + 1);
   if (avg - lastv > _.threshold) db_v += _.apush;
   db_v *= _.accel;
-  var v = Math.sqrt(db_v) / Math.sqrt(255) * 144;
-  var h = HEIGHT >> 1;
+  var v = Math.sqrt(db_v) / 16;
+  var g = canvasCtx.createLinearGradient(WIDTH / 2, 0 , WIDTH / 2, HEIGHT)
+  g.addColorStop(1-v, "black")
+  g.addColorStop(1, "#aaaaaa")
 
-  for (var i = 0; i <= h; i++) {
-    var v1 = v * (h - i) / h;
-    var style = 'rgb(' + v1 + ',' + v1 + ',' + v1 + ')';
-    canvasCtx.fillStyle = style;
-    canvasCtx.fillRect(0, i, WIDTH, 1);
-    canvasCtx.fillRect(0, HEIGHT - i, WIDTH, 1);
-  }
+  canvasCtx.fillStyle = g
+  canvasCtx.fillRect(0, 0, WIDTH, HEIGHT)
 
   lastv = avg;
 }
