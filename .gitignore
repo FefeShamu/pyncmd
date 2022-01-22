@@ -1,7 +1,6 @@
 .vscode
-.gitignore
 *.pyc
 log.txt
 *.db
-pyncmd.exe
 *.ncm
+.env
