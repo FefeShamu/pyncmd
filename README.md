@@ -49,6 +49,8 @@
         // i forgot to remove it, i know.
 
 - 保存后，稍后访问 `https://[你的 Github 用户名].github.io/pyncmd/` 即可
+![scrnshot](https://user-images.githubusercontent.com/31397301/150633232-14760ab9-7403-4d02-948b-c039132c82bb.gif)
+
 ## 附：定价
 *来自 [产品概述](https://cloud.tencent.com/document/product/583/9199)*
 ### 免费额度
