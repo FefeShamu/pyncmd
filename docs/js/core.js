@@ -308,4 +308,3 @@ window.addEventListener('load', (event) => {
 },false);
 
 vue.player.crossOrigin = "anonymous"
-console.log('init ok')

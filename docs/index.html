@@ -11,8 +11,10 @@
     <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <!-- my attempt at seo...nevermind -->
+    <title>PyNCMd 网易云音乐在线解析</title>
+    <meta name="description" content="在线解析，下载高质量网易云音乐资源（单曲、歌单、专辑、MV、歌词）；内置可视化，播放列表">
 
-    <title>le advanced player has arrived yet again</title>
     <style>
         body {
             overflow: hidden;
@@ -129,7 +131,7 @@
             <v-dialog max-width="80%" v-model="error">
                 <v-card>
                     <v-card-title>
-                        <span class="headline">Track Fetch Error</span>
+                        <span class="headline">获取详情时出错</span>
                     </v-card-title>
                     <v-card-text>
                         <div class="text-h6 pa-12">{{ lastError }}</div>
@@ -140,10 +142,10 @@
             <v-dialog style="background: white;" max-width="80%" v-model="trackConflictDialog">
                 <v-card>
                     <v-card-title>
-                        <span class="headline">Track Conflict</span>
+                        <span class="headline">歌曲冲突</span>
                     </v-card-title>
                     <v-alert border="right" colored-border type="error" elevation="2">
-                        The following tracks were not added as they already exist:
+                        以下歌曲已存在
                     </v-alert>
                     <v-spacer></v-spacer>
                     <v-list>
@@ -161,7 +163,7 @@
                 <v-dialog inset hide-overlay>
                     <template v-slot:activator="{ on }">
                         <v-btn v-on="on">
-                            <span>Settings</span>
+                            <span>设置</span>
                             <v-icon>mdi-account-settings</v-icon>
                         </v-btn>
                     </template>
@@ -291,12 +293,12 @@
                 <v-dialog max-width="80%" inset hide-overlay>
                     <template v-slot:activator="{ on }">
                         <v-btn v-on="on">
-                            <span>Playlist</span>
+                            <span>播放列表</span>
                             <v-icon>mdi-animation-play</v-icon>
                         </v-btn>
                     </template>
                     <v-toolbar dark prominent>
-                        <v-toolbar-title>Playlist</v-toolbar-title>
+                        <v-toolbar-title>播放列表</v-toolbar-title>
                         <v-spacer></v-spacer>
                         <v-menu top close-on-content-click>
                             <template v-slot:activator="{ on }">
@@ -307,12 +309,12 @@
                                     <template v-slot:activator="{ on }">
                                         <v-list-item v-on="on">
                                             <v-icon>mdi-cloud-search</v-icon>
-                                            <v-list-item-title>Add via Search</v-list-item-title>
+                                            <v-list-item-title>搜索歌曲...</v-list-item-title>
                                         </v-list-item>
                                     </template>
                                     <v-card>
                                         <v-card-title>
-                                            <span class="headline">Search</span>
+                                            <span class="headline">搜索</span>
                                         </v-card-title>
                                         <v-spacer></v-spacer>
                                         <v-text-field label="Search tracks" @input="queryString=$event" class="mx-4">
@@ -336,12 +338,12 @@
                                     <template v-slot:activator="{ on }">
                                         <v-list-item v-on="on">
                                             <v-icon>mdi-earth</v-icon>
-                                            <v-list-item-title>Add via URL</v-list-item-title>
+                                            <v-list-item-title>粘贴分享链接...</v-list-item-title>
                                         </v-list-item>
                                     </template>
                                     <v-card v-if="!loading">
                                         <v-card-title>
-                                            <span class="headline">Add tracks</span>
+                                            <span class="headline">粘贴分享链接</span>
                                         </v-card-title>
                                         <v-text-field @input="newURL=$event" class="pa-2"
                                             label="URL (.e.g. https://music.163.com/#/song?id=66282)" required>
@@ -357,9 +359,9 @@
                         </v-menu>
                     </v-toolbar>
                     <v-card v-if="!playlist.length" class="text-h6 pa-12">
-                        No tracks available - use <v-btn>
+                        播放列表为空。请在 <v-btn>
                             <v-icon>mdi-menu</v-icon>
-                        </v-btn> on the top right corner to add tracks
+                        </v-btn> 处添加新曲
                     </v-card>
                     <v-list v-if="playlist.length" ghost-class="ghost">
                         <v-list-item v-for="(track,index) in playlist" :key="track.id" @click="setPlay(track)">

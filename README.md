@@ -1,4 +1,4 @@
-# PyNCMd - SCF / 云函数 API
+# PyNCMd - SCF / 云函数 API Ver.
 使用腾讯云 API GW 及 SCF 低成本 / 无成本搭建本服务
 # API 服务设置
 ## 准备函数zip包
