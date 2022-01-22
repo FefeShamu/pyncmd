@@ -33,7 +33,7 @@
     `{"statusCode": 200, "msg": "14802a8dcecd7b925b20a546d635e059d28...`
   - 复制 `msg` 的值
 - 在 **函数管理** - **函数代码** - **文件** - **新建**，创建文件 `session` (与 `index.py` 同目录）
-- 将内容粘贴至 `session` 文件内并保存，然后 **部署**
+- 将 `msg` 的内容粘贴至 `session` 文件内并保存，然后 **部署**
 - 浏览器中打开 `[...]/track/GetTrackAudio?song_ids=26349641`（歌曲需 CVIP），应有形式如下的报文
 
   `{"data": [{"id": 26349641, "url": "http://m701.music.126.net/20220122164837/9a8b7d288ef130d89ea5aff4d52e0e4b/jdymusic/obj/wo...`
@@ -50,6 +50,23 @@
 
 - 保存后，稍后访问 `https://[你的 Github 用户名].github.io/pyncmd/` 即可
 ![scrnshot](https://user-images.githubusercontent.com/31397301/150633232-14760ab9-7403-4d02-948b-c039132c82bb.gif)
+
+## API 使用指南
+作为 [pyncm]() 的 SCF 前端，本 API 采用相似的语法
+### 使用例
+[网页端 - 获取歌曲音频文件](https://github.com/greats3an/pyncm/wiki/05---%E6%AD%8C%E6%9B%B2#pyncmapistrackgettrackaudiosong_ids-list-bitrate320000) - `pyncm.apis.track.GetTrackAudio(song_ids, bitrate)`
+
+    PC 端- 获取歌曲音频详情（文件URL、MD5…）
+    Parameters
+
+      song_ids (list) – 歌曲 ID
+  
+      bitrate (int*, *optional) – 比特率 (96k SQ 320k HQ 320k+ Lossless/SQ). Defaults to 320000  
+
+请求 URL 即 `[...]/*track*/*GetTrackAudio*?song_ids=[歌曲 ID]&bitrate=[Bitrate]`
+
+### 相关链接
+[Home · greats3an/pyncm Wiki](https://github.com/greats3an/pyncm/wiki)
 
 ## 附：定价
 *来自 [产品概述](https://cloud.tencent.com/document/product/583/9199)*
