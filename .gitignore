@@ -4,3 +4,5 @@ log.txt
 *.db
 *.ncm
 .env
+libs/
+*.zip
