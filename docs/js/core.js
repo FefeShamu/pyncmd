@@ -101,6 +101,7 @@ var vue = new Vue({
                     keyword: vue.queryString
                 }))).then(response => response.json()).then(
                     data => {
+                        if (data.server) vue.server = data.server
                         vue.loadingRecessive = false
                         if (!data.result || !data.result.songs) return
                         console.log('[search] results', data.result.songs)
@@ -120,6 +121,7 @@ var vue = new Vue({
             console.log(`[track] requesting info for id ${trackIds}`)
             var song_ids = 'song_ids=' + trackIds.join('&song_ids=')
             return request('track/GetTrackDetail?'+song_ids).then(response => response.json()).then(data => {
+                if (data.server) vue.server = data.server
                 console.log(`[track] requested info for id ${trackIds}`)        
                 vue.bufferedPlaylist = data        
             })
@@ -244,6 +246,7 @@ var vue = new Vue({
             }
             request(`${route}?` + new URLSearchParams(params)).then(response => response.json())
                 .then(data => {
+                    if (data.server) vue.server = data.server
                     if (data.playlist) { // workaround for incomplete playlists
                         var song_ids = data.playlist.trackIds.map(track => track.id);
                         song_ids = 'song_ids=' + song_ids.join('&song_ids=')                        

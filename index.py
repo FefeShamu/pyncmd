@@ -23,7 +23,7 @@ def load_identity():
         return print('[W] 配置文件不含有效登录态')
     SetCurrentSession(session_obj)
     print('[I] %s 已登录' % session_obj.login_info['content']['profile']['nickname'])
-    return session_obj
+    return session_obj.login_info['content']['profile']['nickname']
 
 def route(path , query):    
     path = list(filter(lambda x:x and x != 'pyncmd',path.split('/')))                
@@ -51,7 +51,9 @@ def route(path , query):
         return err(403,'cannot perfrom "Set" calls')
 
     query = {k:v if not len(v) == 1 else v[0] for k,v in query.items()}
-    response = getattr(base,target)(**query)                
+    response = getattr(base,target)(**query)    
+    if ident_info:
+        response['server'] = ident_info
     return response
 
 def main_handler(event,content):

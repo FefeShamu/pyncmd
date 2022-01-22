@@ -41,7 +41,14 @@
 至此 API 配置介绍部分完毕
 
 ## 配置 Github Pages
-Fork 此项目
+- Fork 此项目
+- 在自己的 `docs/config.js` 中，修改 `endpoint`，如下：
+
+        let endpoint = "https://service-ghlrryee-1308098780.gz.apigw.tencentcs.com/release/pyncmd/"
+        // endpoint should be backslashed (e.g. ...pyncmd/)
+        // i forgot to remove it, i know.
+
+- 保存后，稍后访问 `https://[你的 Github 用户名].github.io/pyncmd/` 即可
 ## 附：定价
 *来自 [产品概述](https://cloud.tencent.com/document/product/583/9199)*
 ### 免费额度

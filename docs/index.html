@@ -168,7 +168,7 @@
                         </v-btn>
                     </template>
                     <v-toolbar dark prominent>
-                        <v-toolbar-title>Settings</v-toolbar-title>
+                        <v-toolbar-title>设置</v-toolbar-title>
                     </v-toolbar>
                     <v-spacer></v-spacer>
                     <v-card v-if="config">
@@ -378,11 +378,15 @@
                                     <v-icon>mdi-download</v-icon>
                                 </v-btn>
                             </v-list-item-icon>
+                                                
                     </v-list>
-                    <v-footer padless>
-                        <v-col class="text-center" cols="12">Powered by Tecent© ServerlessCloudFunction™ Technologies™</strong></v-col>
-                    </v-footer>
+
                     </draggable>
+                    <v-footer padless>
+                        <v-col class="text-center" cols="12">
+                            服务提供 ： <strong>{{ server ? server : '...匿名' }}</strong>
+                        </v-col>
+                    </v-footer>   
                 </v-dialog>
             </v-bottom-navigation>
 
