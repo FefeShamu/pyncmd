@@ -45,8 +45,6 @@
 - 在自己的 `docs/config.js` 中，修改 `endpoint`，如下：
 
         let endpoint = "https://service-ghlrryee-1308098780.gz.apigw.tencentcs.com/release/pyncmd/"
-        // endpoint should be backslashed (e.g. ...pyncmd/)
-        // i forgot to remove it, i know.
 
 - 保存后，稍后访问 `https://[你的 Github 用户名].github.io/pyncmd/` 即可
 ![scrnshot](https://user-images.githubusercontent.com/31397301/150633232-14760ab9-7403-4d02-948b-c039132c82bb.gif)

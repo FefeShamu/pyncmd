@@ -64,6 +64,10 @@ var vue = new Vue({
 
         shuffleMode:'repeat',
         shuffleModes:['repeat','repeat-once'],
+
+        checkN1:true,
+        checkN2:true,
+        checkN3:true,
     }),
     watch: {
         config: {
