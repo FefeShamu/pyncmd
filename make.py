@@ -6,7 +6,7 @@
 # are downloaded from, they can be run without any issues.
 import pip,zipfile,os
 print('Downloading dependecies...')
-assert pip.main(['install','pyncm','-t','./libs']),"Failed to download dependencies"
+pip.main(['install','pyncm','-t','./libs']),"Failed to download dependencies"
 print('Packing up...')
 f = zipfile.ZipFile("pyncmd.zip",'w')
 def add_from_directiory(path,level=0):
