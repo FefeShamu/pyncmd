@@ -1,1 +1,1 @@
-let endpoint = "https://service-ghlrryee-1308098780.gz.apigw.tencentcs.com/release/pyncmd/"
+let endpoint = "http://127.0.0.1:3300/"
