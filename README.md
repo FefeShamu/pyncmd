@@ -1,5 +1,5 @@
 # PyNCMd - SCF / 云函数 API Ver.
-使用腾讯云 API GW 及 SCF 低成本 / 无成本搭建本服务
+使用腾讯云 API GW 及 SCF 搭建本服务
 # API 服务设置
 ## 准备函数zip包
 - 使用预备版本：  
@@ -44,15 +44,15 @@
 - Fork 此项目
 - 在自己的 `docs/config.js` 中，修改 `endpoint`，如下：
 
-        let endpoint = "https://service-ghlrryee-1308098780.gz.apigw.tencentcs.com/release/pyncmd/"
+        let endpoint = "https://service-**************.**.apigw.tencentcs.com/release/pyncmd/"
 
 - 保存后，稍后访问 `https://[你的 Github 用户名].github.io/pyncmd/` 即可
 ![scrnshot](https://user-images.githubusercontent.com/31397301/150633232-14760ab9-7403-4d02-948b-c039132c82bb.gif)
 
 ## API 使用指南
-作为 [pyncm]() 的 SCF 前端，本 API 采用相似的语法
+作为 [pyncm](https://github.com/mos9527/pyncm) 的 SCF 前端，本 API 采用相似的语法
 ### 使用例
-[网页端 - 获取歌曲音频文件](https://github.com/greats3an/pyncm/wiki/05---%E6%AD%8C%E6%9B%B2#pyncmapistrackgettrackaudiosong_ids-list-bitrate320000) - `pyncm.apis.track.GetTrackAudio(song_ids, bitrate)`
+[网页端 - 获取歌曲音频文件](https://github.com/mos9527/pyncm/wiki/05---%E6%AD%8C%E6%9B%B2#pyncmapistrackgettrackaudiosong_ids-list-bitrate320000) - `pyncm.apis.track.GetTrackAudio(song_ids, bitrate)`
 
     PC 端- 获取歌曲音频详情（文件URL、MD5…）
     Parameters
@@ -62,75 +62,3 @@
       bitrate (int*, *optional) – 比特率 (96k SQ 320k HQ 320k+ Lossless/SQ). Defaults to 320000  
 
 请求 URL 即 `[...]/track/GetTrackAudio?song_ids=[歌曲 ID]&bitrate=[Bitrate]`
-
-### 相关链接
-[Home · greats3an/pyncm Wiki](https://github.com/greats3an/pyncm/wiki)
-
-## 附：定价
-*来自 [产品概述](https://cloud.tencent.com/document/product/583/9199)*
-### 免费额度
-
-自2021年11月01日起，所有开通使用云函数 SCF 服务的用户，每月可享受一定量的免费调用次数、免费资源使用量和外网出流量。免费额度如下表：
-<table>
-  <tr>
-    <th class="align-left">发放时间</th>
-    <th class="align-left">计费项</th>
-    <th class="align-left">免费额度</th>
-  </tr>
-  <tr>
-    <td rowspan="3">前三个月（包含开通当月）每月</td>
-    <td>调用次数</td>
-    <td>100万次（事件函数和 Web 函数各100万次）</td>
-  </tr>
-  <tr>
-    <td>资源使用量</td>
-    <td>40万GBs</td>
-  </tr>
-  <tr>
-    <td>外网出流量</td>
-    <td>1GB</td>
-  </tr>
-  <tr>
-    <td rowspan="3">开通三个月后每月</td>
-    <td>调用次数</td>
-    <td>10万次（事件函数和 Web 函数各5万次）</td>
-  </tr>
-  <tr>
-    <td>资源使用量</td>
-    <td>2万GBs</td>
-  </tr>
-  <tr>
-    <td>外网出流量</td>
-    <td>0.5 GB</td>
-  </tr>
-</table>
-
-### 超值1元资源包
-#### 规格说明 
-超值1元资源包活动详情见 [Serverless 预付费资源包优惠大促销](https://cloud.tencent.com/act/pro/scf_pkg?from=15457)。
-
-<table>
-<thead>
-<tr>
-<th><strong>规格</strong></th>
-<th><strong>有效期</strong></th>
-<th>资源包定价</th>
-<th>按量计费定价</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><li>资源使用量： 50万GBs<br></li><li>函数调用次数：100万次（包括事件函数调用次数100万次和 Web 函数调用次数100万次） <br></li><li>外网出流量：2GB</li></td>
-<td>1个月</td>
-<td><strong>1元</strong></td>
-<td>59.8元</td>
-</tr>
-</tbody></table>
-
-
-
-#### 规则说明
-
-- **活动时间**：本活动自2021年10月13日起，长期有效。
-- **购买资格**：腾讯云官网已注册且完成实名认证的国内站用户均可参与（协作者与子用户账号除外）。
-- **购买限制**：每个 APPID 每月只能购买一个，次月恢复购买资格。
-- **资源包有效期**：资源包有效时间自下单之日开始，到有效期结束时停止，停止后资源包额度自动失效。
