@@ -27,7 +27,7 @@ def load_identity():
     return session_obj.login_info['content']['profile']['nickname']
 
 def route(path , query):    
-    path = list(filter(lambda x:x and x != 'pyncmd',path.split('/')))                
+    path = path.split('/')[:2]          
     base , target = (path + ['<not set>'])[:2]
     ident_info = load_identity()
     if ident_info is None:
