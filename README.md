@@ -1,2 +1,34 @@
-# PyNCMd - SCF / 云函数 API Ver.
-使用 Vercel Edge Functions 搭建本服务
+# PyNCMd - Vercel 云函数
+## API 服务设置
+### 初始化
+- Fork 此项目
+- 在 Vercel 导入项目
+### 配置网易云账号
+- 进入 `[Vercel 提供的域名]/api/pyncm?module=identity&phone=[你的手机号]&pwd=[你的明文密码]`
+- 响应报文应形式如下 `{"code": 200, "message": "14802a8dcecd7b925b20a546d635e059d28...`,复制 `message` 的值
+- 在 Vercel 项目配置新建环境变量 `PYNCMD_SESSION`, 填入该值
+
+至此 API 配置介绍部分完毕。通过 `[Vercel 提供的域名]` 即可访问你的 `pyncmd` 实例
+
+## API 使用指南
+作为 [pyncm](https://github.com/mos9527/pyncm) 的 SCF 前端，本 API 采用相似的语法
+### 使用例
+[网页端 - 获取歌曲音频文件](https://github.com/mos9527/pyncm/wiki/05---%E6%AD%8C%E6%9B%B2#pyncmapistrackgettrackaudiosong_ids-list-bitrate320000) - `pyncm.apis.track.GetTrackAudio(song_ids, bitrate)`
+
+    PC 端- 获取歌曲音频详情（文件URL、MD5…）
+    Parameters
+
+      song_ids (list) – 歌曲 ID
+  
+      bitrate (int*, *optional) – 比特率 (96k SQ 320k HQ 320k+ Lossless/SQ). Defaults to 320000  
+
+请求 URL 即 `[...]?modlue=track&method=GetTrackAudio&song_ids=[歌曲 ID]&bitrate=[Bitrate]`
+### 返回值
+- 网易云侧正常，请求报文即网易云侧响应内容
+- `pyncmd` 或其依赖异常，特殊响应码的错误汇报将成为响应内容
+### 错误信息 FAQ
+- HTTP 503 `Session environ \"session\" non-empty`
+配置新账号时，旧账号的`PYNCMD_SESSION`应被清空
+- ...
+# 附 - Vercel Pricing
+![as of 062422](https://user-images.githubusercontent.com/31397301/175424049-c21c18aa-6a6c-4bf1-b46e-5fbda50731c1.png)
