@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    
+    <link href="https://fastly.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
+    <link media="screen" href="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <script src="https://fastly.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
+    <!-- my attempt at seo...nevermind -->
+    <title>PyNCMd 网易云音乐在线解析</title>
+    <meta name="description" content="在线解析，下载高质量网易云音乐资源（单曲、歌单、专辑、MV、歌词）；内置可视化，播放列表">
+
+    <style media="screen">
+        body {
+            overflow: hidden;
+        }
+        
+        #visualizer {
+            z-index: 0;
+            height: 100vh;
+        }
+
+        .progressing > *{
+            transition: all 0.25s linear;            
+        }
+
+        .lyrics-holder {
+            position: fixed;
+            width: 100%;
+            top: 10%;
+            bottom: 10%;
+            padding: 10%;
+            background-color: rgba(0, 0, 0, 0);                      
+        }
+
+        [class^='lyric-'] {            
+            margin-bottom: 0 !important;
+            font-weight: 400;
+            color: white !important;                  
+        }
+
+        .lyric-0 {
+            font-weight: bolder;            
+            font-size: 5vw;
+            width: fit-content;            
+            transform: scaleY(1.2);  
+        }
+
+        .lyric-1 {
+            font-size: 2.5vw;
+            width: fit-content;            
+        }
+
+        .lyric-2 {
+            font-size: 2vw;           
+        }
+
+        .lyrics-a {            
+            float: left;                
+        }
+
+        .lyrics-a > .lyric-0,
+        .lyrics-a > .lyric-1 {
+            background-size: 200% 200%;
+            background-image:  linear-gradient(to right, blue 50%,white 50%);            
+            background-clip: content-box;                 
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; 
+        }
+
+        .lyrics-a > .lyric-0 {
+            -webkit-text-stroke:0.03em white;
+        }
+
+        .lyrics-a > .lyric-1 {
+            -webkit-text-stroke:0.01em white;
+        }
+
+        .lyric-2 {
+            -webkit-text-stroke:0.01em black;
+            -webkit-text-fill-color: white;
+        }
+
+        .lyrics-b {
+            float: right;
+            opacity: 50%;                        
+            -webkit-text-stroke:0.05em black;
+        }
+
+        @keyframes shake {
+            50% { transform: translate(3px, 3px)  }
+            60% { transform: translate(-1px, 2px) }            
+            70% { transform: translate(3px, 1px) }
+            80% { transform: translate(-1px, 3px) }            
+            90% { transform: translate(1px, 1px) }            
+            100% { transform: translate(3px, 0px) }
+        }
+
+        .lyrics-active {
+            background-color:lightskyblue;
+            animation: shake 0.18s;            
+        }
+        
+    </style>
+
+    <style media="print">
+        .lyrics-holder,.v-bottom-navigation,.v-input,[role=menu],canvas{
+            display: none;
+        }
+        tbody{
+            height: 100vh;
+            font-size: 1.5vw;
+        }
+        .headline{
+            font-size: 3vw;
+        }
+    </style>
+</head>
+
+<body>
+    <audio id="player"></audio>
+    <div id="app">
+        <v-app>
+            <canvas onclick="document.body.requestFullscreen()" id="visualizer"></canvas>
+            <div class="lyrics-holder" v-if="parsedLyrics && config.showLyrics">
+                <div class="lyrics-a"                     
+                    v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"> <!-- allowing lyric progress to overshoot a bit-->                    
+                    <p 
+                    v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" 
+                    v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.1,1))*100 + '% 100%'}"
+                    :class="'lyric-'+index">{{lyric ? lyric : '⬤ ⬤ ⬤'}}</p>
+                </div></br>
+                <div class="lyrics-b">
+                    <p v-for="(lyric,index) in lyricsAt(matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
+                </div>
+                
+            </div>
+            <v-dialog max-width="80%" v-model="error">
+                <v-card>
+                    <v-card-title>
+                        <span class="headline">获取详情时出错</span>
+                    </v-card-title>
+                    <v-card-text>
+                        <div class="text-h6 pa-12">{{ lastError }}</div>
+                    </v-card-text>
+                </v-card>
+            </v-dialog>
+
+            <v-dialog style="background: white;" max-width="80%" v-model="trackConflictDialog">
+                <v-card>
+                    <v-card-title>
+                        <span class="headline">歌曲冲突</span>
+                    </v-card-title>
+                    <v-alert border="right" colored-border type="error" elevation="2">
+                        以下歌曲已存在
+                    </v-alert>
+                    <v-spacer></v-spacer>
+                    <v-list>
+                        <v-list-item v-for="track in existTracks" :key="track.id">
+                            <v-list-item-title>{{ track.name }}</v-list-item-title>
+                            <v-list-item-subtitle>
+                                {{track.ar.map(function(f){return f.name}).join('-')}} - {{track.al.name}}
+                            </v-list-item-subtitle>
+                        </v-list-item>
+                    </v-list>
+                </v-card>
+            </v-dialog>
+
+            <v-bottom-navigation fixed grow height="80">
+                <v-dialog inset hide-overlay>
+                    <template v-slot:activator="{ on }">
+                        <v-btn v-on="on">
+                            <span>设置</span>
+                            <v-icon>mdi-account-settings</v-icon>
+                        </v-btn>
+                    </template>
+                    <v-toolbar dark prominent>
+                        <v-toolbar-title>设置</v-toolbar-title>
+                    </v-toolbar>
+                    <v-spacer></v-spacer>
+                    <v-card v-if="config">
+                        <v-list v-for="(value, name) in config" v-bind:key="name">
+                            <v-list-item>
+                                <v-list-item-title>{{name}}</v-list-item-title>
+                                <v-text-field v-if="typeof value == 'string'" v-model="config[name]" single-line>
+                                </v-text-field>
+                                <v-checkbox v-else-if="typeof value == 'boolean'" v-model="config[name]"></v-checkbox>
+                                <v-text-field v-else type="number" v-model="config[name]" single-line></v-text-field>
+                            </v-list-item>
+                        </v-list>
+                    </v-card>
+                </v-dialog>
+                <v-card v-if="currentTrack" tile grow width="70%">
+                    <v-container style="height: 1em;padding-top:0.5em; ">
+                        <v-row>
+                            <v-col cols="auto">{{toTimestamp(player.currentTime).substr(0,5)}}</v-col>
+                            <v-col cols="16">
+                                <v-slider class="large-slider"  :value="currentTime" :max="duration" style="margin-top: -0.25em;"
+                                    absolute class="my-0 py-0" @change="seekTrack">
+                                </v-slider>
+                            </v-col>
+                        </v-row>
+                    </v-container>
+                    <v-list>
+                        <v-list-item>
+                            <v-list-item-content>
+                                <v-list-item-title><a target="_blank"
+                                        :href="'https://music.163.com/#/song?id=' + currentTrack.id">
+                                        <strong>{{ currentTrack.name }}</strong>
+                                    </a></v-list-item-title>
+                                <v-list-item-subtitle>
+                                    {{currentTrack.ar.map(function(f){return f.name}).join('/')}} -
+                                    {{currentTrack.al.name}}
+                                </v-list-item-subtitle>
+                            </v-list-item-content>
+                            <v-spacer></v-spacer>
+                            <v-list-item-icon>
+                                <v-btn icon @click="
+                                    shuffleMode = shuffleModes[(shuffleModes.indexOf(shuffleMode) + 1) % shuffleModes.length]
+                                ">
+                                    <v-icon>mdi-{{ shuffleMode }}</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
+                            <v-list-item-icon>
+                                <v-btn icon @click="opearteTrack('rewind')">
+                                    <v-icon>mdi-rewind</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
+                            <v-list-item-icon :class="{ 'mx-5': $vuetify.breakpoint.mdAndUp }">
+                                <v-btn icon @click="opearteTrack('pause')">
+                                    <v-icon v-if="!player.paused">mdi-pause</v-icon>
+                                    <v-icon v-else>mdi-play</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
+                            <v-list-item-icon class="ml-0" :class="{ 'mr-3': $vuetify.breakpoint.mdAndUp }">
+                                <v-btn icon @click="opearteTrack('forward')">
+                                    <v-icon>mdi-fast-forward</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
+                            <v-menu>
+                                <template v-slot:activator="{ on }">
+                                    <v-list-item-icon class="ml-0">
+                                        <v-btn icon v-on="on">
+                                            <v-icon>mdi-dots-vertical</v-icon>
+                                        </v-btn>
+                                    </v-list-item-icon>
+                                </template>
+                                <v-list>
+                                    <v-list-item v-if="currentAudio" @click="downloadTrack(currentAudio)">
+                                        <v-list-item-title>
+                                            <v-icon>mdi-download</v-icon> Download
+                                        </v-list-item-title>
+                                    </v-list-item>
+                                    <v-dialog>
+                                        <template v-slot:activator="{ on }">
+                                            <v-list-item>
+                                                <v-list-item-title v-on="on" style="cursor:default;">
+                                                    <v-icon>mdi-script-text</v-icon> Lyrics
+                                                </v-list-item-title>
+                                            </v-list-item>
+                                        </template>
+                                        <v-card>
+                                            <v-card-title>
+                                                <a class="headline" v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{ currentTrack.name }} - {{currentTrack.ar.map(function(f){return f.name}).join('/')}} - {{currentTrack.al.name}}</a>                                                                                                                                  
+                                                <v-btn style="position: absolute;right:1em;z-index: 10" onclick="window.print()" class="v-input"><v-icon>mdi-printer</v-icon>打印</v-btn>
+                                                <v-row no-gutters>                                                
+                                                    <v-col><v-checkbox v-model="checkN1" label="N1"></v-checkbox></v-col>
+                                                    <v-col><v-checkbox v-model="checkN2" label="N2"></v-checkbox></v-col>
+                                                    <v-col><v-checkbox v-model="checkN3" label="N3"></v-checkbox></v-col>                                                
+                                                </v-row>    
+                                            </v-card-title>
+                                            <hr></hr>
+                                            <v-simple-table v-if="parsedLyrics">
+                                                <template v-slot:default>
+                                                    <tbody>
+                                                        <tr v-bind:class="{ 'lyrics-active' : timestampAt(matchedIndex - 1)==key }"                                                            
+                                                            v-for="[key, value] of Object.entries(parsedLyrics)"
+                                                            v-if="value[0]" :key="key" :id="'lyric-view-'+key"
+                                                            @click="player.currentTime=key">
+                                                                <td role="menu">{{toTimestamp(key)}}</td>
+                                                                <td v-for="(sub,index) in value" v-if="
+                                                                (index==0 && checkN1) || (index==1 && checkN2) || (index==2 && checkN3)
+                                                                ">{{sub}}</td>                                                                
+                                                        </tr>
+                                                    </tbody>
+                                                </template>
+                                            </v-simple-table>
+                                        </v-card>
+                                    </v-dialog>                                    
+                                    <v-list-item v-if="currentMV && currentMV.data.url" >
+                                        <v-list-item-title @click="downloadTrack(currentMV.data)">
+                                            <v-icon>mdi-file-video-outline</v-icon> MV
+                                        </v-list-item-title>
+                                    </v-list-item>                                                              
+                                </v-list>
+                            </v-menu>
+                        </v-list-item>
+                    </v-list>
+
+                </v-card>
+                <v-dialog v-model="loading" hide-overlay persistent width="300">
+                    <v-card color="primary" dark>
+                        <v-card-text>
+                            {{ loadInfo }}
+                            <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
+                        </v-card-text>
+                    </v-card>
+                </v-dialog>
+                <v-dialog max-width="80%" inset hide-overlay>
+                    <template v-slot:activator="{ on }">
+                        <v-btn v-on="on">
+                            <span>播放列表</span>
+                            <v-icon>mdi-animation-play</v-icon>
+                        </v-btn>
+                    </template>
+                    <v-toolbar dark prominent>
+                        <v-toolbar-title>播放列表</v-toolbar-title>
+                        <v-spacer></v-spacer>
+                        <v-menu top close-on-content-click>
+                            <template v-slot:activator="{ on }">
+                                <v-app-bar-nav-icon v-on="on"></v-app-bar-nav-icon>
+                            </template>
+                            <v-list>
+                                <v-dialog max-width="50%">
+                                    <template v-slot:activator="{ on }">
+                                        <v-list-item v-on="on">
+                                            <v-icon>mdi-cloud-search</v-icon>
+                                            <v-list-item-title>搜索歌曲...</v-list-item-title>
+                                        </v-list-item>
+                                    </template>
+                                    <v-card>
+                                        <v-card-title>
+                                            <span class="headline">搜索</span>
+                                        </v-card-title>
+                                        <v-spacer></v-spacer>
+                                        <v-text-field label="Search tracks" @input="queryString=$event" class="mx-4">
+                                        </v-text-field>
+                                        <v-progress-linear absolute bottom v-if="loadingRecessive" indeterminate>
+                                        </v-progress-linear>
+                                        <v-list>
+                                            <v-list-item v-if="searchResults" v-for="track in searchResults"
+                                                :key="track.id" @click="addTrack(track.id.toString())">
+                                                <v-list-item-title>{{ track.name }}</v-list-item-title>
+                                                <v-list-item-subtitle>
+                                                    {{track.ar.map(function(f){return f.name}).join('-')}} -
+                                                    {{track.al.name}}
+                                                </v-list-item-subtitle>
+                                            </v-list-item>
+                                        </v-list>
+                                    </v-card>
+                                </v-dialog>
+
+                                <v-dialog>
+                                    <template v-slot:activator="{ on }">
+                                        <v-list-item v-on="on">
+                                            <v-icon>mdi-earth</v-icon>
+                                            <v-list-item-title>粘贴分享链接...</v-list-item-title>
+                                        </v-list-item>
+                                    </template>
+                                    <v-card v-if="!loading">
+                                        <v-card-title>
+                                            <span class="headline">粘贴分享链接</span>
+                                        </v-card-title>
+                                        <v-text-field @input="newURL=$event" class="pa-2"
+                                            label="URL (.e.g. https://music.163.com/#/song?id=66282)" required>
+                                        </v-text-field>
+                                        </v-card-actions>
+                                        <v-card-actions class="justify-end">
+                                            <v-btn text @click="addTrack(newURL)" :disabled="loading">OK</v-btn>
+                                        </v-card-actions>
+                                    </v-card>
+                                </v-dialog>
+                                </v-card>
+                            </v-list>
+                        </v-menu>
+                    </v-toolbar>
+                    <v-card v-if="!playlist.length" class="text-h6 pa-12">
+                        播放列表为空。请在 <v-btn>
+                            <v-icon>mdi-menu</v-icon>
+                        </v-btn> 处添加新曲
+                    </v-card>
+                    <v-list v-if="playlist.length" ghost-class="ghost">
+                        <v-list-item v-for="(track,index) in playlist" :key="track.id" @click="setPlay(track)">
+                            <v-list-item-title>{{track.name}}</v-list-item-title>
+                            <v-list-item-subtitle>{{track.al.name}} -
+                                {{track.ar.map(function(f){return f.name}).join('-')}}
+                            </v-list-item-subtitle>
+                            <v-spacer></v-spacer>
+                            <v-list-item-icon class="ml-0">
+                                <v-btn icon v-if="track.id != currentTrack.id" @click="playlist.splice(index,1)">
+                                    <v-icon>mdi-delete</v-icon>
+                                </v-btn>
+                                <v-btn icon v-else @click="downloadTrack(track)">
+                                    <v-icon>mdi-download</v-icon>
+                                </v-btn>
+                            </v-list-item-icon>
+                                                
+                    </v-list>
+
+                    </draggable>
+                    <v-footer padless>
+                        <v-col class="text-center" cols="12">
+                            服务提供 ： <strong>{{ server ? server : '...匿名' }}</strong>
+                        </v-col>
+                    </v-footer>   
+                </v-dialog>
+            </v-bottom-navigation>
+
+            <v-snackbar top multi-line v-model="snackBar" :timeout="snackTimeout">
+                {{ snackMessage }}
+                <template v-slot:action="{ attrs }">
+                    <v-btn color="red" icon @click="snackBar = false">
+                        <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                </template>
+            </v-snackbar>
+        </v-app>
+    </div>
+</body>
+<script src="config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/core.js"></script>
+<script>
+    window.addEventListener('load',fftInit)
+</script>
+</html>

@@ -1,0 +1,1 @@
+let endpoint = "/apis/pyncm/"
