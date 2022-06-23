@@ -1,1 +1,0 @@
-let endpoint = "/apis/pyncm/"

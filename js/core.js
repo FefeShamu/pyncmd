@@ -1,6 +1,6 @@
 const id_regex = /\d{5,}/gm;
 function request(query){
-    return fetch(endpoint + '?' + query) // endpoint should be backslashed
+    return fetch('/api/pyncm?' + query)
 }
 var vue = new Vue({
     el: '#app',

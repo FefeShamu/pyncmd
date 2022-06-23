@@ -155,8 +155,7 @@ function draw_bass_response() {
   var v = Math.max(Math.min(Math.sqrt(db_v) / 16,1),0)
   var g = canvasCtx.createLinearGradient(WIDTH / 2, 0 , WIDTH / 2, HEIGHT)
   g.addColorStop(1-v, "black")
-  g.addColorStop(1, "#aaaaaa")
-  // AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  g.addColorStop(1, "#aaaaaa")  
   canvasCtx.fillStyle = g
   canvasCtx.fillRect(0, 0, WIDTH, HEIGHT)
 
