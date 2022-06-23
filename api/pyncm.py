@@ -61,9 +61,6 @@ from urllib.parse import unquote,parse_qs,urlparse
 from json import dumps
 class handler(BaseHTTPRequestHandler):
   def do_GET(self):
-    self.send_response(200)
-    self.send_header('Content-type', 'application/json; charset=utf-8')
-    self.end_headers()
     # Parsing query string
     self.scheme, self.netloc, self.path, self.params, self.query, self.fragment = urlparse(self.path)
     self.path = unquote(self.path)
@@ -73,6 +70,9 @@ class handler(BaseHTTPRequestHandler):
         result = route(self.path,self.query)
     except Exception as e:
         # Errors will then be passed as 500s        
-        result = {'code':'500','message':'Internal error : %s' % e}
+        result = {'code':'500','message':'Internal error : %s' % e}    
+    self.send_response(result.get('code',200))
+    self.send_header('Content-type', 'application/json; charset=utf-8')
+    self.end_headers()    
     response = dumps(result,ensure_ascii=False).encode('utf-8')
     self.wfile.write(response)
