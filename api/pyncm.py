@@ -30,6 +30,9 @@ def route(path , query):
     # The query K-V always comes in [str]-[List[str]]
     query = {k:v if len(v) > 1 else v[0] for k,v in query.items()}
     base , target = query.get('module','?'), query.get('method','?')
+    del query['module']
+    del query['method']
+    # Pop method descriptors before we actually pass the arguments
     ident_info = load_identity()
     if ident_info is None:
         print('[W] 匿名（游客）身份操作。请参见 README ： https://github.com/mos9527/pyncmd')
