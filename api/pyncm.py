@@ -30,8 +30,8 @@ def route(path , query):
     # The query K-V always comes in [str]-[List[str]]
     query = {k:v if len(v) > 1 else v[0] for k,v in query.items()}
     base , target = query.get('module','?'), query.get('method','?')
-    del query['module']
-    del query['method']
+    if 'module' in query : del query['module']
+    if 'method' in query : del query['method']
     # Pop method descriptors before we actually pass the arguments
     ident_info = load_identity()
     if ident_info is None:
