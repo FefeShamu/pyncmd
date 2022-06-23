@@ -65,7 +65,7 @@ class handler(BaseHTTPRequestHandler):
     self.send_header('Content-type', 'application/json; charset=utf-8')
     self.end_headers()
     # Parsing query string
-    self.scheme, self.netloc, self.path, self.params, self.query, self.fragment = urlparse(self.raw_path)
+    self.scheme, self.netloc, self.path, self.params, self.query, self.fragment = urlparse(self.path)
     self.path = unquote(self.path)
     self.query = parse_qs(self.query)
     try:
