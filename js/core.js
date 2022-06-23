@@ -110,9 +110,9 @@ var vue = new Vue({
                     data => {
                         if (data.server) vue.server = data.server
                         vue.loadingRecessive = false
-                        if (!data.result || !data.result.songs) return
-                        console.log('[search] results', data.result.songs)
-                        vue.searchResults = data.result.songs
+                        if (!data.songs) return
+                        console.log('[search] results', data.songs)
+                        vue.searchResults = data.songs
                     }).catch(err => {
                     vue.loadingRecessive = false
                 })
