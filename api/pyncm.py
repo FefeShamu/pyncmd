@@ -72,7 +72,7 @@ class handler(BaseHTTPRequestHandler):
     except Exception as e:
         # Errors will then be passed as 500s        
         result = {'code':'500','message':'Internal error : %s' % e}    
-    self.send_response(result.get('code',200))
+    self.send_response(int(result.get('code',200)))
     self.send_header('Content-type', 'application/json; charset=utf-8')
     self.end_headers()    
     response = dumps(result,ensure_ascii=False).encode('utf-8')
