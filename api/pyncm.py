@@ -24,7 +24,7 @@ def load_identity():
     import os        
     if not ENV_KEY in os.environ:
         return print(f'[W] 找不到 {ENV_KEY} 环境变量，以游客模式继续')
-    session = os.environ(ENV_KEY)
+    session = os.environ[ENV_KEY]
     from json import loads
     from zlib import decompress
     from base64 import b64decode
