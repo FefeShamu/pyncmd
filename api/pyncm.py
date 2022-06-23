@@ -26,9 +26,8 @@ def load_identity():
     print('[I] %s 已登录' % session_obj.login_info['content']['profile']['nickname'])
     return session_obj.login_info['content']['profile']['nickname']
 
-def route(path , query):    
-    path = path.split('/')[:2]          
-    base , target = (path + ['<not set>'])[:2]
+def route(path , query):        
+    base , target = query.get('module','?'), query.get('method','?')
     ident_info = load_identity()
     if ident_info is None:
         print('[W] 匿名（游客）身份操作。请参见 README ： https://github.com/mos9527/pyncmd')

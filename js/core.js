@@ -1,6 +1,6 @@
 const id_regex = /\d{5,}/gm;
-function request(url){
-    return fetch(endpoint + url) // endpoint should be backslashed
+function request(query){
+    return fetch(endpoint + '?' + query) // endpoint should be backslashed
 }
 var vue = new Vue({
     el: '#app',
@@ -101,7 +101,10 @@ var vue = new Vue({
                 if (!vue.queryString) return
                 vue.loadingRecessive = true
                 console.log('[search] searching', vue.queryString)
-                request('cloudsearch/GetSearchResult?' + new URLSearchParams(Object.assign({
+                request(new URLSearchParams(Object.assign({
+                    module:'cloudsearch',
+                    method:'GetSearchResult',
+
                     keyword: vue.queryString
                 }))).then(response => response.json()).then(
                     data => {
@@ -124,7 +127,7 @@ var vue = new Vue({
         bufferTrackDetails: (trackIds) => {
             console.log(`[track] requesting info for id ${trackIds}`)
             var song_ids = 'song_ids=' + trackIds.join('&song_ids=')
-            return request('track/GetTrackDetail?'+song_ids).then(response => response.json()).then(data => {
+            return request('module=track&method=GetTrackDetail&'+song_ids).then(response => response.json()).then(data => {
                 if (data.server) vue.server = data.server
                 console.log(`[track] requested info for id ${trackIds}`)        
                 vue.bufferedPlaylist = data        
@@ -135,7 +138,10 @@ var vue = new Vue({
             vue.currentTrack = evt
             vue.loadInfo = 'requesting track audio'
             vue.loading = true
-            request('track/GetTrackAudio?' + new URLSearchParams({
+            request(new URLSearchParams({
+                    module:'track',
+                    method:'GetTrackAudio',
+
                     song_ids: evt.id,
                     bitrate: vue.config.bitrate
                 }))
@@ -153,7 +159,10 @@ var vue = new Vue({
                     vue.lastError = err
                     vue.error = true
                 }).then(data => {
-                    request('track/GetTrackLyrics?' + new URLSearchParams(Object.assign({
+                    request(new URLSearchParams(Object.assign({
+                        module:'track',
+                        method:'GetTrackLyrics',
+
                         song_id: evt.id
                     }))).then(response => response.json()).then(
                         data => {
@@ -163,7 +172,10 @@ var vue = new Vue({
                     )
                 }).then(data => {
                     if (!!!evt.mv) return
-                    request('video/GetMVResource?' + new URLSearchParams(Object.assign({
+                    request(new URLSearchParams(Object.assign({
+                        module:'video',
+                        method:'GetMVResource',
+
                         mv_id : evt.mv
                     }))).then(response => response.json()).then(
                         data => {
@@ -217,17 +229,17 @@ var vue = new Vue({
             }
             match = match[0]
             // parsing ids,only picking up first match
-            route = 'track/GetTrackDetail'
+            route = 'module=track&method=GetTrackDetail'
             params = {
                 song_ids: match
             }
             if (check_arg(url, 'list')) {
-                route = 'playlist/GetPlaylistInfo'
+                route = 'module=playlist&method=GetPlaylistInfo'
                 params = {
                     playlist_id: match
                 }
             } else if (check_arg(url, 'album')) {
-                route = 'album/GetAlbumInfo'
+                route = 'module=album&method=GetAlbumInfo'
                 params = {
                     album_id: match
                 }
@@ -248,14 +260,14 @@ var vue = new Vue({
                 if (!vue.currentTrack) vue.setPlay(vue.playlist[0])
                 vue.loading = false
             }
-            request(`${route}?` + new URLSearchParams(params)).then(response => response.json())
+            request(route + '&' + new URLSearchParams(params)).then(response => response.json())
                 .then(data => {
                     if (data.server) vue.server = data.server
                     if (data.playlist) { // workaround for incomplete playlists
                         var song_ids = data.playlist.trackIds.map(track => track.id);
                         song_ids = 'song_ids=' + song_ids.join('&song_ids=')                        
                         console.log('[multi] multi-track requesting track/GetTrackDetail?' + song_ids)
-                        request('track/GetTrackDetail?' + song_ids).then(response => response.json()).then(trackCallback)
+                        request('module=track&method=GetTrackDetail&' + song_ids).then(response => response.json()).then(trackCallback)
                     } else {
                         trackCallback(data)
                     }
