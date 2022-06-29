@@ -13,13 +13,13 @@ def generate_identity(phone,pwd):
     # and a raw dump would already be larger than that, without encoding overheads
     # Here's some hack I don't really think should be added to PyNCM, but will do for now
     from json import dumps
-    from zlib import compress # zlib handled this suprisingly well！(about 0.25x of orginal size)
+    from zlib import compress # zlib handled this suprisingly well！(about 0.25x of original size)
     from base64 import b64encode # ~1.2x orignal size
     return 200, b64encode(compress(dumps(GetCurrentSession().dump()).encode())).decode()
 
 def load_identity():    
     # Loads session data from local file 'session'
-    # and then tries to restore login state pre-request
+    # and then tries to restore login state per-request
     from pyncm import SetCurrentSession , Session
     import os        
     if not ENV_KEY in os.environ:
@@ -56,14 +56,14 @@ def route(path , query):
     import pyncm,pyncm.apis
     # Filtering request    
     if not base in filter(lambda x:x.islower() and not '_' in x,dir(pyncm.apis)):
-        return err(404,'base method %s not found' % base)
-    if base in {'user','login'}:
-        return err(403,'base method %s not allowed' % base)
+        return err(404,'pyncm module %s not found' % base)
+    if base in {'user','login','cloud'}:
+        return err(403,'pyncm module %s not allowed' % base)
     base = getattr(pyncm.apis,base)
     if not target in filter(lambda x:'Get' in x or 'Set' in x,dir(base)):
-        return err(404,'target method %s not found' % target)
+        return err(404,'module method %s not found' % target)
     if 'Set' in target:
-        return err(403,'cannot perfrom "Set" calls')
+        return err(403,'"Set" not allowed')
     query = {k:v if not len(v) == 1 else v[0] for k,v in query.items()}
     response = getattr(base,target)(**query)    
     if ident_info:
