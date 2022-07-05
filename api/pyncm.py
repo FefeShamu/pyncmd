@@ -54,6 +54,7 @@ def route(path , query):
         else:            
             return err(503,'Session environ "session" non-empty. See https://github.com/mos9527/pyncmd for more info')
     import pyncm,pyncm.apis
+    pyncm.GetCurrentSession().headers['X-Real-IP'] = '118.88.88.88'
     # Filtering request    
     if not base in filter(lambda x:x.islower() and not '_' in x,dir(pyncm.apis)):
         return err(404,'pyncm module %s not found' % base)
