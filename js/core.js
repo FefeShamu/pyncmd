@@ -109,6 +109,7 @@ var vue = new Vue({
                 }))).then(response => response.json()).then(
                     data => {
                         if (data.server) vue.server = data.server
+                        if (data.result && !data.songs) data.songs = data.result.songs
                         vue.loadingRecessive = false
                         if (!data.songs) return
                         console.log('[search] results', data.songs)
