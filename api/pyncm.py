@@ -92,6 +92,9 @@ def route(path , query , request):
     response = getattr(base,target)(**query)    
     if ident_info:
         response['server'] = ident_info
+    # Adding these as well
+    response['requestIP'] = realIP
+    response['clientIP'] = request.headers['x-real-ip']
     return response
 
 from http.server import BaseHTTPRequestHandler
