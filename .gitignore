@@ -6,3 +6,4 @@ log.txt
 .env
 libs/
 *.zip
+.vercel

@@ -36,12 +36,32 @@ def load_identity():
     print('[I] %s 已登录' % session_obj.login_info['content']['profile']['nickname'])
     return session_obj.login_info['content']['profile']['nickname']
 
-def route(path , query):        
+def route(path , query , request : BaseHTTPRequestHandler):        
     # The query K-V always comes in [str]-[List[str]]
     query = {k:v if len(v) > 1 else v[0] for k,v in query.items()}
     base , target = query.get('module','?'), query.get('method','?')
     if 'module' in query : del query['module']
     if 'method' in query : del query['method']
+    # `withIP` : Modifing IP header
+    realIP = '118.88.88.88'
+    # For default, 118.88.88.88 is used because...well, everyone was using it
+    # This should alleviate most problems caused by non-mainland IP
+    # being recognized as overseas users and therefore unable to listen to some songs
+    if 'withIP' in query:
+        # I've decided to let the client to control this behavior own their own since
+        # the cases are quite complicated. Using this should be easy as "&withIP=client", etc
+        if query['withIP'] == 'client':
+            # Use client's acutal IP for requests
+            # This solves problems with GetTrackAudio where the URLs are fetched
+            # But cannot be played back due to IP differences
+            # realIP = request.headers['']
+            print(request.headers)
+        elif query['withIP'] == 'server':
+            # Do not send X-Real-IP header
+            realIP = None
+        else:
+            realIP = query['withIP']
+        del query['withIP']
     # Pop method descriptors before we actually pass the arguments
     ident_info = load_identity()
     if ident_info is None:
@@ -54,7 +74,11 @@ def route(path , query):
         else:            
             return err(503,'Session environ "session" non-empty. See https://github.com/mos9527/pyncmd for more info')
     import pyncm,pyncm.apis
-    pyncm.GetCurrentSession().headers['X-Real-IP'] = '118.88.88.88'
+    if realIP:
+        print('[D] Reporting IP as',realIP)
+        pyncm.GetCurrentSession().headers['X-Real-IP'] = realIP
+    else:
+        print('[D] Not using alternative IP')
     # Filtering request    
     if not base in filter(lambda x:x.islower() and not '_' in x,dir(pyncm.apis)):
         return err(404,'pyncm module %s not found' % base)
@@ -74,15 +98,18 @@ def route(path , query):
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import unquote,parse_qs,urlparse
 from json import dumps
+import logging
+logging.basicConfig(level=0)
+# Use the most verbose logging level
 class handler(BaseHTTPRequestHandler):
   def do_GET(self):
     # Parsing query string
     self.scheme, self.netloc, self.path, self.params, self.query, self.fragment = urlparse(self.path)
     self.path = unquote(self.path)
-    self.query = parse_qs(self.query)
+    self.query = parse_qs(self.query)    
     try:
-        # Success responses are directly routed
-        result = route(self.path,self.query)
+        # Success responses are directly routed        
+        result = route(self.path,self.query, self)
     except Exception as e:
         # Errors will then be passed as 500s        
         result = {'code':'500','message':'Internal error : %s' % e}    
