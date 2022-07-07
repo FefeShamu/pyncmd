@@ -36,7 +36,7 @@ def load_identity():
     print('[I] %s 已登录' % session_obj.login_info['content']['profile']['nickname'])
     return session_obj.login_info['content']['profile']['nickname']
 
-def route(path , query , request : BaseHTTPRequestHandler):        
+def route(path , query , request):        
     # The query K-V always comes in [str]-[List[str]]
     query = {k:v if len(v) > 1 else v[0] for k,v in query.items()}
     base , target = query.get('module','?'), query.get('method','?')
