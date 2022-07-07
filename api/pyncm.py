@@ -97,8 +97,8 @@ def route(path , query , request):
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import unquote,parse_qs,urlparse
 from json import dumps
-import logging
-logging.basicConfig(level=0)
+import logging, sys
+logging.basicConfig(level=0,force=True,stream=sys.stdout)
 # Use the most verbose logging level
 class handler(BaseHTTPRequestHandler):
   def do_GET(self):
