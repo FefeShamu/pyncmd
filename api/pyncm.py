@@ -54,8 +54,7 @@ def route(path , query , request):
             # Use client's acutal IP for requests
             # This solves problems with GetTrackAudio where the URLs are fetched
             # But cannot be played back due to IP differences
-            # realIP = request.headers['']
-            print(request.headers)
+            realIP = request.headers['x-real-ip']
         elif query['withIP'] == 'server':
             # Do not send X-Real-IP header
             realIP = None
