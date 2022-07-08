@@ -1,4 +1,6 @@
 # PyNCMd - Vercel 云函数
+![Screencap](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.gif)
+
 ## API 服务设置
 ### 初始化
 - Fork 此项目
@@ -23,6 +25,13 @@
       bitrate (int*, *optional) – 比特率 (96k SQ 320k HQ 320k+ Lossless/SQ). Defaults to 320000  
 
 请求 URL 即 `[...]?modlue=track&method=GetTrackAudio&song_ids=[歌曲 ID]&bitrate=[Bitrate]`
+### 其他参数
+### `withIP`
+该参数可指定汇报网易云音乐服务器的客户端 IP，可解决某些情况下歌曲无法播放的问题
+- `...&withIP=client` 使用向 PyNCMd 发起请求者的 IP
+- `...&withIP=server` 使用 Vercel 的服务器 IP
+- `...&withIP=1.1.1.1` 自定义 IP
+
 ### 返回值
 - 网易云侧正常，请求报文即网易云侧响应内容
 - `pyncmd` 或其依赖异常，特殊响应码的错误汇报将成为响应内容

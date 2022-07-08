@@ -1,7 +1,5 @@
 const id_regex = /\d{5,}/gm;
-function request(query){
-    return fetch('/api/pyncm?' + query)
-}
+
 var vue = new Vue({
     el: '#app',
     vuetify: new Vuetify(
@@ -46,6 +44,7 @@ var vue = new Vue({
             disableFFT: false,
             showFFTFps: false,
             fftFPS: 60,
+            useIP: 'client'
         },
 
         snackBar: false,
@@ -101,7 +100,7 @@ var vue = new Vue({
                 if (!vue.queryString) return
                 vue.loadingRecessive = true
                 console.log('[search] searching', vue.queryString)
-                request(new URLSearchParams(Object.assign({
+                vue.request(new URLSearchParams(Object.assign({
                     module:'cloudsearch',
                     method:'GetSearchResult',
 
@@ -120,7 +119,10 @@ var vue = new Vue({
             }, vue.config.debounce)
         }
     },
-    methods: {          
+    methods: {        
+        request(query){
+            return fetch(`api/pyncm?withIP=${vue.config.useIP}&${query}`)
+        },  
         toTimestamp:convertToTimestamp, 
         set:(...args)=>{
             return vue.$set(...args)
@@ -128,7 +130,7 @@ var vue = new Vue({
         bufferTrackDetails: (trackIds) => {
             console.log(`[track] requesting info for id ${trackIds}`)
             var song_ids = 'song_ids=' + trackIds.join('&song_ids=')
-            return request('module=track&method=GetTrackDetail&'+song_ids).then(response => response.json()).then(data => {
+            return vue.request('module=track&method=GetTrackDetail&'+song_ids).then(response => response.json()).then(data => {
                 if (data.server) vue.server = data.server
                 console.log(`[track] requested info for id ${trackIds}`)        
                 vue.bufferedPlaylist = data        
@@ -139,7 +141,7 @@ var vue = new Vue({
             vue.currentTrack = evt
             vue.loadInfo = 'requesting track audio'
             vue.loading = true
-            request(new URLSearchParams({
+            vue.request(new URLSearchParams({
                     module:'track',
                     method:'GetTrackAudio',
 
@@ -160,7 +162,7 @@ var vue = new Vue({
                     vue.lastError = err
                     vue.error = true
                 }).then(data => {
-                    request(new URLSearchParams(Object.assign({
+                    vue.request(new URLSearchParams(Object.assign({
                         module:'track',
                         method:'GetTrackLyrics',
 
@@ -173,7 +175,7 @@ var vue = new Vue({
                     )
                 }).then(data => {
                     if (!!!evt.mv) return
-                    request(new URLSearchParams(Object.assign({
+                    vue.request(new URLSearchParams(Object.assign({
                         module:'video',
                         method:'GetMVResource',
 
@@ -261,14 +263,14 @@ var vue = new Vue({
                 if (!vue.currentTrack) vue.setPlay(vue.playlist[0])
                 vue.loading = false
             }
-            request(route + '&' + new URLSearchParams(params)).then(response => response.json())
+            vue.request(route + '&' + new URLSearchParams(params)).then(response => response.json())
                 .then(data => {
                     if (data.server) vue.server = data.server
                     if (data.playlist) { // workaround for incomplete playlists
                         var song_ids = data.playlist.trackIds.map(track => track.id);
                         song_ids = 'song_ids=' + song_ids.join('&song_ids=')                        
                         console.log('[multi] multi-track requesting track/GetTrackDetail?' + song_ids)
-                        request('module=track&method=GetTrackDetail&' + song_ids).then(response => response.json()).then(trackCallback)
+                        vue.request('module=track&method=GetTrackDetail&' + song_ids).then(response => response.json()).then(trackCallback)
                     } else {
                         trackCallback(data)
                     }
