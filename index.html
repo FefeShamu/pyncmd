@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
-    
+
     <link href="https://fastly.jsdelivr.net/npm/@mdi/font@6.x/css/materialdesignicons.min.css" rel="stylesheet">
     <link media="screen" href="https://fastly.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
     <script src="https://fastly.jsdelivr.net/npm/vue@2.x/dist/vue.js"></script>
@@ -17,93 +17,118 @@
 
     <style media="screen">
         body {
-            overflow: hidden;
+            overflow: hidden;            
         }
-        
-        #visualizer {
+        .background{
+            position: absolute;
             z-index: 0;
-            height: 100vh;
+            top: 0;left: 0;
+            height: calc(100vh - 80px);
+            width: 100vw;
+        }
+        #visualizer,#vplayer {
+            position: absolute;
+            top: 0;left: 0;
+            height: calc(100vh - 80px);
+            width: 100vw;
         }
 
-        .progressing > *{
-            transition: all 0.25s linear;            
+        #vplayer{            
+            z-index: 0;
         }
 
-        .lyrics-holder {
-            position: fixed;
-            width: 100%;
-            top: 10%;
-            bottom: 10%;
-            padding: 10%;
-            background-color: rgba(0, 0, 0, 0);                      
+        .progressing,.progressing * {
+            transition: all 0.25s linear;
+            opacity: 1 !important;
         }
 
-        [class^='lyric-'] {            
-            margin-bottom: 0 !important;
-            font-weight: 400;
-            color: white !important;                           
+        .progressing > .lyrics-translation{
+            transition: all 0.1s linear;
         }
-
-        .lyric-0 {
-            font-weight: bolder;            
-            font-size: 5vw;
-            width: fit-content;            
-            transform: scaleY(1.2);  
-        }
-
-        .lyric-1 {
-            font-size: 2.5vw;
-            width: fit-content;            
-        }
-
-        .lyric-2 {
-            font-size: 2vw;           
-        }
-
-        .lyrics-a {            
-            float: left;                
-        }
-
-        .lyrics-a > .lyric-0,
-        .lyrics-a > .lyric-1 {
-            background-size: 200% 200%;
-            background-image:  linear-gradient(to right, blue 50%,white 50%);            
-            background-clip: content-box;                 
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; 
-        }
-
-        .lyrics-a > .lyric-0 {
-            -webkit-text-stroke:0.03em white;
-        }
-
-        .lyrics-a > .lyric-1 {
-            -webkit-text-stroke:0.01em white;
-        }
-
-        .lyric-2 {
-            -webkit-text-stroke:0.01em black;
-            -webkit-text-fill-color: white;
-        }
-
-        .lyrics-b {
-            float: right;
-            opacity: 50%;                        
-            -webkit-text-stroke:0.05em black;
-        }
-
         @keyframes shake {
-            50% { transform: translate(3px, 3px)  }        
-            100% { transform: translate(3px, 0px) }
+            50% {
+                transform: translate(3px, 3px)
+            }
+
+            100% {
+                transform: translate(3px, 0px)
+            }
         }
 
         .lyrics-active {
-            background-color:lightskyblue;
-            animation: shake 0.18s;            
+            background-color: lightskyblue;
+            animation: shake 0.18s;
         }
-        
-    </style>
 
+
+        .lyrics-line {
+            display: flex;
+            width: fit-content;
+            overflow: hidden;
+            background-size: 200% 200%;
+            background-image: linear-gradient(to right, blue 50%, white 50%);
+            -webkit-background-clip: text;
+        }
+
+        .lyrics-token {
+            display: grid;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lyrics-token-roma,
+        .lyrics-token-original {
+            grid-column: 1;
+            overflow: hidden;            
+            -webkit-text-fill-color: transparent;
+        }
+
+        .lyrics-token-original {
+            grid-row: 1;
+            font-weight: bolder;
+            font-size: 4vw;
+            -webkit-text-stroke: 0.03em whitesmoke;
+        }
+
+        .lyrics-token-roma {
+            grid-row: 2;
+            margin-top: -1.2em;
+            text-align: center;
+            font-size: 2vw;
+            text-transform: uppercase;
+            -webkit-text-stroke: 0.03em whitesmoke;
+        }
+
+        .lyrics-lines {
+            padding: 3vw;
+            position: fixed;
+            top: 50%;
+            transform: translate(0%, calc(-80px - 50%));
+            width: 100vw;
+            height: fit-content;
+            display: grid;
+        }
+
+        .lyrics-line-1 {
+            grid-row: 1;
+            justify-self: left;
+        }
+
+        .lyrics-line-2 {
+            grid-row: 2;
+            justify-self: right;
+        }
+
+        .lyrics-translation {
+            position: fixed;
+            bottom: 80px;
+            background-color: rgba(0, 0, 0, .5);
+            width: 100vw;
+            text-align: center;
+            opacity: 0;
+        }
+    </style>
     <style media="print">
         @font-face {
             font-family: NewCinemaB;
@@ -113,14 +138,21 @@
         * {
             font-family: NewCinemaB;
         }
-        .lyrics-holder,.v-bottom-navigation,.v-input,[role=menu],canvas{
+
+        .lyrics-line,
+        .v-bottom-navigation,
+        .v-input,
+        [role=menu],
+        canvas {
             display: none;
         }
-        tbody{
+
+        tbody {
             height: 100vh;
             font-size: 1.5vw;
         }
-        .headline{
+
+        .headline {
             font-size: 3vw;
             overflow: hidden;
         }
@@ -131,19 +163,33 @@
     <audio id="player"></audio>
     <div id="app">
         <v-app>
-            <canvas onclick="document.body.requestFullscreen()" id="visualizer"></canvas>
-            <div class="lyrics-holder" v-if="parsedLyrics && config.showLyrics">
-                <div class="lyrics-a"                     
-                    v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}"> <!-- allowing lyric progress to overshoot a bit-->                    
-                    <p 
-                    v-for="(lyric,index) in lyricsAt(matchedIndex - 1)" 
-                    v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.1,1))*100 + '% 100%'}"
-                    :class="'lyric-'+index">{{lyric ? lyric : '⬤ ⬤ ⬤'}}</p>
-                </div></br>
-                <div class="lyrics-b">
-                    <p v-for="(lyric,index) in lyricsAt(matchedIndex)" :class="'lyric-'+index">{{lyric}}</p>
+            <div class="background">
+                <video muted id="vplayer"></video>
+                <canvas onclick="document.body.requestFullscreen()" id="visualizer"></canvas>
+            </div>
+            
+            <div v-if="lrcTokens && config.showLyrics" v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}">
+                <div class="lyrics-translation" v-if="lrcTranslate">
+                    {{lrcTranslate[timestampAt(matchedIndex)]}}
                 </div>
-                
+                <div class="lyrics-lines">
+                    <div class="lyrics-line lyrics-line-1" 
+                        v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.2,1))*100 + '% 100%'}">
+                        <div class="lyrics-token" v-for="token in lrcTokens[matchedIndex]">
+                            <!-- pre is used since others don't display single half-width spaces at all -->
+                            <pre v-if="checkRoma" class="lyrics-token-roma">{{token[config.romaConventionUseHepburnOrKunreiOrPassport]}}</pre>
+                            <pre v-if="checkOriginal" class="lyrics-token-original">{{token.orig}}</pre>
+                        </div>
+                    </div>
+
+                    <div class="lyrics-line lyrics-line-2"
+                        v-bind:style="{'background-position':'100%'}">
+                        <div class="lyrics-token" v-for="token in lrcTokens[matchedIndex + 1]">
+                            <pre v-if="checkRoma" class="lyrics-token-roma">{{token[config.romaConventionUseHepburnOrKunreiOrPassport]}}</pre>
+                            <pre v-if="checkOriginal" class="lyrics-token-original">{{token.orig}}</pre>
+                        </div>
+                    </div>
+                </div>
             </div>
             <v-dialog max-width="80%" v-model="error">
                 <v-card>
@@ -205,13 +251,14 @@
                         <v-row>
                             <v-col cols="auto">{{toTimestamp(player.currentTime).substr(0,5)}}</v-col>
                             <v-col cols="16">
-                                <v-slider class="large-slider"  :value="currentTime" :max="duration" style="margin-top: -0.25em;"
-                                    absolute class="my-0 py-0" @change="seekTrack">
+                                <v-slider class="large-slider" :value="currentTime" :max="duration"
+                                    style="margin-top: -0.25em;" absolute class="my-0 py-0" @change="seekTrack">
                                 </v-slider>
                             </v-col>
                         </v-row>
                     </v-container>
                     <v-list>
+                        <v-list-item-group>
                         <v-list-item>
                             <v-list-item-content>
                                 <v-list-item-title><a target="_blank"
@@ -261,6 +308,7 @@
                                             <v-icon>mdi-download</v-icon> Download
                                         </v-list-item-title>
                                     </v-list-item>
+                                    
                                     <v-dialog>
                                         <template v-slot:activator="{ on }">
                                             <v-list-item>
@@ -271,40 +319,81 @@
                                         </template>
                                         <v-card>
                                             <v-card-title>
-                                                <a class="headline" v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{ currentTrack.name }} - {{currentTrack.ar.map(function(f){return f.name}).join('/')}} - {{currentTrack.al.name}}</a>                                                                                                                                  
-                                                <v-btn style="position: absolute;right:1em;z-index: 10" onclick="window.print()" class="v-input"><v-icon>mdi-printer</v-icon>打印</v-btn>
-                                                <v-row no-gutters>                                                
-                                                    <v-col><v-checkbox v-model="checkN1" label="N1"></v-checkbox></v-col>
-                                                    <v-col><v-checkbox v-model="checkN2" label="N2"></v-checkbox></v-col>
-                                                    <v-col><v-checkbox v-model="checkN3" label="N3"></v-checkbox></v-col>                                                
-                                                </v-row>    
+                                                <a class="headline"
+                                                    v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{
+                                                    currentTrack.name }} - {{currentTrack.ar.map(function(f){return
+                                                    f.name}).join('/')}} - {{currentTrack.al.name}}</a>
+                                                <v-btn style="position: absolute;right:1em;z-index: 10"
+                                                    onclick="window.print()" class="v-input">
+                                                    <v-icon>mdi-printer</v-icon>打印
+                                                </v-btn>
+                                                <v-row no-gutters>
+                                                    <v-col>
+                                                        <v-checkbox v-model="checkOriginal" label="歌词原文"></v-checkbox>
+                                                    </v-col>
+                                                    <v-col>
+                                                        <v-checkbox v-model="checkRoma" label="罗马音"></v-checkbox>
+                                                    </v-col>
+                                                    <v-col>
+                                                        <v-checkbox v-model="checkTranslate" label="翻译"></v-checkbox>
+                                                    </v-col>
+                                                </v-row>
                                             </v-card-title>
-                                            <hr></hr>
-                                            <v-simple-table v-if="parsedLyrics">
+                                            <hr>
+                                            </hr>
+                                            <v-simple-table v-if="lrcOriginal">
                                                 <template v-slot:default>
                                                     <tbody>
-                                                        <tr v-bind:class="{ 'lyrics-active' : timestampAt(matchedIndex - 1)==key }"                                                            
-                                                            v-for="[key, value] of Object.entries(parsedLyrics)"
+                                                        <tr v-bind:class="{ 'lyrics-active' : timestampAt(matchedIndex)==key }"
+                                                            v-for="[key, value] of Object.entries(lrcOriginal)"
                                                             v-if="value[0]" :key="key" :id="'lyric-view-'+key"
                                                             @click="player.currentTime=key">
-                                                                <td role="menu">{{toTimestamp(key)}}</td>
-                                                                <td v-for="(sub,index) in value" v-if="
-                                                                (index==0 && checkN1) || (index==1 && checkN2) || (index==2 && checkN3)
-                                                                ">{{sub}}</td>                                                                
+                                                            <td role="menu">{{toTimestamp(key)}}</td>
+                                                            <td v-if="checkOriginal"> {{value}} </td>
+                                                            <td v-if="checkRoma"> {{lrcRomaOriginal[key]}}</td>
+                                                            <td v-if="checkTranslate"> {{lrcTranslate[key]}}</td>
                                                         </tr>
                                                     </tbody>
                                                 </template>
                                             </v-simple-table>
                                         </v-card>
-                                    </v-dialog>                                    
-                                    <v-list-item v-if="currentMV && currentMV.data.url" >
-                                        <v-list-item-title @click="downloadTrack(currentMV.data)">
-                                            <v-icon>mdi-file-video-outline</v-icon> MV
-                                        </v-list-item-title>
-                                    </v-list-item>                                                              
+                                    </v-dialog>
+
+                                    <v-dialog>
+                                        <template v-slot:activator="{ on }">
+                                            <v-list-item v-on="on" style="cursor:default;">
+                                                <v-list-item-title>
+                                                    <v-icon>mdi-file-video-outline</v-icon> MV
+                                                </v-list-item-title>
+                                            </v-list-item>
+                                        </template>
+                                        <v-card class="mx-auto" tile>
+                                            <v-card-title>
+                                                MV 相关信息
+                                            </v-card-title>
+                                            <hr>
+                                            </hr>
+                                            <div v-if="!currentMV">无 MV</div>
+                                            <v-list v-if="currentMV">
+                                                <v-list-item-group>
+                                                <v-list-item>
+                                                    <v-list-item-title style="cursor:default;" @click="downloadTrack(currentMV.data)">
+                                                        <v-icon>mdi-download</v-icon> 下载 MV
+                                                    </v-list-item-title>
+                                                </v-list-item>
+                                                <v-list-item>
+                                                    <v-list-item-title style="cursor:default;" @click="setBackgroundVideo(currentMV.data.url)">
+                                                        <v-icon>mdi-play</v-icon> 背景播放 MV
+                                                    </v-list-item-title>
+                                                </v-list-item>
+                                            </v-list-item-group>
+                                            <v-list>
+                                        </v-card>
+                                    </v-dialog>
                                 </v-list>
                             </v-menu>
                         </v-list-item>
+                        </v-list-item-group>
                     </v-list>
 
                 </v-card>
@@ -404,7 +493,7 @@
                                     <v-icon>mdi-download</v-icon>
                                 </v-btn>
                             </v-list-item-icon>
-                                                
+
                     </v-list>
 
                     </draggable>
@@ -412,7 +501,7 @@
                         <v-col class="text-center" cols="12">
                             服务提供 ： <strong>{{ server ? server : '...匿名' }}</strong>
                         </v-col>
-                    </v-footer>   
+                    </v-footer>
                 </v-dialog>
             </v-bottom-navigation>
 
@@ -430,6 +519,7 @@
 <script src="js/utils.js"></script>
 <script src="js/core.js"></script>
 <script>
-    window.addEventListener('load',fftInit)
+    window.addEventListener('load', fftInit)
 </script>
+
 </html>

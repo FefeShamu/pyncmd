@@ -46,26 +46,22 @@ function convertToTimestamp(timecode) {
     return `${mm}:${ss}.${xx}`
 }
 
-function parseLryics(lrcs) {
+function parseLryics(lrc_string) {
     var lrc_regex = /^(?:\[)(.*)(?:\])(.*)/gm;
-    var lyrics = {};
-    var arg; // stub for babel
-    function addMatches(lrc_string) {
-        var match;
-        while ((match = lrc_regex.exec(lrc_string)) !== null) {
-            if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++; // This is necessary to avoid infinite loops with zero-width matches
+    var lyrics = {};    
 
-            var timestamp = match[1];
-            if (timestamp.indexOf('.') == -1) timestamp += '.000'; // Pad with 0ms if no milliseconds is defined
-            timestamp = convertFromTimestamp(timestamp);
-            if (!lyrics[timestamp.toString()]) {
-                lyrics[timestamp.toString()] = [match[2]];
-            } else {
-                lyrics[timestamp.toString()].push(match[2]);
-            } 
-        }
+    var match;
+    while ((match = lrc_regex.exec(lrc_string)) !== null) {
+        if (match.index === lrc_regex.lastIndex) lrc_regex.lastIndex++; // This is necessary to avoid infinite loops with zero-width matches
+        var timestamp = match[1];
+        if (timestamp.indexOf('.') == -1) timestamp += '.000'; // Pad with 0ms if no milliseconds is defined
+        timestamp = convertFromTimestamp(timestamp);
+        if (!lyrics[timestamp.toString()]) {
+            lyrics[timestamp.toString()] = match[2];
+        } else {
+            lyrics[timestamp.toString()].push(match[2]);
+        } 
     }
-    for (var lrc of arguments) addMatches(lrc)
     return lyrics
 }
 
@@ -99,10 +95,8 @@ function text(s) {
 }
 
 function draw_bars() {
-  // classic flashy bars
   analyser.getByteFrequencyData(dataArray);
-  var barWidth = WIDTH / bufferLength * 2.5 - _.spacing; // subtract SPACING to compansate the spacing error
-
+  var barWidth = WIDTH / bufferLength * 2.5 - _.spacing;
   var barHeight;
   var x = 0;
 
@@ -154,7 +148,7 @@ function draw_bass_response() {
   db_v *= _.accel;
   var v = Math.max(Math.min(Math.sqrt(db_v) / 16,1),0)
   var g = canvasCtx.createLinearGradient(WIDTH / 2, 0 , WIDTH / 2, HEIGHT)
-  g.addColorStop(1-v, "black")
+  g.addColorStop(1-v, "rgba(0,0,0,0)")
   g.addColorStop(1, "#aaaaaa")  
   canvasCtx.fillStyle = g
   canvasCtx.fillRect(0, 0, WIDTH, HEIGHT)
@@ -165,11 +159,8 @@ var updateFrameTick = window.performance.now();
 function ffta_draw() {
   var updateFrameTime = window.performance.now() - updateFrameTick
   if (typeof canvasCtx == 'undefined') return
-
-  if (!bufferLength || _.disable) {
-    canvasCtx.fillStyle = 'rgb(0,0,0)'
-    canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
-  } else {
+  canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+  if (bufferLength && !_.disable) {
     dataArray = new Uint8Array(bufferLength);
     run_sequence();
     if (_.showFPS) {

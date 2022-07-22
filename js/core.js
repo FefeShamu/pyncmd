@@ -1,5 +1,5 @@
+const host = location.origin == "file://" || location.hostname === "localhost" || location.hostname === "127.0.0.1" ? 'https://pyncmd.vercel.app' : '';
 const id_regex = /\d{5,}/gm;
-
 var vue = new Vue({
     el: '#app',
     vuetify: new Vuetify(
@@ -13,6 +13,7 @@ var vue = new Vue({
         currentAudio: null,
         currentTrack: null,
         currentMV   : null,
+        
         playlist: [],
 
         loading: false,
@@ -28,7 +29,8 @@ var vue = new Vue({
         currentTime: 0,
         duration: 0,
 
-        player: document.getElementById('player'),
+        player: null,
+        vplayer : null,
 
         currentLyrics: [],
         matchedIndex: 0,
@@ -44,7 +46,8 @@ var vue = new Vue({
             disableFFT: false,
             showFFTFps: false,
             fftFPS: 60,
-            useIP: 'client'
+            useIP: 'client',
+            romaConventionUseHepburnOrKunreiOrPassport:'hepburn'
         },
 
         snackBar: false,
@@ -64,9 +67,14 @@ var vue = new Vue({
         shuffleMode:'repeat',
         shuffleModes:['repeat','repeat-once'],
 
-        checkN1:true,
-        checkN2:true,
-        checkN3:true,
+        checkOriginal:true,
+        checkRoma:true,
+        checkTranslate:true,
+
+        lrcOriginal: null,
+        lrcRomaOriginal: null,
+        lrcTranslate: null,
+        lrcTokens: null,
     }),
     watch: {
         config: {
@@ -84,10 +92,59 @@ var vue = new Vue({
         currentLyrics: (new_, old_) => {
             if (!new_) return
             try {
-                vue.parsedLyrics = parseLryics(new_.lrc.lyric, new_.romalrc.lyric, new_.tlyric.lyric)
-                console.log('[lyrics] parsed', vue.parsedLyrics)
+                vue.lrcOriginal = parseLryics(new_.lrc.lyric)
+                vue.lrcRomaOriginal = parseLryics(new_.romalrc.lyric)
+                vue.lrcTranslate = parseLryics(new_.tlyric.lyric)
+                console.log('[lyrics] parsed lrc',vue.lrcOriginal,vue.lrcRomaOriginal,vue.lrcTranslate)
+                function tokenizerCallback(token){
+                    console.log('[lyrics] tokenized parsed lyrics',token.data)
+                    vue.lrcTokens = token.data
+                }
+                // For all these cases, original MUST be present
+                // if both romaji and translation are present, it should be japanese
+                // kakasi can help us tokenize them
+                let exist = object => Object.keys(object).length > 0;
+                if (exist(vue.lrcRomaOriginal) && exist(vue.lrcTranslate)){                    
+                    vue.kakasi(Object.values(vue.lrcOriginal)).then(response => response.json())
+                    .then(data => tokenizerCallback(data))          
+                }
+                else {
+                    // if only original and romaji are present (or only original), assume the provided romaji (or nothing)
+                    // matches the original character by character
+                    let lrcOriginal  = Object.entries(vue.lrcOriginal) 
+                    let romaOriginal = Object.values(vue.lrcRomaOriginal)
+                    let tokens = {}                    
+                    for (var no=0;no<lrcOriginal.length;no++){
+                        let [timestamp,lrcLine] = lrcOriginal[no]    
+                        timestamp = parseFloat(timestamp)
+                        romaLine = search(timestamp,Object.keys(vue.lrcRomaOriginal))
+                        romaLine = romaOriginal[romaLine]                        
+                        romaLine = romaLine ? romaLine.split(' ') : []
+                        lineTokens = []
+                        for (var i=0,romaIndex=0;i<lrcLine.length;i++){
+                            if (lrcLine.charAt(i) != ' '){
+                                roma = romaLine[romaIndex] ? romaLine[romaIndex] : ''    
+                                char = lrcLine.charAt(i)
+                                romaIndex++
+                            } else {
+                                roma = ' '
+                                char = roma
+                            }
+                            token = {"orig":char,"hepburn":roma,"kunrei":roma,"passport":roma}
+                            // don't really know what scheme netease used to convert non-japanese words to romaji
+                            // assign those to all of the convention names for convenience's sake
+                            lineTokens.push(token)                            
+                        }
+                        tokens[no] = lineTokens
+                    }
+                    tokenizerCallback({'data':tokens}) 
+                }         
             } catch {
-                vue.parsedLyrics = null
+                vue.lrcOriginal = null
+                vue.lrcRomaOriginal = null
+                vue.lrcTranslate = null
+                vue.lrcTokens = null
+
                 vue.matchedIndex = 0
             }
 
@@ -119,9 +176,13 @@ var vue = new Vue({
             }, vue.config.debounce)
         }
     },
-    methods: {        
+    methods: {
+        kakasi(lines){
+            console.log('[kakasi] tokenizing lines',lines)
+            return fetch(`${host}/api/kakasi?content=${lines.join('|')}`)
+        },
         request(query){
-            return fetch(`api/pyncm?withIP=${vue.config.useIP}&${query}`)
+            return fetch(`${host}/api/pyncm?withIP=${vue.config.useIP}&${query}`)
         },  
         toTimestamp:convertToTimestamp, 
         set:(...args)=>{
@@ -136,9 +197,17 @@ var vue = new Vue({
                 vue.bufferedPlaylist = data        
             })
         },
+        setBackgroundVideo: (url) => {            
+            vue.loadInfo = 'loading resources'      
+            vue.loading=true
+            setTimeout(()=>vue.loading=false,500)
+            vue.vplayer.src = url      
+        },
         setPlay: (evt) => {
             if (!evt) return
             vue.currentTrack = evt
+            vue.currentMV = null
+            vue.vplayer.src = ''
             vue.loadInfo = 'requesting track audio'
             vue.loading = true
             vue.request(new URLSearchParams({
@@ -170,7 +239,7 @@ var vue = new Vue({
                     }))).then(response => response.json()).then(
                         data => {
                             console.log(`[lyrics] lyrics requested for ${evt.id}`, data)
-                            vue.currentLyrics = data
+                            vue.currentLyrics = data                            
                         }
                     )
                 }).then(data => {
@@ -280,15 +349,15 @@ var vue = new Vue({
                     vue.error = true
                 })
         },
-        timestampAt: index => Object.keys(vue.parsedLyrics)[index],
+        timestampAt: index => Object.keys(vue.lrcOriginal)[index],
         lyricsAt: index => vue.parsedLyrics[vue.timestampAt(index)],
         downloadTrack: track => {
             console.log(`[download] ${track.url}`)
             vue.openWindow(track.url)
         },
         getLyricsPrecentage : (getDelta) => {
-            var played = vue.currentTime-vue.timestampAt(vue.matchedIndex - 1)
-            var total  = vue.timestampAt(vue.matchedIndex) - vue.timestampAt(vue.matchedIndex - 1)
+            var played = vue.currentTime-vue.timestampAt(vue.matchedIndex)
+            var total  = vue.timestampAt(vue.matchedIndex + 1) - vue.timestampAt(vue.matchedIndex)
             var precentage = (played/total)
             var val = vue.matchedIndex >= 1 ? (getDelta ? precentage - lastPrecentage : precentage) : 0
             lastPrecentage = precentage
@@ -302,19 +371,33 @@ var vue = new Vue({
         }
     }
 })
+
+vue.player = document.getElementById('player')
+vue.vplayer = document.getElementById('vplayer')
+
 var lastPrecentage = 0;
 
 vue.player.onended = () => {
     vue.opearteTrack('forward')
+    vue.vplayer.src = ''
 }
 var lastScrolled = 0;
 vue.player.ontimeupdate = () => {
     vue.duration = vue.player.duration
     vue.currentTime = vue.player.currentTime
-    if (vue.parsedLyrics) {
-        vue.matchedIndex = search(vue.currentTime, Object.keys(vue.parsedLyrics))
+    
+    if (vue.player.paused)
+        vue.vplayer.pause()
+    else if (vue.vplayer.paused && vue.vplayer.src)
+        vue.vplayer.play()
+    if (vue.vplayer.src){
+        if (Math.abs(vue.vplayer.currentTime - vue.player.currentTime) >= 5) 
+            vue.vplayer.currentTime = vue.player.currentTime        
+    }
+    if (vue.lrcOriginal) {
+        vue.matchedIndex = Math.max(search(vue.currentTime, Object.keys(vue.lrcOriginal)) - 1,0)
         if (lastScrolled != vue.matchedIndex) {
-            var el = document.getElementById('lyric-view-' + vue.timestampAt(vue.matchedIndex - 1))
+            var el = document.getElementById('lyric-view-' + vue.timestampAt(vue.matchedIndex))
             if (el) el.scrollIntoView({
                 block: 'center',
                 behavior:'smooth'
@@ -330,3 +413,4 @@ window.addEventListener('load', (event) => {
 },false);
 
 vue.player.crossOrigin = "anonymous"
+
