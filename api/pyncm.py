@@ -3,33 +3,23 @@ ENV_KEY = 'PYNCMD_SESSION'
 def generate_identity(phone,pwd):
     # Generates session data, which contatins everything we'd need
     # to recover a previous login state. No plaintext password is stored here.
-    from pyncm import GetCurrentSession
+    from pyncm import DumpSessionAsString,GetCurrentSession
     from pyncm.apis.login import LoginViaCellphone
     try:
         LoginViaCellphone(phone,pwd)
     except Exception as e:
         return 503 , str(e)
-    # Unfortunately, Vercel enviorns are limited to sizes below 4KB 
-    # and a raw dump would already be larger than that, without encoding overheads
-    # Here's some hack I don't really think should be added to PyNCM, but will do for now
-    from json import dumps
-    from zlib import compress # zlib handled this suprisingly well！(about 0.25x of original size)
-    from base64 import b64encode # ~1.2x orignal size
-    return 200, b64encode(compress(dumps(GetCurrentSession().dump()).encode())).decode()
+    return 200, DumpSessionAsString(GetCurrentSession())
 
 def load_identity():    
     # Loads session data from local file 'session'
     # and then tries to restore login state per-request
-    from pyncm import SetCurrentSession , Session
+    from pyncm import LoadSessionFromString,SetCurrentSession
     import os        
     if not ENV_KEY in os.environ:
         return print(f'[W] 找不到 {ENV_KEY} 环境变量，以游客模式继续')
     session = os.environ[ENV_KEY]
-    from json import loads
-    from zlib import decompress
-    from base64 import b64decode
-    session_obj = Session()
-    session_obj.load(loads(decompress(b64decode(session)).decode()))
+    session_obj = LoadSessionFromString(session)
     if not session_obj.login_info['success']:
         return print('[W] 配置不含有效登录态')
     SetCurrentSession(session_obj)
