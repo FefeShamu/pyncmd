@@ -30,7 +30,7 @@ class handler(BaseHTTPRequestHandler):
     self.query = parse_qs(self.query,keep_blank_values=True)    
     try:
         # Success responses are directly routed        
-        name , lrc = route(self.path,self.query, self)
+        name , lrc = "" , "Testme" # route(self.path,self.query, self)
         assert lrc, "No lyrics available."
         response = lrc.encode('utf-8')
         self.send_response(200)
