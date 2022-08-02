@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
-sys.path.pop(0) # Don't import pyncm.py here!
-
 def route(path , query , request):
     from pyncm import GetCurrentSession
     from pyncm.apis.track import GetTrackLyrics,GetTrackDetail
