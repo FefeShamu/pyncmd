@@ -3,10 +3,11 @@ import sys
 sys.path.pop(0) # Don't import pyncm.py here!
 
 def route(path , query , request):
+    from pyncm import GetCurrentSession
     from pyncm.apis.track import GetTrackLyrics,GetTrackDetail
     from pyncm.utils.lrcparser import LrcParser
     from pyncm.utils.helper import TrackHelper
-
+    GetCurrentSession().headers['X-Real-IP'] = '118.88.88.88'
     trackId = query['id'][-1]
     flags = {'lrc': False,'tlyric':False,'romalrc':False}
     flags = {**flags, **{k:True for k,v in query.items()}}
