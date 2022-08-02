@@ -23,7 +23,7 @@ def route(path , query , request):
 
 from http.server import BaseHTTPRequestHandler
 from urllib import response
-from urllib.parse import unquote,parse_qs,urlparse
+from urllib.parse import quote, unquote,parse_qs,urlparse
 from json import dumps
 import logging, sys
 logging.basicConfig(level=0,force=True,stream=sys.stdout)
@@ -42,7 +42,7 @@ class handler(BaseHTTPRequestHandler):
         response = lrc.encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/text; charset=utf-8')
-        self.send_header('Content-Disposition','attachment; filename="%s.lrc"' % name)
+        self._headers_buffer.append('Content-Disposition','attachment; filename="%s.lrc"' % quote(name))
         self.send_header('Content-Length',len(response))
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
@@ -54,6 +54,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(result['code'])
         response = dumps(result,ensure_ascii=False).encode('utf-8')
         self.send_header('Content-Type', 'application/json; charset=utf-8')
+        self.send_header('Content-Length',len(response))
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()    
         self.wfile.write(response)
