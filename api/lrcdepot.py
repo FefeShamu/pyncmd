@@ -10,15 +10,19 @@ def route(path , query , request):
     flags = {**flags, **{k:True for k,v in query.items()}}
     flags = {k for k,v in flags.items() if v}
     print('[I] ID=%s' % trackId,flags)
-    GetCurrentSession().headers['X-Real-IP'] = '118.88.88.88'
+    GetCurrentSession().force_http = True
+    GetCurrentSession().headers['X-Real-IP'] = '118.88.88.188'
     trackLyrics = GetTrackLyrics(trackId)
     parser = LrcParser()
     for flag in flags:
         if flag in trackLyrics:
             parser.LoadLrc(trackLyrics[flag]['lyric'])    
-    return TrackHelper(GetTrackDetail(trackId)).SanitizedTitle,parser.DumpLyrics()
+    tracks = GetTrackDetail(trackId)
+    track = tracks.get('songs',[])[0]
+    return TrackHelper(track).SanitizedTitle,parser.DumpLyrics()
 
 from http.server import BaseHTTPRequestHandler
+from urllib import response
 from urllib.parse import unquote,parse_qs,urlparse
 from json import dumps
 import logging, sys
@@ -42,7 +46,7 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length',len(response))
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        self.wfile.write(lrc.encode('utf-8'))
+        self.wfile.write(response)
     except Exception as e:
         # Errors will then be passed as 500s        
         result = {'code':'500','message':'Internal error : %s' % e}    
@@ -52,3 +56,8 @@ class handler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()    
         self.wfile.write(response)
+
+if __name__ == '__main__':
+    import sys
+    sys.path.pop(0)
+    print(route('',parse_qs('id=17177274&lrc',keep_blank_values=True),''))
