@@ -51,7 +51,7 @@ class handler(BaseHTTPRequestHandler):
         # Errors will then be passed as 500s   
         print('[W] Recevied exception',e)     
         result = {'code':'500','message':'Internal error : %s' % e}    
-        self.send_response(result['code'])
+        self.send_response(int(result['code']))
         response = dumps(result,ensure_ascii=False).encode('utf-8')
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length',len(response))
