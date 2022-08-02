@@ -28,6 +28,8 @@ def load_identity():
 
 def route(path , query , request):        
     # The query K-V always comes in [str]-[List[str]]
+    from pyncm import __version__
+    print('PyNCM',__version__)
     query = {k:v if len(v) > 1 else v[0] for k,v in query.items()}
     base , target = query.get('module','?'), query.get('method','?')
     if 'module' in query : del query['module']
