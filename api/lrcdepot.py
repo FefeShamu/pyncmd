@@ -48,7 +48,8 @@ class handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(response)
     except Exception as e:
-        # Errors will then be passed as 500s        
+        # Errors will then be passed as 500s   
+        print('[W] Recevied exception',e)     
         result = {'code':'500','message':'Internal error : %s' % e}    
         self.send_response(result['code'])
         response = dumps(result,ensure_ascii=False).encode('utf-8')
