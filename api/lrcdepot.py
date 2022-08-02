@@ -36,7 +36,7 @@ class handler(BaseHTTPRequestHandler):
     self.query = parse_qs(self.query,keep_blank_values=True)    
     try:
         # Success responses are directly routed        
-        name , lrc = "" ,route(self.path,self.query, self)
+        name , lrc = route(self.path,self.query, self)
         assert lrc, "No lyrics available."
         print('[I] Got lyrics for',name)
         response = lrc.encode('utf-8')
@@ -60,4 +60,4 @@ class handler(BaseHTTPRequestHandler):
 if __name__ == '__main__':
     import sys
     sys.path.pop(0)
-    print(route('',parse_qs('id=17177274&lrc',keep_blank_values=True),''))
+    print(route('',parse_qs('id=214421&lrc',keep_blank_values=True),''))
