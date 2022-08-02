@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 def route(path , query , request):
+    print('[I] From query',query)
     from pyncm import GetCurrentSession
     from pyncm.apis.track import GetTrackLyrics,GetTrackDetail
     from pyncm.utils.lrcparser import LrcParser
     from pyncm.utils.helper import TrackHelper
-    GetCurrentSession().headers['X-Real-IP'] = '118.88.88.88'
     trackId = query['id'][-1]
     flags = {'lrc': False,'tlyric':False,'romalrc':False}
     flags = {**flags, **{k:True for k,v in query.items()}}
     flags = {k for k,v in flags.items() if v}
+    print('[I] ID=%s' % trackId,flags)
+    GetCurrentSession().headers['X-Real-IP'] = '118.88.88.88'
     trackLyrics = GetTrackLyrics(trackId)
     parser = LrcParser()
     for flag in flags:
@@ -30,12 +32,12 @@ class handler(BaseHTTPRequestHandler):
     self.query = parse_qs(self.query,keep_blank_values=True)    
     try:
         # Success responses are directly routed        
-        name , lrc = "" , "Testme" # route(self.path,self.query, self)
+        name , lrc = "" ,route(self.path,self.query, self)
         assert lrc, "No lyrics available."
         response = lrc.encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/text; charset=utf-8')
-        self.send_header('Content-Disposition','attachment; filename="%s.jpg"' % name)
+        self.send_header('Content-Disposition','attachment; filename="%s.lrc"' % name)
         self.send_header('Content-Length',len(response))
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
