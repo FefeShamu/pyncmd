@@ -1,5 +1,5 @@
 # PyNCMd - Vercel 云函数
-![Screencap](https://raw.githubusercontent.com/greats3an/pyncmd/master/screenshot/shot1.gif)
+![Screencap](https://user-images.githubusercontent.com/31397301/181492452-7d703fca-47a9-4a56-8659-0906aa1ec88c.png)
 
 ## API 服务设置
 ### 初始化
