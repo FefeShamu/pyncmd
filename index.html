@@ -17,34 +17,41 @@
 
     <style media="screen">
         body {
-            overflow: hidden;            
+            overflow: hidden;
         }
-        .background{
+
+        .background {
             position: absolute;
             z-index: 0;
-            top: 0;left: 0;
-            height: calc(100vh - 80px);
-            width: 100vw;
-        }
-        #visualizer,#vplayer {
-            position: absolute;
-            top: 0;left: 0;
+            top: 0;
+            left: 0;
             height: calc(100vh - 80px);
             width: 100vw;
         }
 
-        #vplayer{            
+        #visualizer,
+        #vplayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: calc(100vh - 80px);
+            width: 100vw;
+        }
+
+        #vplayer {
             z-index: 0;
         }
 
-        .progressing,.progressing * {
+        .progressing,
+        .progressing * {
             transition: all 0.25s linear;
             opacity: 1 !important;
         }
 
-        .progressing > .lyrics-translation{
+        .progressing>.lyrics-translation {
             transition: all 0.1s linear;
         }
+
         @keyframes shake {
             50% {
                 transform: translate(3px, 3px)
@@ -80,7 +87,7 @@
         .lyrics-token-roma,
         .lyrics-token-original {
             grid-column: 1;
-            overflow: hidden;            
+            overflow: hidden;
             -webkit-text-fill-color: transparent;
         }
 
@@ -167,25 +174,26 @@
                 <video muted id="vplayer"></video>
                 <canvas onclick="document.body.requestFullscreen()" id="visualizer"></canvas>
             </div>
-            
+
             <div v-if="lrcTokens && config.showLyrics" v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}">
                 <div class="lyrics-translation" v-if="lrcTranslate">
                     {{lrcTranslate[timestampAt(matchedIndex)]}}
                 </div>
                 <div class="lyrics-lines">
-                    <div class="lyrics-line lyrics-line-1" 
+                    <div class="lyrics-line lyrics-line-1"
                         v-bind:style="{'background-position':(1-Math.min(getLyricsPrecentage() * 1.2,1))*100 + '% 100%'}">
                         <div class="lyrics-token" v-for="token in lrcTokens[matchedIndex]">
                             <!-- pre is used since others don't display single half-width spaces at all -->
-                            <pre v-if="checkRoma" class="lyrics-token-roma">{{token[config.romaConventionUseHepburnOrKunreiOrPassport]}}</pre>
+                            <pre v-if="checkRoma"
+                                class="lyrics-token-roma">{{token[config.romaConventionUseHepburnOrKunreiOrPassport]}}</pre>
                             <pre v-if="checkOriginal" class="lyrics-token-original">{{token.orig}}</pre>
                         </div>
                     </div>
 
-                    <div class="lyrics-line lyrics-line-2"
-                        v-bind:style="{'background-position':'100%'}">
+                    <div class="lyrics-line lyrics-line-2" v-bind:style="{'background-position':'100%'}">
                         <div class="lyrics-token" v-for="token in lrcTokens[matchedIndex + 1]">
-                            <pre v-if="checkRoma" class="lyrics-token-roma">{{token[config.romaConventionUseHepburnOrKunreiOrPassport]}}</pre>
+                            <pre v-if="checkRoma"
+                                class="lyrics-token-roma">{{token[config.romaConventionUseHepburnOrKunreiOrPassport]}}</pre>
                             <pre v-if="checkOriginal" class="lyrics-token-original">{{token.orig}}</pre>
                         </div>
                     </div>
@@ -259,140 +267,139 @@
                     </v-container>
                     <v-list>
                         <v-list-item-group>
-                        <v-list-item>
-                            <v-list-item-content>
-                                <v-list-item-title><a target="_blank"
-                                        :href="'https://music.163.com/#/song?id=' + currentTrack.id">
-                                        <strong>{{ currentTrack.name }}</strong>
-                                    </a></v-list-item-title>
-                                <v-list-item-subtitle>
-                                    {{currentTrack.ar.map(function(f){return f.name}).join('/')}} -
-                                    {{currentTrack.al.name}}
-                                </v-list-item-subtitle>
-                            </v-list-item-content>
-                            <v-spacer></v-spacer>
-                            <v-list-item-icon>
-                                <v-btn icon @click="
+                            <v-list-item>
+                                <v-list-item-content>
+                                    <v-list-item-title><a target="_blank"
+                                            :href="'https://music.163.com/#/song?id=' + currentTrack.id">
+                                            <strong>{{ currentTrack.name }}</strong>
+                                        </a></v-list-item-title>
+                                    <v-list-item-subtitle>
+                                        {{currentTrack.ar.map(function(f){return f.name}).join('/')}} -
+                                        {{currentTrack.al.name}}
+                                    </v-list-item-subtitle>
+                                </v-list-item-content>
+                                <v-spacer></v-spacer>
+                                <v-list-item-icon>
+                                    <v-btn icon @click="
                                     shuffleMode = shuffleModes[(shuffleModes.indexOf(shuffleMode) + 1) % shuffleModes.length]
                                 ">
-                                    <v-icon>mdi-{{ shuffleMode }}</v-icon>
-                                </v-btn>
-                            </v-list-item-icon>
-                            <v-list-item-icon>
-                                <v-btn icon @click="opearteTrack('rewind')">
-                                    <v-icon>mdi-rewind</v-icon>
-                                </v-btn>
-                            </v-list-item-icon>
-                            <v-list-item-icon :class="{ 'mx-5': $vuetify.breakpoint.mdAndUp }">
-                                <v-btn icon @click="opearteTrack('pause')">
-                                    <v-icon v-if="!player.paused">mdi-pause</v-icon>
-                                    <v-icon v-else>mdi-play</v-icon>
-                                </v-btn>
-                            </v-list-item-icon>
-                            <v-list-item-icon class="ml-0" :class="{ 'mr-3': $vuetify.breakpoint.mdAndUp }">
-                                <v-btn icon @click="opearteTrack('forward')">
-                                    <v-icon>mdi-fast-forward</v-icon>
-                                </v-btn>
-                            </v-list-item-icon>
-                            <v-menu>
-                                <template v-slot:activator="{ on }">
-                                    <v-list-item-icon class="ml-0">
-                                        <v-btn icon v-on="on">
-                                            <v-icon>mdi-dots-vertical</v-icon>
-                                        </v-btn>
-                                    </v-list-item-icon>
-                                </template>
-                                <v-list>
-                                    <v-list-item v-if="currentAudio" @click="downloadTrack(currentAudio)">
-                                        <v-list-item-title>
-                                            <v-icon>mdi-download</v-icon> Download
-                                        </v-list-item-title>
-                                    </v-list-item>
-                                    
-                                    <v-dialog>
-                                        <template v-slot:activator="{ on }">
-                                            <v-list-item>
-                                                <v-list-item-title v-on="on" style="cursor:default;">
-                                                    <v-icon>mdi-script-text</v-icon> Lyrics
-                                                </v-list-item-title>
-                                            </v-list-item>
-                                        </template>
-                                        <v-card>
-                                            <v-card-title>
-                                                <a class="headline"
-                                                    v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{
-                                                    currentTrack.name }} - {{currentTrack.ar.map(function(f){return
-                                                    f.name}).join('/')}} - {{currentTrack.al.name}}</a>
-                                                <v-btn style="position: absolute;right:1em;z-index: 10"
-                                                    onclick="window.print()" class="v-input">
-                                                    <v-icon>mdi-printer</v-icon>打印
-                                                </v-btn>
-                                                <v-row no-gutters>
-                                                    <v-col>
-                                                        <v-checkbox v-model="checkOriginal" label="歌词原文"></v-checkbox>
-                                                    </v-col>
-                                                    <v-col>
-                                                        <v-checkbox v-model="checkRoma" label="罗马音"></v-checkbox>
-                                                    </v-col>
-                                                    <v-col>
-                                                        <v-checkbox v-model="checkTranslate" label="翻译"></v-checkbox>
-                                                    </v-col>
-                                                </v-row>
-                                            </v-card-title>
-                                            <hr>
-                                            </hr>
-                                            <v-simple-table v-if="lrcOriginal">
-                                                <template v-slot:default>
-                                                    <tbody>
-                                                        <tr v-bind:class="{ 'lyrics-active' : timestampAt(matchedIndex)==key }"
-                                                            v-for="[key, value] of Object.entries(lrcOriginal)"
-                                                            v-if="value[0]" :key="key" :id="'lyric-view-'+key"
-                                                            @click="player.currentTime=key">
-                                                            <td role="menu">{{toTimestamp(key)}}</td>
-                                                            <td v-if="checkOriginal"> {{value}} </td>
-                                                            <td v-if="checkRoma"> {{lrcRomaOriginal[key]}}</td>
-                                                            <td v-if="checkTranslate"> {{lrcTranslate[key]}}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </template>
-                                            </v-simple-table>
-                                        </v-card>
-                                    </v-dialog>
+                                        <v-icon>mdi-{{ shuffleMode }}</v-icon>
+                                    </v-btn>
+                                </v-list-item-icon>
+                                <v-list-item-icon>
+                                    <v-btn icon @click="opearteTrack('rewind')">
+                                        <v-icon>mdi-rewind</v-icon>
+                                    </v-btn>
+                                </v-list-item-icon>
+                                <v-list-item-icon :class="{ 'mx-5': $vuetify.breakpoint.mdAndUp }">
+                                    <v-btn icon @click="opearteTrack('pause')">
+                                        <v-icon v-if="!player.paused">mdi-pause</v-icon>
+                                        <v-icon v-else>mdi-play</v-icon>
+                                    </v-btn>
+                                </v-list-item-icon>
+                                <v-list-item-icon class="ml-0" :class="{ 'mr-3': $vuetify.breakpoint.mdAndUp }">
+                                    <v-btn icon @click="opearteTrack('forward')">
+                                        <v-icon>mdi-fast-forward</v-icon>
+                                    </v-btn>
+                                </v-list-item-icon>
+                                <v-menu>
+                                    <template v-slot:activator="{ on }">
+                                        <v-list-item-icon class="ml-0">
+                                            <v-btn icon v-on="on">
+                                                <v-icon>mdi-dots-vertical</v-icon>
+                                            </v-btn>
+                                        </v-list-item-icon>
+                                    </template>
+                                    <v-list>
+                                        <v-list-item v-if="currentAudio" @click="downloadTrack(currentAudio)">
+                                            <v-list-item-title>
+                                                <v-icon>mdi-download</v-icon> Download
+                                            </v-list-item-title>
+                                        </v-list-item>
 
-                                    <v-dialog>
-                                        <template v-slot:activator="{ on }">
-                                            <v-list-item v-on="on" style="cursor:default;">
-                                                <v-list-item-title>
-                                                    <v-icon>mdi-file-video-outline</v-icon> MV
-                                                </v-list-item-title>
-                                            </v-list-item>
-                                        </template>
-                                        <v-card class="mx-auto" tile>
-                                            <v-card-title>
-                                                MV 相关信息
-                                            </v-card-title>
-                                            <hr>
-                                            </hr>
-                                            <div v-if="!currentMV">无 MV</div>
-                                            <v-list v-if="currentMV">
-                                                <v-list-item-group>
+                                        <v-dialog>
+                                            <template v-slot:activator="{ on }">
                                                 <v-list-item>
-                                                    <v-list-item-title style="cursor:default;" @click="downloadTrack(currentMV.data)">
-                                                        <v-icon>mdi-download</v-icon> 下载 MV
+                                                    <v-list-item-title v-on="on" style="cursor:default;">
+                                                        <v-icon>mdi-script-text</v-icon> Lyrics
                                                     </v-list-item-title>
                                                 </v-list-item>
-                                                <v-list-item>
-                                                    <v-list-item-title style="cursor:default;" @click="setBackgroundVideo(currentMV.data.url)">
-                                                        <v-icon>mdi-play</v-icon> 背景播放 MV
+                                            </template>
+                                            <v-card>
+                                                <v-card-title>
+                                                    <a class="headline"
+                                                        v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{
+                                                        currentTrack.name }} - {{currentTrack.ar.map(function(f){return
+                                                        f.name}).join('/')}} - {{currentTrack.al.name}}</a>
+                                                    <v-card-actions>
+                                                        <v-checkbox v-model="checkOriginal" label="歌词原文"></v-checkbox>
+                                                        <v-checkbox v-model="checkRoma" label="罗马音"></v-checkbox>
+                                                        <v-checkbox v-model="checkTranslate" label="翻译"></v-checkbox>
+                                                        <v-btn onclick="window.print()">
+                                                            <v-icon>mdi-printer</v-icon>打印
+                                                        </v-btn>
+                                                        <v-btn
+                                                            :href="host + '/api/lrcdepot?id=' +  currentTrack.id + (checkOriginal ? '&lrc' : '') + (checkRoma ? '&romalrc' : '') + (checkTranslate ? '&tlyric' : '')">
+                                                            <v-icon>mdi-content-save</v-icon>保存 LRC
+                                                        </v-btn>
+                                                    </v-card-actions>
+                                                </v-card-title>
+                                                <hr>
+                                                </hr>
+                                                <v-simple-table v-if="lrcOriginal">
+                                                    <template v-slot:default>
+                                                        <tbody>
+                                                            <tr v-bind:class="{ 'lyrics-active' : timestampAt(matchedIndex)==key }"
+                                                                v-for="[key, value] of Object.entries(lrcOriginal)"
+                                                                v-if="value[0]" :key="key" :id="'lyric-view-'+key"
+                                                                @click="player.currentTime=key">
+                                                                <td role="menu">{{toTimestamp(key)}}</td>
+                                                                <td v-if="checkOriginal"> {{value}} </td>
+                                                                <td v-if="checkRoma"> {{lrcRomaOriginal[key]}}</td>
+                                                                <td v-if="checkTranslate"> {{lrcTranslate[key]}}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </template>
+                                                </v-simple-table>
+                                            </v-card>
+                                        </v-dialog>
+
+                                        <v-dialog>
+                                            <template v-slot:activator="{ on }">
+                                                <v-list-item v-on="on" style="cursor:default;">
+                                                    <v-list-item-title>
+                                                        <v-icon>mdi-file-video-outline</v-icon> MV
                                                     </v-list-item-title>
                                                 </v-list-item>
-                                            </v-list-item-group>
-                                            <v-list>
-                                        </v-card>
-                                    </v-dialog>
-                                </v-list>
-                            </v-menu>
-                        </v-list-item>
+                                            </template>
+                                            <v-card class="mx-auto" tile>
+                                                <v-card-title>
+                                                    MV 相关信息
+                                                </v-card-title>
+                                                <hr>
+                                                </hr>
+                                                <div v-if="!currentMV">无 MV</div>
+                                                <v-list v-if="currentMV">
+                                                    <v-list-item-group>
+                                                        <v-list-item>
+                                                            <v-list-item-title style="cursor:default;"
+                                                                @click="downloadTrack(currentMV.data)">
+                                                                <v-icon>mdi-download</v-icon> 下载 MV
+                                                            </v-list-item-title>
+                                                        </v-list-item>
+                                                        <v-list-item>
+                                                            <v-list-item-title style="cursor:default;"
+                                                                @click="setBackgroundVideo(currentMV.data.url)">
+                                                                <v-icon>mdi-play</v-icon> 背景播放 MV
+                                                            </v-list-item-title>
+                                                        </v-list-item>
+                                                    </v-list-item-group>
+                                                    <v-list>
+                                            </v-card>
+                                        </v-dialog>
+                                    </v-list>
+                                </v-menu>
+                            </v-list-item>
                         </v-list-item-group>
                     </v-list>
 

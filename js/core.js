@@ -8,6 +8,7 @@ var vue = new Vue({
         }
     ),
     data: () => ({
+        host : host,
         newURL: '',
 
         currentAudio: null,
