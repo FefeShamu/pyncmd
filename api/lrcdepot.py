@@ -34,6 +34,7 @@ class handler(BaseHTTPRequestHandler):
         # Success responses are directly routed        
         name , lrc = "" ,route(self.path,self.query, self)
         assert lrc, "No lyrics available."
+        print('[I] Got lyrics for',name)
         response = lrc.encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/text; charset=utf-8')
