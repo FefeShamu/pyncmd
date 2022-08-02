@@ -34,9 +34,11 @@ class handler(BaseHTTPRequestHandler):
         # Success responses are directly routed        
         name , lrc = route(self.path,self.query, self)
         assert lrc, "No lyrics available."
+        response = lrc.encode('utf-8')
         self.send_response(200)
-        self.send_header('Content-type', 'application/text; charset=utf-8')
-        self.send_error('Content-Disposition','attachment; filename="%s.jpg"' % name)
+        self.send_header('Content-Type', 'application/text; charset=utf-8')
+        self.send_header('Content-Disposition','attachment; filename="%s.jpg"' % name)
+        self.send_header('Content-Length',len(response))
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
         self.wfile.write(lrc.encode('utf-8'))
@@ -45,7 +47,7 @@ class handler(BaseHTTPRequestHandler):
         result = {'code':'500','message':'Internal error : %s' % e}    
         self.send_response(result['code'])
         response = dumps(result,ensure_ascii=False).encode('utf-8')
-        self.send_header('Content-type', 'application/json; charset=utf-8')
+        self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()    
         self.wfile.write(response)

@@ -108,7 +108,7 @@ class handler(BaseHTTPRequestHandler):
         # Errors will then be passed as 500s        
         result = {'code':'500','message':'Internal error : %s' % e}    
     self.send_response(int(result.get('code',200)))
-    self.send_header('Content-type', 'application/json; charset=utf-8')
+    self.send_header('Content-Type', 'application/json; charset=utf-8')
     self.send_header('Access-Control-Allow-Origin','*')
     self.end_headers()    
     response = dumps(result,ensure_ascii=False).encode('utf-8')
