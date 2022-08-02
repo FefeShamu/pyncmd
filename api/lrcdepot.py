@@ -42,7 +42,7 @@ class handler(BaseHTTPRequestHandler):
         response = lrc.encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/text; charset=utf-8')
-        self._headers_buffer.append('Content-Disposition','attachment; filename="%s.lrc"' % quote(name))
+        self.send_header('Content-Disposition','attachment; filename="%s.lrc"' % quote(name))
         self.send_header('Content-Length',len(response))
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
