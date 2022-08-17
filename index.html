@@ -176,7 +176,7 @@
             </div>
 
             <div v-if="lrcTokens && config.showLyrics" v-bind:class="{'progressing' : getLyricsPrecentage(true) > 0}">
-                <div class="lyrics-translation" v-if="lrcTranslate">
+                <div v-if="checkTranslate" class="lyrics-translation" v-if="lrcTranslate">
                     {{lrcTranslate[timestampAt(matchedIndex)]}}
                 </div>
                 <div class="lyrics-lines">

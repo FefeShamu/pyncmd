@@ -389,7 +389,7 @@ vue.player.ontimeupdate = () => {
     
     if (vue.player.paused)
         vue.vplayer.pause()
-    else if (vue.vplayer.paused && vue.vplayer.src)
+    else if (vue.vplayer.paused && vue.vplayer.networkState == 1)
         vue.vplayer.play()
     if (vue.vplayer.src){
         if (Math.abs(vue.vplayer.currentTime - vue.player.currentTime) >= 5) 
