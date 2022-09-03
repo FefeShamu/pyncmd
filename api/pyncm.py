@@ -58,7 +58,9 @@ def route(path , query , request):
     if ident_info is None:
         from pyncm.apis.login import _LoginViaAnonymousAccount
         # TODO : Something more elegant than this?
-        if target in {'GetTrackAudio'}:
+        # realIP should be mainland once since it would crash the APIs otherwise
+        if target in {'GetTrackAudio'}:            
+            realIP = '118.88.88.88'
             resp = _LoginViaAnonymousAccount()
             print('[D] Anonymous login returned %s' % resp)
         print('[W] 匿名（游客）身份操作。请参见 README ： https://github.com/mos9527/pyncmd')
