@@ -153,7 +153,9 @@
         canvas {
             display: none;
         }
-
+        .lyric-options {
+            display: none;
+        }
         tbody {
             height: 100vh;
             font-size: 1.5vw;
@@ -331,7 +333,7 @@
                                                         v-on:click="openWindow('https://music.163.com/#/song?id=' + currentTrack.id)">{{
                                                         currentTrack.name }} - {{currentTrack.ar.map(function(f){return
                                                         f.name}).join('/')}} - {{currentTrack.al.name}}</a>
-                                                    <v-card-actions>
+                                                    <v-card-actions class="lyric-options">
                                                         <v-checkbox v-model="checkOriginal" label="歌词原文"></v-checkbox>
                                                         <v-checkbox v-model="checkRoma" label="罗马音"></v-checkbox>
                                                         <v-checkbox v-model="checkTranslate" label="翻译"></v-checkbox>
