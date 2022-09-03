@@ -57,8 +57,10 @@ def route(path , query , request):
     ident_info = load_identity()
     if ident_info is None:
         from pyncm.apis.login import _LoginViaAnonymousAccount
-        resp = _LoginViaAnonymousAccount()
-        print('[D] Anonymous login returned %s' % resp)
+        # TODO : Something more elegant than this?
+        if target in {'GetTrackAudio'}:
+            resp = _LoginViaAnonymousAccount()
+            print('[D] Anonymous login returned %s' % resp)
         print('[W] 匿名（游客）身份操作。请参见 README ： https://github.com/mos9527/pyncmd')
     print('[D] PyNCM API Call %s.%s' % (base,target))    
     err = lambda code,msg:{'code' : code , 'message' : msg}
