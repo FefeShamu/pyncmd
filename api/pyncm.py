@@ -56,11 +56,8 @@ def route(path , query , request):
     # Pop method descriptors before we actually pass the arguments
     ident_info = load_identity()
     if ident_info is None:
-        from pyncm.apis.login import LoginViaAnonymousAccount
-        # TODO : Something more elegant than this?
-        # realIP should be mainland once since it would crash the APIs otherwise
-        if target in {'GetTrackAudio'}:            
-            realIP = '118.88.88.88'
+        from pyncm.apis.login import LoginViaAnonymousAccount               
+        if target in {'GetTrackAudio'}:                        
             resp = LoginViaAnonymousAccount()
             print('[D] Anonymous login returned %s' % resp)
         print('[W] 匿名（游客）身份操作。请参见 README ： https://github.com/mos9527/pyncmd')
