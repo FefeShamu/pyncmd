@@ -1,4 +1,4 @@
-const host = location.origin == "file://" || location.hostname === "localhost" || location.hostname === "127.0.0.1" ? 'https://pyncmd.vercel.app' : '';
+const IS_LOCAL = location.origin == "file://" || location.hostname == "localhost" || location.hostname == "127.0.0.1"
 const id_regex = /\d{5,}/gm;
 var vue = new Vue({
     el: '#app',
@@ -8,7 +8,7 @@ var vue = new Vue({
         }
     ),
     data: () => ({
-        host : host,
+        IS_LOCAL : IS_LOCAL,
         newURL: '',
 
         currentAudio: null,
@@ -178,12 +178,15 @@ var vue = new Vue({
         }
     },
     methods: {
+        fetch(url){            
+            return fetch(`${(IS_LOCAL || location.host.search('mos9527') >= 0) ? 'https://pyncmd.vercel.app' : ''}${url}`)
+        },
         kakasi(lines){
             console.log('[kakasi] tokenizing lines',lines)
-            return fetch(`${host}/api/kakasi?content=${lines.join('|')}`)
+            return vue.fetch(`/api/kakasi?content=${lines.join('|')}`)
         },
         request(query){
-            return fetch(`${host}/api/pyncm?withIP=${vue.config.useIP}&${query}`)
+            return vue.fetch(`/api/pyncm?withIP=${vue.config.useIP}&${query}`)
         },  
         toTimestamp:convertToTimestamp, 
         set:(...args)=>{
