@@ -341,7 +341,7 @@
                                                             <v-icon>mdi-printer</v-icon>打印
                                                         </v-btn>
                                                         <v-btn
-                                                            :href="host + '/api/lrcdepot?id=' +  currentTrack.id + (checkOriginal ? '&lrc' : '') + (checkRoma ? '&romalrc' : '') + (checkTranslate ? '&tlyric' : '')">
+                                                            :href='/api/lrcdepot?id=' +  currentTrack.id + (checkOriginal ? '&lrc' : '') + (checkRoma ? '&romalrc' : '') + (checkTranslate ? '&tlyric' : '')">
                                                             <v-icon>mdi-content-save</v-icon>保存 LRC
                                                         </v-btn>
                                                     </v-card-actions>
