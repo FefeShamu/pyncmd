@@ -108,10 +108,10 @@ class handler(BaseHTTPRequestHandler):
     try:
         # Success responses are directly routed        
         result = route(self.path,self.query, self)
-    except Exception as e:
-        # Errors will then be passed as 500s        
-        result = {'code':'500','message':'Internal error : %s' % e}    
-    self.send_response(int(result.get('code',200)))
+    except Exception as e:        
+        result = {'code':'500','message':'PyNCMd error : %s' % e}    
+    # Responses are sent with 200 (otherwise Vercel will intercept them...?)
+    self.send_response(200)
     self.send_header('Content-Type', 'application/json; charset=utf-8')
     self.send_header('Access-Control-Allow-Origin','*')
     self.end_headers()    
