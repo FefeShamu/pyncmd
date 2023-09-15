@@ -34,6 +34,11 @@ def route(path , query , request):
     base , target = query.get('module','?'), query.get('method','?')
     if 'module' in query : del query['module']
     if 'method' in query : del query['method']
+    # Random deviceId
+    from pyncm import GetCurrentSession
+    from pyncm.utils.constant import known_good_deviceIds
+    from random import choice as rnd_choice
+    GetCurrentSession().deviceId = rnd_choice(known_good_deviceIds)
     # `withIP` : Modifing IP header
     realIP = '118.88.88.88'
     # For default, 118.88.88.88 is used because...well, everyone was using it
