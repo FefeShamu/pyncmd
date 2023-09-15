@@ -7,6 +7,7 @@
 - 在 Vercel 导入项目
 ### 配置网易云账号
 - 进入 `[Vercel 提供的域名]/api/pyncm?module=identity&phone=[你的手机号]&pwd=[你的明文密码]`
+- (可选）使用不同国家代码可加入参数 `...&ctcode=[国家代码]`
 - 响应报文应形式如下 `{"code": 200, "message": "14802a8dcecd7b925b20a546d635e059d28...`,复制 `message` 的值
 - 在 Vercel 项目配置新建环境变量 `PYNCMD_SESSION`, 填入该值
 
