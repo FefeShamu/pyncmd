@@ -34,12 +34,6 @@ def route(path , query , request):
     base , target = query.get('module','?'), query.get('method','?')
     if 'module' in query : del query['module']
     if 'method' in query : del query['method']
-    # Random deviceId
-    from pyncm import GetCurrentSession
-    from pyncm.utils.constant import known_good_deviceIds
-    from random import choice as rnd_choice
-    GetCurrentSession().deviceId = rnd_choice(known_good_deviceIds)
-    print('[D] Choosing random deviceId',GetCurrentSession().deviceId)
     # `withIP` : Modifing IP header
     realIP = '118.88.88.88'
     # For default, 118.88.88.88 is used because...well, everyone was using it
@@ -61,6 +55,11 @@ def route(path , query , request):
         del query['withIP']
     # Pop method descriptors before we actually pass the arguments
     ident_info = load_identity()
+    # Random deviceId
+    from pyncm.utils.constant import known_good_deviceIds
+    from random import choice as rnd_choice
+    pyncm.GetCurrentSession().deviceId = rnd_choice(known_good_deviceIds)
+    print('[D] Choosing random deviceId',pyncm.GetCurrentSession().deviceId)
     if ident_info is None:
         from pyncm.apis.login import LoginViaAnonymousAccount               
         if target in {'GetTrackAudio'}:                        
@@ -97,7 +96,7 @@ def route(path , query , request):
     # Adding these as well
     response['requestIP'] = realIP
     response['clientIP'] = request.headers['x-real-ip']
-    response['deviceId'] = GetCurrentSession().deviceId
+    response['deviceId'] = pyncm.GetCurrentSession().deviceId
     return response
 
 from http.server import BaseHTTPRequestHandler
