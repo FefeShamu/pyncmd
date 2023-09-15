@@ -56,6 +56,7 @@ def route(path , query , request):
     # Pop method descriptors before we actually pass the arguments
     ident_info = load_identity()
     # Random deviceId
+    import pyncm,pyncm.apis
     from pyncm.utils.constant import known_good_deviceIds
     from random import choice as rnd_choice
     pyncm.GetCurrentSession().deviceId = rnd_choice(known_good_deviceIds)
@@ -72,8 +73,7 @@ def route(path , query , request):
         if ident_info is None:        
             return err(*generate_identity(query['phone'],query['pwd'],query.get('ctcode',86)))
         else:            
-            return err(503,'Session environ "session" non-empty. See https://github.com/mos9527/pyncmd for more info')
-    import pyncm,pyncm.apis
+            return err(503,'Session environ "session" non-empty. See https://github.com/mos9527/pyncmd for more info')    
     if realIP:
         print('[D] Reporting IP as',realIP)
         pyncm.GetCurrentSession().headers['X-Real-IP'] = realIP
