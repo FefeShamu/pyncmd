@@ -1,12 +1,12 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*
 ENV_KEY = 'PYNCMD_SESSION'
-def generate_identity(phone,pwd):
+def generate_identity(phone,pwd,ctcode):
     # Generates session data, which contatins everything we'd need
     # to recover a previous login state. No plaintext password is stored here.
     from pyncm import DumpSessionAsString,GetCurrentSession
     from pyncm.apis.login import LoginViaCellphone
     try:
-        LoginViaCellphone(phone,pwd)
+        LoginViaCellphone(phone,pwd,ctcode=ctcode)
     except Exception as e:
         return 503 , str(e)
     return 200, DumpSessionAsString(GetCurrentSession())
@@ -65,7 +65,7 @@ def route(path , query , request):
     err = lambda code,msg:{'code' : code , 'message' : msg}
     if base == 'identity':
         if ident_info is None:        
-            return err(*generate_identity(query['phone'],query['pwd']))
+            return err(*generate_identity(query['phone'],query['pwd'],query.get('ctcode',86)))
         else:            
             return err(503,'Session environ "session" non-empty. See https://github.com/mos9527/pyncmd for more info')
     import pyncm,pyncm.apis
