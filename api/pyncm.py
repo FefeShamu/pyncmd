@@ -39,6 +39,7 @@ def route(path , query , request):
     from pyncm.utils.constant import known_good_deviceIds
     from random import choice as rnd_choice
     GetCurrentSession().deviceId = rnd_choice(known_good_deviceIds)
+    print('[D] Choosing random deviceId',GetCurrentSession().deviceId)
     # `withIP` : Modifing IP header
     realIP = '118.88.88.88'
     # For default, 118.88.88.88 is used because...well, everyone was using it
@@ -96,6 +97,7 @@ def route(path , query , request):
     # Adding these as well
     response['requestIP'] = realIP
     response['clientIP'] = request.headers['x-real-ip']
+    response['deviceId'] = GetCurrentSession().deviceId
     return response
 
 from http.server import BaseHTTPRequestHandler
