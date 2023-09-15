@@ -10,6 +10,8 @@
 - (可选）使用不同国家代码可加入参数 `...&ctcode=[国家代码]`
 - 响应报文应形式如下 `{"code": 200, "message": "14802a8dcecd7b925b20a546d635e059d28...`,复制 `message` 的值
 - 在 Vercel 项目配置新建环境变量 `PYNCMD_SESSION`, 填入该值
+- 回到你的实例页面，在`Deployments`选择最新实例，进行`Redeploy`
+- 重新进入第一步的 URL 将会有以下输出: [503 Non-empty session](https://github.com/mos9527/pyncmd#%E9%94%99%E8%AF%AF%E4%BF%A1%E6%81%AF-faq)
 
 至此 API 配置介绍部分完毕。通过 `[Vercel 提供的域名]` 即可访问你的 `pyncmd` 实例
 
